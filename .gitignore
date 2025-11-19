@@ -1,0 +1,15 @@
+# React Native / Expo
+mobile-app/node_modules/
+mobile-app/.expo/
+mobile-app/.expo-shared/
+mobile-app/dist/
+
+# Java / Maven
+backend/target/
+backend/.idea/
+backend/.mvn/
+
+# Editor junk
+*.iml
+.DS_Store
+.vscode/

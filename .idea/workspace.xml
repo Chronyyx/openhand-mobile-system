@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Added Github Actions CI for backend and mobile">
-      <change beforePath="$PROJECT_DIR$/.github/workflows/mobile-ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/mobile-ci.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="fixed github CI errors">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/backend-ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/backend-ci.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,7 +65,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1763584443246</updated>
-      <workItem from="1763585227650" duration="1487000" />
+      <workItem from="1763585227650" duration="1999000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -84,7 +83,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763586512470</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="fixed github CI errors">
+      <option name="closed" value="true" />
+      <created>1763587021339</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1763587021339</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -93,6 +100,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit: Backend + Mobile App setup" />
     <MESSAGE value="Added Github Actions CI for backend and mobile" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Github Actions CI for backend and mobile" />
+    <MESSAGE value="fixed github CI errors" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed github CI errors" />
   </component>
 </project>

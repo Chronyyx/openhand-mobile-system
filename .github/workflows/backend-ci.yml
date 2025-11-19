@@ -3,11 +3,11 @@ name: Backend CI
 on:
   push:
     paths:
-      - "backend/**"
+      - "openhand-backend/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
     paths:
-      - "backend/**"
+      - "openhand-backend/**"
       - ".github/workflows/backend-ci.yml"
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend
+        working-directory: openhand-backend
 
     steps:
       - name: Checkout repository
@@ -27,16 +27,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('backend/**/*.gradle*', 'backend/**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache: gradle
 
       - name: Make gradlew executable
         run: chmod +x gradlew

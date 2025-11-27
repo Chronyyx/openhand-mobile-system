@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="containerized tha application(docker) with expo.">
-      <change afterPath="$PROJECT_DIR$/mobile-app/app/auth/login.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mobile-app/app/events/gala-2025.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mobile-app/app/settings/language.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/assets/images/Gala_image_Mana.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/assets/images/Interculturelle_Mana.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/assets/images/Slogan_Mana.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/assets/images/boutiqueSolidaire_Mana.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/assets/images/examenTEF_Mana.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/assets/images/manaLogo.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -89,7 +79,7 @@
       <updated>1763584443246</updated>
       <workItem from="1763585227650" duration="1999000" />
       <workItem from="1764192805699" duration="37000" />
-      <workItem from="1764192864698" duration="13087000" />
+      <workItem from="1764192864698" duration="14693000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -131,7 +121,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764207718036</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="containerized tha application(docker) with expo.">
+      <option name="closed" value="true" />
+      <created>1764211891657</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1764211891657</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

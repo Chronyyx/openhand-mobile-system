@@ -6,12 +6,38 @@ import {
   Image,
   ScrollView,
   Pressable,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
+
+  const handleWhatsAppContact = async () => {
+    const message =
+        "Bonjour amis de * MANA | Maison d’accueil *. Nous devons connaître les détails de certains services. J’écris à partir du site Web * MANA *.";
+
+    const appUrl = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(
+        message
+    )}`;
+    const webUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(
+        message
+    )}`;
+
+    try {
+      const canOpen = await Linking.canOpenURL(appUrl);
+      if (canOpen) {
+        await Linking.openURL(appUrl);
+      } else {
+        await Linking.openURL(webUrl);
+      }
+    } catch (err) {
+      console.warn("Unable to open WhatsApp", err);
+    }
+  };
 
   return (
       <View style={styles.container}>
@@ -132,12 +158,7 @@ export default function HomeScreen() {
         </ScrollView>
 
         {/* WHATSAPP FLOATING BUTTON */}
-        <Pressable
-            style={styles.whatsappButton}
-            onPress={() => {
-              // TODO: deeplink WhatsApp later
-            }}
-        >
+        <Pressable style={styles.whatsappButton} onPress={handleWhatsAppContact}>
           <Ionicons name="logo-whatsapp" size={26} color="#FFFFFF" />
         </Pressable>
       </View>

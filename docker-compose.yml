@@ -1,0 +1,60 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: openhand-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openhanddb
+      POSTGRES_USER: openhand
+      POSTGRES_PASSWORD: openhand
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    container_name: openhand-backend
+    build:
+      context: ./openhand-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/openhanddb
+      SPRING_DATASOURCE_USERNAME: openhand
+      SPRING_DATASOURCE_PASSWORD: openhand
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - db
+    volumes:
+      - backend-build-cache:/root/.gradle
+
+  mobile-app:
+    container_name: openhand-mobile-app
+    build:
+      context: ./mobile-app
+      dockerfile: Dockerfile
+    working_dir: /app
+    ports:
+      - "19000:19000"  # native dev server
+      - "19001:19001"  # Metro dev websocket
+      - "19002:19002"  # dev tools UI (maybe unused in new Expo, but fine)
+      - "8081:8081"    # web bundle
+    volumes:
+      - ./mobile-app:/app
+      - mobile-node-modules:/app/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      NODE_ENV: "development"
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: "0.0.0.0"
+      EXPO_NO_TELEMETRY: "1"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+volumes:
+  mobile-node-modules:
+  backend-build-cache:
+  db-data:

@@ -2,14 +2,11 @@ FROM node:20-bullseye
 
 WORKDIR /app
 
-# Install Expo CLI + ngrok globally so there is NO prompt
 RUN npm install -g expo@~54.0.0 @expo/ngrok@^4.1.0
 
-# Install app dependencies
 COPY package*.json ./
 RUN npm install
 
-# Copy the rest of the project
 COPY . .
 
 ENV CHOKIDAR_USEPOLLING=true \

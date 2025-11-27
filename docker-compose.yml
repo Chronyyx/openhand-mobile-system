@@ -36,10 +36,10 @@ services:
       dockerfile: Dockerfile
     working_dir: /app
     ports:
-      - "19000:19000"  # native dev server
-      - "19001:19001"  # Metro dev websocket
-      - "19002:19002"  # dev tools UI (maybe unused in new Expo, but fine)
-      - "8081:8081"    # web bundle
+      - "19000:19000"  
+      - "19001:19001"  
+      - "19002:19002"  
+      - "8081:8081"    
     volumes:
       - ./mobile-app:/app
       - mobile-node-modules:/app/node_modules

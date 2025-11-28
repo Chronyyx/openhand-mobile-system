@@ -2,16 +2,18 @@ name: Mobile App CI
 
 on:
   push:
+    branches: [ main ]
     paths:
       - "mobile-app/**"
       - ".github/workflows/mobile-ci.yml"
   pull_request:
+    branches: [ main ]
     paths:
       - "mobile-app/**"
       - ".github/workflows/mobile-ci.yml"
 
 jobs:
-  install-and-check:
+  mobile-install:
     runs-on: ubuntu-latest
 
     defaults:
@@ -30,11 +32,8 @@ jobs:
           cache-dependency-path: "mobile-app/package-lock.json"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      # Optional later when we add scripts
-      # - name: Run lint
-      #   run: npm run lint
-
+      # When you add scripts later, just uncomment / adapt:
       # - name: Run tests
       #   run: npm test

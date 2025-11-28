@@ -2,21 +2,44 @@ name: Backend CI
 
 on:
   push:
+    branches: [ main ]
     paths:
       - "openhand-backend/**"
       - ".github/workflows/backend-ci.yml"
   pull_request:
+    branches: [ main ]
     paths:
       - "openhand-backend/**"
       - ".github/workflows/backend-ci.yml"
 
 jobs:
-  build-and-test:
+  backend-tests:
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: openhand-backend
+
+    services:
+      db:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: openhanddb
+          POSTGRES_USER: openhand
+          POSTGRES_PASSWORD: openhand
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U openhand"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      # Spring Boot tests will see these and use the same DB config
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/openhanddb
+      SPRING_DATASOURCE_USERNAME: openhand
+      SPRING_DATASOURCE_PASSWORD: openhand
 
     steps:
       - name: Checkout repository
@@ -32,5 +55,14 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Wait for database
+        run: |
+          for i in {1..10}; do
+            nc -z localhost 5432 && echo "DB is up" && exit 0
+            echo "Waiting for DB..."
+            sleep 3
+          done
+          echo "DB did not start in time" && exit 1
+
       - name: Run tests
-        run: ./gradlew clean build -x test
+        run: ./gradlew clean test

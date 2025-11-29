@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/mobile-app/mobile-app.iml" filepath="$PROJECT_DIR$/mobile-app/mobile-app.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/openhand-mobile-system.iml" filepath="$PROJECT_DIR$/.idea/openhand-mobile-system.iml" />
     </modules>
   </component>

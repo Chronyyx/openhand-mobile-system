@@ -1,0 +1,90 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "save": "Sauvegarder",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "close": "Fermer"
+  },
+  "tabs": {
+    "home": "Accueil",
+    "explore": "Explorer"
+  },
+  "home": {
+    "browseEvents": "Parcourir les événements",
+    "loginRegister": "Se connecter / S'inscrire",
+    "changeLanguage": "Changer de langue",
+    "liveEmotion": "VIVEZ L'ÉMOTION",
+    "celebrateDiversity": "CÉLÉBREZ LA DIVERSITÉ",
+    "reserve": "RÉSERVER",
+    "latestNews": "Dernières actualités",
+    "ourServices": "Nos Services",
+    "ourServicesSubtitle": "Découvrez comment nous pouvons vous aider",
+    "services": {
+      "welcomeCanada": {
+        "title": "Accueil au Canada",
+        "description": "Premiers pas, orientation, soutien."
+      },
+      "foodAssistance": {
+        "title": "Aide Alimentaire",
+        "description": "Boutique solidaire, paniers, repas."
+      },
+      "schoolSupport": {
+        "title": "Soutien à l'école",
+        "description": "Accompagnement pour enfants et parents."
+      }
+    },
+    "footer": {
+      "copyright": "© 2025 Maison d'Accueil des Nouveaux Arrivants MANA",
+      "phone": "+1 (438) 837-9223"
+    }
+  },
+  "explore": {
+    "title": "Explorer",
+    "description": "Cette application comprend un exemple de code pour vous aider à démarrer.",
+    "fileRouting": {
+      "title": "Routage basé sur les fichiers",
+      "description1": "Cette application a deux écrans :",
+      "description2": "Le fichier de mise en page dans",
+      "description3": "configure le navigateur par onglets.",
+      "learnMore": "En savoir plus"
+    },
+    "platformSupport": {
+      "title": "Support Android, iOS et web",
+      "description": "Vous pouvez ouvrir ce projet sur Android, iOS et le web. Pour ouvrir la version web, appuyez sur w dans le terminal exécutant ce projet."
+    },
+    "images": {
+      "title": "Images",
+      "description": "Pour les images statiques, vous pouvez utiliser les suffixes @2x et @3x pour fournir des fichiers pour différentes densités d'écran"
+    },
+    "darkMode": {
+      "title": "Composants en mode clair et sombre",
+      "description": "Ce modèle prend en charge les modes clair et sombre. Le hook useColorScheme() vous permet d'inspecter le jeu de couleurs actuel de l'utilisateur, afin que vous puissiez ajuster les couleurs de l'interface utilisateur en conséquence."
+    },
+    "animations": {
+      "title": "Animations",
+      "description": "Ce modèle comprend un exemple de composant animé. Le composant components/HelloWave.tsx utilise la puissante bibliothèque react-native-reanimated pour créer une animation de main qui salue."
+    }
+  },
+  "auth": {
+    "title": "Se connecter / S'inscrire",
+    "placeholder": "TODO : construire le formulaire d'authentification."
+  },
+  "settings": {
+    "language": {
+      "title": "Changer de langue",
+      "subtitle": "Sélectionnez votre langue préférée",
+      "current": "Langue actuelle",
+      "languages": {
+        "english": "English (Anglais)",
+        "french": "Français",
+        "spanish": "Español (Espagnol)"
+      },
+      "success": "Langue changée avec succès"
+    }
+  },
+  "modal": {
+    "title": "Modal"
+  }
+}

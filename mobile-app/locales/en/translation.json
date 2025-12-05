@@ -1,0 +1,90 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close"
+  },
+  "tabs": {
+    "home": "Home",
+    "explore": "Explore"
+  },
+  "home": {
+    "browseEvents": "Browse Events",
+    "loginRegister": "Log In / Register",
+    "changeLanguage": "Change Language",
+    "liveEmotion": "LIVE THE EMOTION",
+    "celebrateDiversity": "CELEBRATE DIVERSITY",
+    "reserve": "RESERVE",
+    "latestNews": "Latest News",
+    "ourServices": "Our Services",
+    "ourServicesSubtitle": "Discover how we can help you",
+    "services": {
+      "welcomeCanada": {
+        "title": "Welcome to Canada",
+        "description": "First steps, orientation, support."
+      },
+      "foodAssistance": {
+        "title": "Food Assistance",
+        "description": "Solidarity shop, baskets, meals."
+      },
+      "schoolSupport": {
+        "title": "School Support",
+        "description": "Support for children and parents."
+      }
+    },
+    "footer": {
+      "copyright": "© 2025 Maison d'Accueil des Nouveaux Arrivants MANA",
+      "phone": "+1 (438) 837-9223"
+    }
+  },
+  "explore": {
+    "title": "Explore",
+    "description": "This app includes example code to help you get started.",
+    "fileRouting": {
+      "title": "File-based routing",
+      "description1": "This app has two screens:",
+      "description2": "The layout file in",
+      "description3": "sets up the tab navigator.",
+      "learnMore": "Learn more"
+    },
+    "platformSupport": {
+      "title": "Android, iOS, and web support",
+      "description": "You can open this project on Android, iOS, and the web. To open the web version, press w in the terminal running this project."
+    },
+    "images": {
+      "title": "Images",
+      "description": "For static images, you can use the @2x and @3x suffixes to provide files for different screen densities"
+    },
+    "darkMode": {
+      "title": "Light and dark mode components",
+      "description": "This template has light and dark mode support. The useColorScheme() hook lets you inspect what the user's current color scheme is, and so you can adjust UI colors accordingly."
+    },
+    "animations": {
+      "title": "Animations",
+      "description": "This template includes an example of an animated component. The components/HelloWave.tsx component uses the powerful react-native-reanimated library to create a waving hand animation."
+    }
+  },
+  "auth": {
+    "title": "Log In / Register",
+    "placeholder": "TODO: build authentication form."
+  },
+  "settings": {
+    "language": {
+      "title": "Change Language",
+      "subtitle": "Select your preferred language",
+      "current": "Current Language",
+      "languages": {
+        "english": "English",
+        "french": "Français (French)",
+        "spanish": "Español (Spanish)"
+      },
+      "success": "Language changed successfully"
+    }
+  },
+  "modal": {
+    "title": "Modal"
+  }
+}

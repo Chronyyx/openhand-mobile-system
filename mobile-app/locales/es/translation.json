@@ -1,0 +1,90 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Cerrar"
+  },
+  "tabs": {
+    "home": "Inicio",
+    "explore": "Explorar"
+  },
+  "home": {
+    "browseEvents": "Explorar eventos",
+    "loginRegister": "Iniciar sesión / Registrarse",
+    "changeLanguage": "Cambiar idioma",
+    "liveEmotion": "VIVE LA EMOCIÓN",
+    "celebrateDiversity": "CELEBRA LA DIVERSIDAD",
+    "reserve": "RESERVAR",
+    "latestNews": "Últimas noticias",
+    "ourServices": "Nuestros Servicios",
+    "ourServicesSubtitle": "Descubre cómo podemos ayudarte",
+    "services": {
+      "welcomeCanada": {
+        "title": "Bienvenida a Canadá",
+        "description": "Primeros pasos, orientación, apoyo."
+      },
+      "foodAssistance": {
+        "title": "Asistencia Alimentaria",
+        "description": "Tienda solidaria, cestas, comidas."
+      },
+      "schoolSupport": {
+        "title": "Apoyo Escolar",
+        "description": "Acompañamiento para niños y padres."
+      }
+    },
+    "footer": {
+      "copyright": "© 2025 Maison d'Accueil des Nouveaux Arrivants MANA",
+      "phone": "+1 (438) 837-9223"
+    }
+  },
+  "explore": {
+    "title": "Explorar",
+    "description": "Esta aplicación incluye código de ejemplo para ayudarte a comenzar.",
+    "fileRouting": {
+      "title": "Enrutamiento basado en archivos",
+      "description1": "Esta aplicación tiene dos pantallas:",
+      "description2": "El archivo de diseño en",
+      "description3": "configura el navegador de pestañas.",
+      "learnMore": "Aprende más"
+    },
+    "platformSupport": {
+      "title": "Soporte para Android, iOS y web",
+      "description": "Puedes abrir este proyecto en Android, iOS y la web. Para abrir la versión web, presiona w en la terminal que ejecuta este proyecto."
+    },
+    "images": {
+      "title": "Imágenes",
+      "description": "Para imágenes estáticas, puedes usar los sufijos @2x y @3x para proporcionar archivos para diferentes densidades de pantalla"
+    },
+    "darkMode": {
+      "title": "Componentes de modo claro y oscuro",
+      "description": "Esta plantilla tiene soporte para modo claro y oscuro. El hook useColorScheme() te permite inspeccionar cuál es el esquema de color actual del usuario, para que puedas ajustar los colores de la interfaz en consecuencia."
+    },
+    "animations": {
+      "title": "Animaciones",
+      "description": "Esta plantilla incluye un ejemplo de componente animado. El componente components/HelloWave.tsx utiliza la poderosa biblioteca react-native-reanimated para crear una animación de mano saludando."
+    }
+  },
+  "auth": {
+    "title": "Iniciar sesión / Registrarse",
+    "placeholder": "TODO: construir formulario de autenticación."
+  },
+  "settings": {
+    "language": {
+      "title": "Cambiar idioma",
+      "subtitle": "Selecciona tu idioma preferido",
+      "current": "Idioma actual",
+      "languages": {
+        "english": "English (Inglés)",
+        "french": "Français (Francés)",
+        "spanish": "Español"
+      },
+      "success": "Idioma cambiado exitosamente"
+    }
+  },
+  "modal": {
+    "title": "Modal"
+  }
+}

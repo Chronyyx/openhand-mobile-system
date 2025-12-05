@@ -1,15 +1,168 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
+import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 
 export default function LanguageSettingsScreen() {
+        const { t, i18n } = useTranslation();
+        const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+
+        const languages = [
+            { code: "en", name: t("settings.language.languages.english"), flag: "🇬🇧" },
+            { code: "fr", name: t("settings.language.languages.french"), flag: "🇫🇷" },
+            { code: "es", name: t("settings.language.languages.spanish"), flag: "🇪🇸" },
+        ];
+
+        const handleLanguageChange = async (languageCode: string) => {
+            try {
+                await i18n.changeLanguage(languageCode);
+                setSelectedLanguage(languageCode);
+            
+                // Show success message
+                Alert.alert(
+                    t("settings.language.success"),
+                    "",
+                    [{ text: "OK" }]
+                );
+            } catch (error) {
+                console.error("Error changing language:", error);
+                Alert.alert(t("common.error"), "Failed to change language");
+            }
+        };
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Change Language</Text>
-            <Text>TODO: choose between FR / EN / ES, etc.</Text>
+            <View style={styles.header}>
+                <Text style={styles.title}>{t("settings.language.title")}</Text>
+                <Text style={styles.subtitle}>{t("settings.language.subtitle")}</Text>
+            </View>
+
+            <View style={styles.currentLanguageContainer}>
+                <Ionicons name="globe-outline" size={20} color="#0056A8" />
+                <Text style={styles.currentLanguageLabel}>
+                    {t("settings.language.current")}:
+                </Text>
+                <Text style={styles.currentLanguageValue}>
+                    {languages.find(lang => lang.code === selectedLanguage)?.name}
+                </Text>
+            </View>
+
+            <View style={styles.languageList}>
+                {languages.map((language) => (
+                    <Pressable
+                        key={language.code}
+                        style={[
+                            styles.languageItem,
+                            selectedLanguage === language.code && styles.languageItemSelected,
+                        ]}
+                        onPress={() => handleLanguageChange(language.code)}
+                    >
+                        <View style={styles.languageInfo}>
+                            <Text style={styles.flag}>{language.flag}</Text>
+                            <Text
+                                style={[
+                                    styles.languageName,
+                                    selectedLanguage === language.code && styles.languageNameSelected,
+                                ]}
+                            >
+                                {language.name}
+                            </Text>
+                        </View>
+                        {selectedLanguage === language.code && (
+                            <Ionicons name="checkmark-circle" size={24} color="#0056A8" />
+                        )}
+                    </Pressable>
+                ))}
+            </View>
         </View>
     );
 }
+const BLUE = "#0056A8";
+const LIGHT_BLUE = "#E6F4FE";
+
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: "center", alignItems: "center" },
-    title: { fontSize: 22, fontWeight: "700", marginBottom: 8 },
+    container: {
+        flex: 1,
+        backgroundColor: "#F5F7FB",
+        padding: 20,
+    },
+    header: {
+        marginBottom: 24,
+        marginTop: 20,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "700",
+        color: BLUE,
+        marginBottom: 8,
+    },
+    subtitle: {
+        fontSize: 16,
+        color: "#555",
+    },
+    currentLanguageContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#FFFFFF",
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 20,
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    currentLanguageLabel: {
+        fontSize: 16,
+        color: "#555",
+        marginLeft: 10,
+        fontWeight: "500",
+    },
+    currentLanguageValue: {
+        fontSize: 16,
+        color: BLUE,
+        fontWeight: "700",
+        marginLeft: 6,
+    },
+    languageList: {
+        gap: 12,
+    },
+    languageItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: "#FFFFFF",
+        padding: 18,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: "transparent",
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    languageItemSelected: {
+        backgroundColor: LIGHT_BLUE,
+        borderColor: BLUE,
+    },
+    languageInfo: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
+    flag: {
+        fontSize: 32,
+    },
+    languageName: {
+        fontSize: 18,
+        color: "#333",
+        fontWeight: "500",
+    },
+    languageNameSelected: {
+        color: BLUE,
+        fontWeight: "700",
+    },
 });

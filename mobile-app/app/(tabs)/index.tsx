@@ -10,9 +10,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
 
@@ -65,41 +67,41 @@ export default function HomeScreen() {
                 style={[styles.primaryButton, styles.actionButton]}
                 onPress={() => router.push("/events")}
             >
-              <Text style={styles.primaryButtonText}>Browse Events</Text>
+              <Text style={styles.primaryButtonText}>{t("home.browseEvents")}</Text>
             </Pressable>
 
             <Pressable
                 style={[styles.secondaryButton, styles.actionButton]}
                 onPress={() => router.push("/auth/login")}
             >
-              <Text style={styles.secondaryButtonText}>Log In / Register</Text>
+              <Text style={styles.secondaryButtonText}>{t("home.loginRegister")}</Text>
             </Pressable>
 
             <Pressable
                 style={[styles.secondaryButton, styles.actionButton]}
                 onPress={() => router.push("/settings/language")}
             >
-              <Text style={styles.secondaryButtonText}>Change Language</Text>
+              <Text style={styles.secondaryButtonText}>{t("home.changeLanguage")}</Text>
             </Pressable>
           </View>
 
           {/* “VIVEZ L’ÉMOTION” + RÉSERVER BUTTON */}
           <View style={styles.emotionSection}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.emotionTitle}>VIVEZ L’ÉMOTION</Text>
-              <Text style={styles.emotionSubtitle}>CÉLÉBREZ LA DIVERSITÉ</Text>
+              <Text style={styles.emotionTitle}>{t("home.liveEmotion")}</Text>
+              <Text style={styles.emotionSubtitle}>{t("home.celebrateDiversity")}</Text>
             </View>
             <Pressable
                 style={styles.reserveButton}
                 onPress={() => router.push("/events/gala-2025")}
             >
-              <Text style={styles.reserveButtonText}>RÉSERVER</Text>
+              <Text style={styles.reserveButtonText}>{t("home.reserve")}</Text>
             </Pressable>
           </View>
 
           {/* DERNIÈRES ACTUALITÉS */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Dernières actualités</Text>
+            <Text style={styles.sectionTitle}>{t("home.latestNews")}</Text>
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -129,32 +131,32 @@ export default function HomeScreen() {
 
           {/* NOS SERVICES */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Nos Services</Text>
+            <Text style={styles.sectionTitle}>{t("home.ourServices")}</Text>
             <Text style={styles.sectionSubtitle}>
-              Découvrez comment nous pouvons vous aider
+              {t("home.ourServicesSubtitle")}
             </Text>
 
             <View style={styles.servicesRow}>
               <ServiceCard
                   icon="home"
-                  title="Accueil au Canada"
-                  description="Premiers pas, orientation, soutien."
+                  title={t("home.services.welcomeCanada.title")}
+                  description={t("home.services.welcomeCanada.description")}
               />
               <ServiceCard
                   icon="restaurant"
-                  title="Aide Alimentaire"
-                  description="Boutique solidaire, paniers, repas."
+                  title={t("home.services.foodAssistance.title")}
+                  description={t("home.services.foodAssistance.description")}
               />
               <ServiceCard
                   icon="school"
-                  title="Soutien à l’école"
-                  description="Accompagnement pour enfants et parents."
+                  title={t("home.services.schoolSupport.title")}
+                  description={t("home.services.schoolSupport.description")}
               />
             </View>
           </View>
 
           {/* FOOTER */}
-          <Footer />
+          <Footer t={t} />
         </ScrollView>
 
         {/* WHATSAPP FLOATING BUTTON */}
@@ -181,13 +183,13 @@ function ServiceCard({ icon, title, description }: ServiceCardProps) {
   );
 }
 
-function Footer() {
+function Footer({ t }: { t: (key: string) => string }) {
   return (
       <View style={styles.footerContainer}>
         <Text style={styles.footerText}>
-          © 2025 Maison d’Accueil des Nouveaux Arrivants MANA
+          {t("home.footer.copyright")}
         </Text>
-        <Text style={styles.footerText}>+1 (438) 837-9223</Text>
+        <Text style={styles.footerText}>{t("home.footer.phone")}</Text>
       </View>
   );
 }

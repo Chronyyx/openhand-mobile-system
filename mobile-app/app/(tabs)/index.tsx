@@ -11,9 +11,11 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../context/AuthContext";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user, signOut } = useAuth();
   const { t } = useTranslation();
 
   const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
@@ -70,12 +72,21 @@ export default function HomeScreen() {
               <Text style={styles.primaryButtonText}>{t("home.browseEvents")}</Text>
             </Pressable>
 
-            <Pressable
-                style={[styles.secondaryButton, styles.actionButton]}
-                onPress={() => router.push("/auth/login")}
-            >
-              <Text style={styles.secondaryButtonText}>{t("home.loginRegister")}</Text>
-            </Pressable>
+            {!user ? (
+                <Pressable
+                    style={[styles.secondaryButton, styles.actionButton]}
+                    onPress={() => router.push("/auth/login")}
+                >
+                  <Text style={styles.secondaryButtonText}>{t("home.loginRegister")}</Text>
+                </Pressable>
+            ) : (
+                <Pressable
+                    style={[styles.secondaryButton, styles.actionButton]}
+                    onPress={signOut}
+                >
+                  <Text style={styles.secondaryButtonText}>Logout ({user.email})</Text>
+                </Pressable>
+            )}
 
             <Pressable
                 style={[styles.secondaryButton, styles.actionButton]}

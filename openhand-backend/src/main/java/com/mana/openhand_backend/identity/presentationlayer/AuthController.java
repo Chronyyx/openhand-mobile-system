@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,7 +60,8 @@ public class AuthController {
         // Let's fetch ID from DB for now to be safe, or just skip ID in response if not
         // Treat all visitors as NON_MEMBER unless a valid JWT is present.
         // Let's fetch the user to get the ID.
-        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 user.getId(),

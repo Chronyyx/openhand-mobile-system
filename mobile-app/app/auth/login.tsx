@@ -27,10 +27,19 @@ export default function LoginScreen() {
     const [error, setError] = useState<string | null>(null);
 
     const handleLogin = async () => {
+        // Basic email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
         if (!email || !password) {
             setError("Please fill in all fields.");
             return;
         }
+
+        if (!emailRegex.test(email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
         try {
@@ -43,7 +52,7 @@ export default function LoginScreen() {
         }
     };
 
-    const Wrapper = Platform.OS === 'web' ? View : TouchableWithoutFeedback;
+    const Wrapper = (Platform.OS === 'web' ? View : TouchableWithoutFeedback) as any;
     const wrapperProps = Platform.OS === 'web' ? { style: styles.container } : { onPress: Keyboard.dismiss };
 
     return (

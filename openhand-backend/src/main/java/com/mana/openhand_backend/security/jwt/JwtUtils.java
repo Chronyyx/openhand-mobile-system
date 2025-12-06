@@ -1,7 +1,7 @@
 package com.mana.openhand_backend.security.jwt;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
+
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +42,7 @@ public class JwtUtils {
     }
 
     private Key key() {
-        return Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(java.util.Base64.getEncoder().encodeToString(jwtSecret.getBytes())));
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
     public String getUserNameFromJwtToken(String token) {

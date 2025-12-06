@@ -43,7 +43,7 @@ const deleteItem = async (key: string) => {
     }
 };
 
-const register = (email, password, roles) => {
+const register = (email: string, password: string, roles: string[]) => {
     return axios.post(API_URL + 'register', {
         email,
         password,
@@ -51,7 +51,7 @@ const register = (email, password, roles) => {
     });
 };
 
-const login = (email, password) => {
+const login = (email: string, password: string) => {
     console.log(`[AuthService] Attempting login to: ${API_URL}login`);
     console.log(`[AuthService] Payload:`, { email, password: '***' });
 
@@ -63,7 +63,14 @@ const login = (email, password) => {
         .then(async (response) => {
             console.log(`[AuthService] Login success. Status: ${response.status}`);
             if (response.data.token) {
-                await setItem('userToken', JSON.stringify(response.data));
+                const userToStore = {
+                    token: response.data.token,
+                    type: response.data.type,
+                    id: response.data.id,
+                    email: response.data.email,
+                    roles: response.data.roles,
+                };
+                await setItem('userToken', JSON.stringify(userToStore));
             }
             return response.data;
         })

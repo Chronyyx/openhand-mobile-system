@@ -51,7 +51,7 @@ export default function RegisterScreen() {
         }
     };
 
-    const Wrapper = Platform.OS === 'web' ? View : TouchableWithoutFeedback;
+    const Wrapper = (Platform.OS === 'web' ? View : TouchableWithoutFeedback) as any;
     const wrapperProps = Platform.OS === 'web' ? { style: styles.container } : { onPress: Keyboard.dismiss };
 
     return (

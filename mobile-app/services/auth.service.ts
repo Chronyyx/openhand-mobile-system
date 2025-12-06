@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 
 // Updated to use your local LAN IP based on the logs you provided (10.0.0.171)
 // This is required for physical devices to reach the backend on your computer.
-const API_URL = 'http://10.0.0.171:8080/api/auth/';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.0.171:8080/api/auth/';
 
 const setItem = async (key: string, value: string) => {
     if (Platform.OS === 'web') {

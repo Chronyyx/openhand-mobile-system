@@ -8,6 +8,7 @@ import {
   Pressable,
   Linking,
   Modal,
+  Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const { user, signOut } = useAuth();
   const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
+  const menuScale = React.useRef(new Animated.Value(1)).current;
 
   const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
 
@@ -55,6 +57,24 @@ export default function HomeScreen() {
     router.push("/events");
   };
 
+  const handleMenuPressIn = () => {
+    Animated.spring(menuScale, {
+      toValue: 0.92,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 6,
+    }).start();
+  };
+
+  const handleMenuPressOut = () => {
+    Animated.spring(menuScale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 8,
+    }).start();
+  };
+
   return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -67,10 +87,17 @@ export default function HomeScreen() {
             />
             <Pressable
                 onPress={() => setMenuVisible(true)}
+                onPressIn={handleMenuPressIn}
+                onPressOut={handleMenuPressOut}
                 hitSlop={12}
-                style={styles.menuButton}
+                style={({ pressed }) => [
+                  styles.menuButton,
+                  pressed && styles.menuButtonPressed,
+                ]}
             >
-              <Ionicons name="menu" size={28} color="#0056A8" />
+              <Animated.View style={{ transform: [{ scale: menuScale }] }}>
+                <Ionicons name="menu" size={28} color="#0056A8" />
+              </Animated.View>
             </Pressable>
           </View>
 
@@ -472,6 +499,10 @@ const styles = StyleSheet.create({
   menuButton: {
     padding: 6,
     borderRadius: 18,
+    backgroundColor: "#FFFFFF",
+  },
+  menuButtonPressed: {
+    backgroundColor: "rgba(0,86,168,0.08)",
   },
   menuOverlay: {
     flex: 1,

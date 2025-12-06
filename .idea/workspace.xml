@@ -4,7 +4,51 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage.">
+      <change afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_asset_12_0_10_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_filesystem_19_0_19_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_font_14_0_9_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_haptics_15_0_7_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_image_3_0_10_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_keepawake_15_0_7_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_linking_8_0_9_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_localization_17_0_7_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_securestore_15_0_8_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_splashscreen_31_0_11_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_systemui_6_0_8_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/expo_modules_webbrowser_15_0_9_sources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/gradle_wrapper.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/gradle_wrapper2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/gradle_wrapper3.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mobile-app/app/auth/register.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mobile-app/context/AuthContext.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mobile-app/services/auth.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/DatabaseSeeder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/dataaccesslayer/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/dataaccesslayer/UserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/payload/JwtResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/payload/LoginRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/payload/MessageResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/payload/SignupRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/WebSecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/jwt/AuthEntryPointJwt.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/jwt/AuthTokenFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/jwt/JwtUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/services/UserDetailsServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/app/auth/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/auth/login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/resources/application.properties" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,7 +64,12 @@
       <state>
         <projects_view>
           <tree_state>
-            <expand />
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="openhand-backend" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
             <select />
           </tree_state>
         </projects_view>
@@ -36,8 +85,25 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Chronyyx"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Chronyyx/openhand-mobile-system.git",
+    "accountId": "a97d1c7b-01cb-47b1-a7d9-d271562cdac5"
+  }
+}]]></component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -70,7 +136,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "feat/OP-15__Implement__JWT__Auth",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/openhand-mobile-system/mobile-app",
     "node.js.detected.package.eslint": "true",
@@ -82,7 +148,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "advanced.settings",
-    "ts.external.directory.path": "D:\\openhand-mobile-system\\mobile-app\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "D:\\Antigravity\\openhand2\\mobile-app\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -91,6 +157,8 @@
       <recent name="D:\openhand-mobile-system\mobile-app\assets\images" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Antigravity\openhand2\openhand-backend\src\main\java\com\mana\openhand_backend\security" />
+      <recent name="D:\Antigravity\openhand2\mobile-app" />
       <recent name="D:\openhand-mobile-system\mobile-app\app\settings" />
     </key>
   </component>
@@ -179,6 +247,14 @@
         <item itemvalue="Gradle.Tests in 'openhand-backend'" />
       </list>
     </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.189" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.189" />
+      </set>
+    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">

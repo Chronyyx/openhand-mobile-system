@@ -68,8 +68,16 @@
     }
   },
   "auth": {
-    "title": "Log In / Register",
-    "placeholder": "TODO: build authentication form."
+    "title": "Welcome Back",
+    "create_account": "Create Account",
+    "email_placeholder": "Email Address",
+    "password_placeholder": "Password",
+    "login_button": "Log In",
+    "register_button": "Sign Up",
+    "register_prompt": "Don't have an account?",
+    "register_link": "Register",
+    "login_prompt": "Already have an account?",
+    "login_link": "Log In"
   },
   "settings": {
     "language": {

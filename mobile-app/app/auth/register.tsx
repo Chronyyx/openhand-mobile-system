@@ -40,8 +40,8 @@ export default function RegisterScreen() {
         setLoading(true);
         setError(null);
         try {
-            // Defaulting to USER/MEMBER role (empty list or specific role if backend requires)
-            await signUp(email, password, ["user"]);
+            // No roles provided; backend will assign default member role (ROLE_MEMBER)
+            await signUp(email, password, []);
             router.replace("/auth/login");
         } catch (e: any) {
             console.error(e);

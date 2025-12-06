@@ -45,8 +45,14 @@ export default function LoginScreen() {
         try {
             await signIn(email, password);
             router.replace("/");
-        } catch (e) {
-            setError("Login failed. Please check your credentials.");
+        } catch (e: any) {
+            if (e?.response?.status === 401) {
+                setError("Invalid email or password.");
+            } else if (e?.response) {
+                setError("Login failed. Please try again later.");
+            } else {
+                setError("Network error. Please check your connection.");
+            }
         } finally {
             setLoading(false);
         }

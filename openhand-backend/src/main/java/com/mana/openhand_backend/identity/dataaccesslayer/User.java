@@ -63,4 +63,26 @@ public class User {
     public void setRoles(Set<String> roles) {
         this.roles = roles;
     }
+
+    @Column(name = "failed_attempt")
+    private int failedAttempt = 0;
+
+    @Column(name = "account_non_locked")
+    private boolean accountNonLocked = true;
+
+    public int getFailedAttempt() {
+        return failedAttempt;
+    }
+
+    public void setFailedAttempt(int failedAttempt) {
+        this.failedAttempt = failedAttempt;
+    }
+
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    public void setAccountNonLocked(boolean accountNonLocked) {
+        this.accountNonLocked = accountNonLocked;
+    }
 }

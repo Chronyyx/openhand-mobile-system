@@ -26,13 +26,26 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
 
-        List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role))
-                .collect(Collectors.toList());
+        return UserDetailsImpl.build(user);
+    }
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPasswordHash(),
-                authorities);
+    @Transactional
+    public void increaseFailedAttempts(User user) {
+        int newFailAttempts = user.getFailedAttempt() + 1;
+        user.setFailedAttempt(newFailAttempts);
+        if (newFailAttempts >= 20) {
+            user.setAccountNonLocked(false);
+        }
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void resetFailedAttempts(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            if (user.getFailedAttempt() > 0) {
+                user.setFailedAttempt(0);
+                userRepository.save(user);
+            }
+        });
     }
 }

@@ -8,14 +8,18 @@ import com.mana.openhand_backend.identity.presentationlayer.payload.MessageRespo
 import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.mana.openhand_backend.security.services.UserDetailsImpl;
+import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +39,9 @@ public class AuthController {
     UserRepository userRepository;
 
     @Autowired
+    UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
     PasswordEncoder encoder;
 
     @Autowired
@@ -43,34 +50,35 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            
+            userDetailsService.resetFailedAttempts(loginRequest.getEmail());
+        } catch (BadCredentialsException e) {
+            userRepository.findByEmail(loginRequest.getEmail()).ifPresent(user -> {
+                userDetailsService.increaseFailedAttempts(user);
+            });
+            throw e;
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal(); // Assuming standard UserDetails
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        // Assuming ID is not readily available in standard UserDetails unless we cast
-        // to a custom implementation.
-        // For now, fetching user again or using custom UserDetails is needed for ID.
-        // Let's fetch ID from DB for now to be safe, or just skip ID in response if not
-        // Treat all visitors as NON_MEMBER unless a valid JWT is present.
-        // Let's fetch the user to get the ID.
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
         return ResponseEntity.ok(new JwtResponse(jwt,
-                user.getId(),
+                userDetails.getId(),
                 userDetails.getUsername(),
                 roles));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()

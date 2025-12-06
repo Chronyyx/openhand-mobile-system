@@ -17,42 +17,35 @@ import { useAuth } from "../../context/AuthContext";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
     const router = useRouter();
     const { t } = useTranslation();
-    const { signIn } = useAuth();
+    const { signUp } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async () => {
-        // Basic email format validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+    const handleRegister = async () => {
         if (!email || !password) {
             setError("Please fill in all fields.");
             return;
         }
-
-        if (!emailRegex.test(email)) {
+        if (!isValidEmail(email)) {
             setError("Please enter a valid email address.");
             return;
         }
-
         setLoading(true);
         setError(null);
         try {
-            await signIn(email, password);
-            router.replace("/");
+            // No roles provided; backend will assign default member role (ROLE_MEMBER)
+            await signUp(email, password, []);
+            router.replace("/auth/login");
         } catch (e: any) {
-            if (e?.response?.status === 401) {
-                setError("Invalid email or password.");
-            } else if (e?.response) {
-                setError("Login failed. Please try again later.");
-            } else {
-                setError("Network error. Please check your connection.");
-            }
+            console.error(e);
+            setError(e.response?.data?.message || "Registration failed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -77,7 +70,7 @@ export default function LoginScreen() {
                         />
                     </View>
 
-                    <Text style={styles.title}>{t("auth.title")}</Text>
+                    <Text style={styles.title}>{t("auth.create_account")}</Text>
 
                     {/* INPUTS */}
                     <View style={styles.inputContainer}>
@@ -115,23 +108,23 @@ export default function LoginScreen() {
                         </View>
                     )}
 
-                    {/* LOGIN BUTTON */}
+                    {/* REGISTER BUTTON */}
                     <View style={styles.buttonContainer}>
                         {loading ? (
                             <ActivityIndicator size="large" color="#0056A8" />
                         ) : (
-                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.8}>
-                                <Text style={styles.loginButtonText}>{t("auth.login_button")}</Text>
+                            <TouchableOpacity style={styles.loginButton} onPress={handleRegister} activeOpacity={0.8}>
+                                <Text style={styles.loginButtonText}>{t("auth.register_button")}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
 
-                    {/* REGISTER LINK */}
+                    {/* LOGIN LINK */}
                     <View style={styles.footer}>
-                        <Text style={styles.footerText}>{t("auth.register_prompt")} </Text>
-                        <Link href="/auth/register" asChild>
+                        <Text style={styles.footerText}>{t("auth.login_prompt")} </Text>
+                        <Link href="/auth/login" asChild>
                             <TouchableOpacity>
-                                <Text style={styles.link}>{t("auth.register_link")}</Text>
+                                <Text style={styles.link}>{t("auth.login_link")}</Text>
                             </TouchableOpacity>
                         </Link>
                     </View>

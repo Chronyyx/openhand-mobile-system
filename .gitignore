@@ -5,11 +5,12 @@ mobile-app/.expo-shared/
 mobile-app/dist/
 
 # Java / Maven
-backend/target/
-backend/.idea/
-backend/.mvn/
+openhand-backend/target/
+openhand-backend/.idea/
+openhand-backend/.mvn/
 
 # Editor junk
 *.iml
 .DS_Store
 .vscode/
+.idea/

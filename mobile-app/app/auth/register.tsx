@@ -26,9 +26,15 @@ export default function RegisterScreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
     const handleRegister = async () => {
         if (!email || !password) {
             setError("Please fill in all fields.");
+            return;
+        }
+        if (!isValidEmail(email)) {
+            setError("Please enter a valid email address.");
             return;
         }
         setLoading(true);

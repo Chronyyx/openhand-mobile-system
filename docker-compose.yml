@@ -34,12 +34,13 @@ services:
     build:
       context: ./mobile-app
       dockerfile: Dockerfile
-    working_dir: /app
+    # WORKDIR already set in Dockerfile, so this is optional
+    # working_dir: /app
     ports:
-      - "19000:19000"  
-      - "19001:19001"  
-      - "19002:19002"  
-      - "8081:8081"    
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+      - "8081:8081"
     volumes:
       - ./mobile-app:/app
       - mobile-node-modules:/app/node_modules

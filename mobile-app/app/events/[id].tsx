@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    ListRenderItemInfo,
     RefreshControl,
     StyleSheet,
     View,
@@ -10,7 +11,6 @@ import {
     Image,
     type ImageSourcePropType,
 } from 'react-native';
-import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -19,7 +19,6 @@ import {
     type EventSummary,
 } from '../../services/events.service';
 
-// ---- Static image map for events ----
 const eventImages: Record<string, ImageSourcePropType> = {
     'Gala de reconnaissance MANA': require('../../assets/mana/Gala_image_Mana.png'),
     'Distribution Alimentaire - Mardi':
@@ -31,31 +30,6 @@ const eventImages: Record<string, ImageSourcePropType> = {
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
     if (!event) return undefined;
     return eventImages[event.title];
-}
-
-// ---- Map backend title ➜ translation key slug ----
-const eventTranslationKeys: Record<string, string> = {
-    'Gala de reconnaissance MANA': 'gala',
-    'Distribution Alimentaire - Mardi': 'distribution_mardi',
-    'Formation MANA – Médiateur interculturel': 'formation_mediateur',
-};
-
-function getTranslatedTitle(
-    event: EventSummary,
-    t: (key: string, options?: any) => string,
-) {
-    const slug = eventTranslationKeys[event.title];
-    if (!slug) return event.title;
-    return t(`events.names.${slug}`, { defaultValue: event.title });
-}
-
-function getTranslatedDescription(
-    event: EventSummary,
-    t: (key: string, options?: any) => string,
-) {
-    const slug = eventTranslationKeys[event.title];
-    if (!slug) return event.description;
-    return t(`events.descriptions.${slug}`, { defaultValue: event.description });
 }
 
 function formatDate(iso: string) {
@@ -88,23 +62,20 @@ function formatTimeRange(startIso: string, endIso: string | null) {
     return endStr ? `${startStr} - ${endStr}` : startStr;
 }
 
-function getStatusLabel(status: EventSummary['status'], t: (k: string) => string) {
+function getStatusLabel(status: EventSummary['status']) {
     switch (status) {
         case 'OPEN':
-            return t('events.status.OPEN');
+            return 'OUVERT';
         case 'NEARLY_FULL':
-            return t('events.status.NEARLY_FULL');
+            return 'PLACES LIMITÉES';
         case 'FULL':
-            return t('events.status.FULL');
+            return 'COMPLET';
         default:
             return status;
     }
 }
 
 export default function EventsScreen() {
-    // super simple typing for t
-    const { t } = useTranslation() as { t: (key: string, options?: any) => string };
-
     const [events, setEvents] = useState<EventSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -121,8 +92,11 @@ export default function EventsScreen() {
             setEvents(data);
         } catch (e) {
             console.error('Failed to load events', e);
-            // store already-translated error text
-            setError(t('events.loadError'));
+            setError(
+                e instanceof Error
+                    ? e.message
+                    : 'Impossible de charger les événements.',
+            );
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -148,11 +122,14 @@ export default function EventsScreen() {
         setSelectedEvent(null);
     };
 
+    // ---- Loading / error / empty states ----
     if (loading) {
         return (
             <ThemedView style={styles.centered}>
                 <ActivityIndicator />
-                <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
+                <ThemedText style={styles.loadingText}>
+                    Chargement des événements...
+                </ThemedText>
             </ThemedView>
         );
     }
@@ -168,99 +145,84 @@ export default function EventsScreen() {
     if (events.length === 0) {
         return (
             <ThemedView style={styles.centered}>
-                <ThemedText style={styles.emptyText}>{t('events.empty')}</ThemedText>
+                <ThemedText style={styles.emptyText}>
+                    Aucun événement à venir pour le moment.
+                </ThemedText>
             </ThemedView>
         );
     }
 
-
+    // ---- Main list + modal ----
     return (
         <ThemedView style={styles.container}>
             <ThemedText type="title" style={styles.screenTitle}>
-                {t('events.screenTitle')}
+                ÉVÉNEMENTS DISPONIBLES
             </ThemedText>
 
             <FlatList<EventSummary>
                 data={events}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => {
-                    const translatedTitle = getTranslatedTitle(item, t);
-
-                    return (
-                        <Pressable
-                            style={styles.card}
-                            onPress={() => openEventModal(item)}
-                            accessibilityRole="button"
-                            accessibilityLabel={t(
-                                'events.accessibility.viewDetails',
-                                { title: translatedTitle },
-                            )}
-                        >
-                            <View style={styles.cardHeader}>
-                                <ThemedText type="subtitle" style={styles.eventTitle}>
-                                    {translatedTitle}
+                renderItem={({ item }: ListRenderItemInfo<EventSummary>) => (
+                    <Pressable
+                        style={styles.card}
+                        onPress={() => openEventModal(item)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Voir détails, ${item.title}`}
+                    >
+                        <View style={styles.cardHeader}>
+                            <ThemedText type="subtitle" style={styles.eventTitle}>
+                                {item.title}
+                            </ThemedText>
+                            <View style={styles.statusBadge}>
+                                <ThemedText style={styles.statusText}>
+                                    {getStatusLabel(item.status)}
                                 </ThemedText>
-                                <View style={styles.statusBadge}>
-                                    <ThemedText style={styles.statusText}>
-                                        {getStatusLabel(item.status, t)}
+                            </View>
+                        </View>
+
+                        <View style={styles.row}>
+                            <ThemedText style={styles.label}>Date</ThemedText>
+                            <ThemedText style={styles.value}>
+                                {formatDate(item.startDateTime)}
+                            </ThemedText>
+                        </View>
+
+                        <View style={styles.row}>
+                            <ThemedText style={styles.label}>Heure</ThemedText>
+                            <ThemedText style={styles.value}>
+                                {formatTimeRange(item.startDateTime, item.endDateTime)}
+                            </ThemedText>
+                        </View>
+
+                        <View style={styles.row}>
+                            <ThemedText style={styles.label}>Lieu</ThemedText>
+                            <ThemedText style={styles.value}>{item.address}</ThemedText>
+                        </View>
+
+                        {item.maxCapacity != null &&
+                            item.currentRegistrations != null && (
+                                <View style={styles.row}>
+                                    <ThemedText style={styles.label}>Capacité</ThemedText>
+                                    <ThemedText style={styles.value}>
+                                        {item.currentRegistrations}/{item.maxCapacity}
                                     </ThemedText>
                                 </View>
-                            </View>
+                            )}
 
-                            <View style={styles.row}>
-                                <ThemedText style={styles.label}>
-                                    {t('events.fields.date')}
-                                </ThemedText>
-                                <ThemedText style={styles.value}>
-                                    {formatDate(item.startDateTime)}
-                                </ThemedText>
-                            </View>
-
-                            <View style={styles.row}>
-                                <ThemedText style={styles.label}>
-                                    {t('events.fields.time')}
-                                </ThemedText>
-                                <ThemedText style={styles.value}>
-                                    {formatTimeRange(
-                                        item.startDateTime,
-                                        item.endDateTime,
-                                    )}
-                                </ThemedText>
-                            </View>
-
-                            <View style={styles.row}>
-                                <ThemedText style={styles.label}>
-                                    {t('events.fields.place')}
-                                </ThemedText>
-                                <ThemedText style={styles.value}>{item.address}</ThemedText>
-                            </View>
-
-                            {item.maxCapacity != null &&
-                                item.currentRegistrations != null && (
-                                    <View style={styles.row}>
-                                        <ThemedText style={styles.label}>
-                                            {t('events.fields.capacity')}
-                                        </ThemedText>
-                                        <ThemedText style={styles.value}>
-                                            {item.currentRegistrations}/{item.maxCapacity}
-                                        </ThemedText>
-                                    </View>
-                                )}
-
-                            <View style={styles.footerButton}>
-                                <ThemedText style={styles.footerButtonText}>
-                                    {t('events.actions.viewDetails')}
-                                </ThemedText>
-                            </View>
-                        </Pressable>
-                    );
-                }}
+                        <View style={styles.footerButton}>
+                            <ThemedText style={styles.footerButtonText}>
+                                Voir détails
+                            </ThemedText>
+                        </View>
+                    </Pressable>
+                )}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
             />
 
+            {/* ---- Event Detail Modal ---- */}
             <Modal
                 visible={modalVisible && !!selectedEvent}
                 animationType="slide"
@@ -269,44 +231,33 @@ export default function EventsScreen() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalCard}>
-                        {/* Header with bigger image + title */}
+                        {/* Header with image + title */}
                         <View style={styles.modalHeader}>
                             {selectedEvent && getEventImage(selectedEvent) && (
                                 <Image
                                     source={getEventImage(selectedEvent)!}
                                     style={styles.modalImage}
-                                    resizeMode="cover"
+                                    resizeMode="contain"
                                 />
                             )}
                             <ThemedText type="title" style={styles.modalTitle}>
-                                {selectedEvent &&
-                                    getTranslatedTitle(selectedEvent, t)}
+                                {selectedEvent?.title}
                             </ThemedText>
                         </View>
 
                         <View style={styles.modalBody}>
-                            <ThemedText style={styles.sectionTitle}>
-                                {t('events.fields.description')}
-                            </ThemedText>
-                            <ThemedText>
-                                {selectedEvent &&
-                                    getTranslatedDescription(selectedEvent, t)}
-                            </ThemedText>
+                            <ThemedText style={styles.sectionTitle}>Description</ThemedText>
+                            <ThemedText>{selectedEvent?.description}</ThemedText>
 
                             <View style={styles.modalRow}>
-                                <ThemedText style={styles.sectionTitle}>
-                                    {t('events.fields.date')}
-                                </ThemedText>
+                                <ThemedText style={styles.sectionTitle}>Date</ThemedText>
                                 <ThemedText>
-                                    {selectedEvent &&
-                                        formatDate(selectedEvent.startDateTime)}
+                                    {selectedEvent && formatDate(selectedEvent.startDateTime)}
                                 </ThemedText>
                             </View>
 
                             <View style={styles.modalRow}>
-                                <ThemedText style={styles.sectionTitle}>
-                                    {t('events.fields.time')}
-                                </ThemedText>
+                                <ThemedText style={styles.sectionTitle}>Heure</ThemedText>
                                 <ThemedText>
                                     {selectedEvent &&
                                         formatTimeRange(
@@ -317,18 +268,14 @@ export default function EventsScreen() {
                             </View>
 
                             <View style={styles.modalRow}>
-                                <ThemedText style={styles.sectionTitle}>
-                                    {t('events.fields.place')}
-                                </ThemedText>
+                                <ThemedText style={styles.sectionTitle}>Lieu</ThemedText>
                                 <ThemedText>{selectedEvent?.address}</ThemedText>
                             </View>
 
                             {selectedEvent?.maxCapacity != null &&
                                 selectedEvent.currentRegistrations != null && (
                                     <View style={styles.modalRow}>
-                                        <ThemedText style={styles.sectionTitle}>
-                                            {t('events.fields.capacity')}
-                                        </ThemedText>
+                                        <ThemedText style={styles.sectionTitle}>Capacité</ThemedText>
                                         <ThemedText>
                                             {selectedEvent.currentRegistrations}/
                                             {selectedEvent.maxCapacity}
@@ -342,7 +289,7 @@ export default function EventsScreen() {
                             onPress={closeEventModal}
                         >
                             <ThemedText style={styles.modalCloseButtonText}>
-                                {t('events.actions.close')}
+                                Fermer
                             </ThemedText>
                         </Pressable>
                     </View>
@@ -444,6 +391,8 @@ const styles = StyleSheet.create({
     emptyText: {
         textAlign: 'center',
     },
+
+    // Modal styles
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.45)',
@@ -462,23 +411,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#0057B8',
         paddingHorizontal: 16,
         paddingTop: 16,
-        paddingBottom: 16,
+        paddingBottom: 12,
         flexDirection: 'row',
         alignItems: 'center',
     },
     modalImage: {
-        width: 72,
-        height: 72,
-        marginRight: 16,
-        borderRadius: 8,
-        backgroundColor: '#ffffff',
+        width: 48,
+        height: 48,
+        marginRight: 12,
     },
     modalTitle: {
         flex: 1,
         color: '#ffffff',
         fontWeight: '700',
-        fontSize: 20,
-        lineHeight: 24,
     },
     modalBody: {
         paddingHorizontal: 16,

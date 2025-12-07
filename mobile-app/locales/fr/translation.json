@@ -86,5 +86,40 @@
   },
   "modal": {
     "title": "Modal"
+  },
+  "events": {
+    "screenTitle": "ÉVÉNEMENTS DISPONIBLES",
+    "loading": "Chargement des événements...",
+    "empty": "Aucun événement à venir pour le moment.",
+    "loadError": "Impossible de charger les événements.",
+    "fields": {
+      "date": "Date",
+      "time": "Heure",
+      "place": "Lieu",
+      "capacity": "Capacité",
+      "description": "Description"
+    },
+    "actions": {
+      "viewDetails": "Voir détails",
+      "close": "Fermer"
+    },
+    "status": {
+      "OPEN": "OUVERT",
+      "NEARLY_FULL": "PLACES LIMITÉES",
+      "FULL": "COMPLET"
+    },
+    "accessibility": {
+      "viewDetails": "Voir détails, {{title}}"
+    },
+    "names": {
+      "gala": "Gala de reconnaissance MANA",
+      "distribution_mardi": "Distribution Alimentaire - Mardi",
+      "formation_mediateur": "Formation MANA – Médiateur interculturel"
+    },
+    "descriptions": {
+      "gala": "Soirée de reconnaissance du patrimoine interculturel MANA.",
+      "distribution_mardi": "Distribution alimentaire solidaire pour la communauté.",
+      "formation_mediateur": "Séance de formation pour les médiateurs interculturels."
+    }
   }
 }

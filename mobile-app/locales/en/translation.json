@@ -94,5 +94,40 @@
   },
   "modal": {
     "title": "Modal"
+  },
+  "events": {
+    "screenTitle": "AVAILABLE EVENTS",
+    "loading": "Loading events...",
+    "empty": "No upcoming events at the moment.",
+    "loadError": "Unable to load events.",
+    "fields": {
+      "date": "Date",
+      "time": "Time",
+      "place": "Location",
+      "capacity": "Capacity",
+      "description": "Description"
+    },
+    "actions": {
+      "viewDetails": "View details",
+      "close": "Close"
+    },
+    "status": {
+      "OPEN": "OPEN",
+      "NEARLY_FULL": "LIMITED SPOTS",
+      "FULL": "FULL"
+    },
+    "accessibility": {
+      "viewDetails": "View details, {{title}}"
+    },
+    "names": {
+      "gala": "MANA Recognition Gala",
+      "distribution_mardi": "Food Distribution – Tuesday",
+      "formation_mediateur": "MANA Training – Intercultural Mediator"
+    },
+    "descriptions": {
+      "gala": "Recognition evening for MANA's intercultural heritage.",
+      "distribution_mardi": "Solidarity food distribution for the community.",
+      "formation_mediateur": "Training session for intercultural mediators."
+    }
   }
 }

@@ -11,6 +11,14 @@
     "home": "Accueil",
     "explore": "Explorer"
   },
+  "menu": {
+    "navigation": "Navigation",
+    "quickAccess": "Accès rapide",
+    "home": "Accueil",
+    "events": "Événements",
+    "profile": "Profil",
+    "soon": "Bientôt"
+  },
   "home": {
     "browseEvents": "Parcourir les événements",
     "loginRegister": "Se connecter / S'inscrire",

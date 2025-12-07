@@ -7,12 +7,17 @@ COPY gradle ./gradle
 COPY build.gradle.kts ./build.gradle.kts
 COPY settings.gradle.kts ./settings.gradle.kts
 
+# Fix windows line endings for gradlew
+RUN sed -i 's/\r$//' gradlew
+
+# Give execute permission to gradlew
+RUN chmod +x gradlew
+
+# Download dependencies (cached if gradle files don't change)
+RUN ./gradlew dependencies --no-daemon
 
 # Copy source code
 COPY src ./src
-
-# Give execute permission to gradlew (Linux containers)
-RUN chmod +x gradlew
 
 # Build the jar
 RUN ./gradlew clean bootJar --no-daemon

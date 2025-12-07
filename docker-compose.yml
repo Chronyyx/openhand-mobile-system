@@ -19,11 +19,11 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    env_file:
+      - ./openhand-backend/.env
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/openhanddb
-      SPRING_DATASOURCE_USERNAME: openhand
-      SPRING_DATASOURCE_PASSWORD: openhand
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      - DATABASE_URL=jdbc:postgresql://db:5432/openhanddb
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
       - db
     volumes:

@@ -43,7 +43,7 @@ const deleteItem = async (key: string) => {
 };
 
 const register = (email: string, password: string, roles: string[]) => {
-    return axios.post(API_URL + 'register', {
+    return axios.post(API_URL + '/auth/register', {
         email,
         password,
         roles,
@@ -51,11 +51,11 @@ const register = (email: string, password: string, roles: string[]) => {
 };
 
 const login = (email: string, password: string) => {
-    console.log(`[AuthService] Attempting login to: ${API_URL}login`);
+    console.log(`[AuthService] Attempting login to: ${API_URL}/auth/login`);
     console.log(`[AuthService] Payload:`, { email, password: '***' });
 
     return axios
-        .post(API_URL + 'login', {
+        .post(API_URL + '/auth/login', {
             email,
             password,
         })

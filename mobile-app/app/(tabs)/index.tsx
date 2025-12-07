@@ -6,7 +6,7 @@ import {
   Image,
   ScrollView,
   Pressable,
-  Linking,
+  Linking, Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -27,16 +27,20 @@ export default function HomeScreen() {
     const appUrl = `whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(
         message
     )}`;
-    const webUrl = `https://api.whatsapp.com/send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(
+    const webUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
         message
     )}`;
 
     try {
-      const canOpen = await Linking.canOpenURL(appUrl);
-      if (canOpen) {
-        await Linking.openURL(appUrl);
-      } else {
+      if (Platform.OS === "web") {
         await Linking.openURL(webUrl);
+      } else {
+        const canOpen = await Linking.canOpenURL(appUrl);
+        if (canOpen) {
+          await Linking.openURL(appUrl);
+        } else {
+          await Linking.openURL(webUrl);
+        }
       }
     } catch (err) {
       console.warn("Unable to open WhatsApp", err);

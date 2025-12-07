@@ -66,6 +66,10 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
+        if (allowedOrigins == null || allowedOrigins.isEmpty()) {
+            throw new IllegalStateException(
+                    "CORS_ALLOWED_ORIGINS environment variable or openhand.app.cors.allowedOrigins property must be set");
+        }
         configuration.setAllowedOriginPatterns(
                 Arrays.stream(allowedOrigins.split(",")).map(String::trim).collect(Collectors.toList()));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));

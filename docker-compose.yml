@@ -3,10 +3,12 @@ services:
     image: postgres:16-alpine
     container_name: openhand-db
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: openhanddb
-      POSTGRES_USER: openhand
-      POSTGRES_PASSWORD: openhand
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
@@ -20,7 +22,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - ./openhand-backend/.env
+      - .env
     environment:
       - DATABASE_URL=jdbc:postgresql://db:5432/openhanddb
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update

@@ -57,12 +57,7 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Allow the Expo web app (http://localhost:8081) to call the backend
-     * without CORS "Failed to fetch" errors.
-     *
-     * This is dev-friendly (a bit permissive); you can tighten it later.
-     */
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -70,7 +65,7 @@ public class WebSecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:8081",
                 "http://127.0.0.1:8081",
-                "http://192.168.2.12::8081"   // your LAN IP, optional but handy
+                "http://10.0.0.0::8081"  // put you real ip here
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

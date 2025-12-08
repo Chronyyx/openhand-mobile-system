@@ -17,7 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, signOut, hasRole } = useAuth();
   const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
   const menuScale = React.useRef(new Animated.Value(1)).current;
@@ -55,6 +55,11 @@ export default function HomeScreen() {
   const handleNavigateEvents = () => {
     setMenuVisible(false);
     router.push("/events");
+  };
+
+  const handleNavigateDashboard = () => {
+    setMenuVisible(false);
+    router.push("/admin");
   };
 
   const handleMenuPressIn = () => {
@@ -273,6 +278,23 @@ export default function HomeScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={BLUE} />
               </Pressable>
+
+              {hasRole(["ROLE_ADMIN"]) && (
+                  <Pressable
+                      style={({ pressed }) => [
+                        styles.menuItem,
+                        styles.menuItemElevated,
+                        pressed && styles.menuItemPressed,
+                      ]}
+                      onPress={handleNavigateDashboard}
+                  >
+                    <View style={styles.menuItemLeft}>
+                      <Ionicons name="speedometer" size={20} color={BLUE} />
+                      <Text style={styles.menuItemText}>{t("menu.dashboard")}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={BLUE} />
+                  </Pressable>
+              )}
 
               <View style={[styles.menuItem, styles.menuItemDisabled]}>
                 <View style={styles.menuItemLeft}>

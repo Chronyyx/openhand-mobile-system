@@ -11,6 +11,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { AppHeader } from '../../components/app-header';
+import { NavigationMenu } from '../../components/navigation-menu';
+import { useAuth } from '../../context/AuthContext';
 
 import {
     fetchAllUsers,
@@ -25,6 +28,7 @@ const SURFACE = '#F5F7FB';
 export default function AdminUsersScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { hasRole } = useAuth();
 
     const [users, setUsers] = useState<ManagedUser[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,6 +40,7 @@ export default function AdminUsersScreen() {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [rolePickerOpen, setRolePickerOpen] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
 
     const roleLabels = useMemo(
         () => ({
@@ -79,6 +84,21 @@ export default function AdminUsersScreen() {
         setSelectedUser(null);
         setSelectedRole(null);
         setRolePickerOpen(false);
+    };
+
+    const handleNavigateHome = () => {
+        setMenuVisible(false);
+        router.replace('/');
+    };
+
+    const handleNavigateEvents = () => {
+        setMenuVisible(false);
+        router.push('/events');
+    };
+
+    const handleNavigateDashboard = () => {
+        setMenuVisible(false);
+        router.push('/admin');
     };
 
     const saveRoleChange = async () => {
@@ -133,39 +153,43 @@ export default function AdminUsersScreen() {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Pressable style={styles.backButton} onPress={() => router.back()}>
-                    <Ionicons name="chevron-back" size={18} color={ACCENT} />
-                </Pressable>
-                <View style={{ flex: 1 }}>
-                    <Text style={styles.title}>{t('admin.users.title')}</Text>
-                    <Text style={styles.subtitle}>{t('admin.users.subtitle')}</Text>
-                </View>
-            </View>
+            <AppHeader onMenuPress={() => setMenuVisible(true)} />
 
-            {loading ? (
-                <View style={styles.centered}>
-                    <ActivityIndicator />
+            <View style={styles.content}>
+                <View style={styles.header}>
+                    <Pressable style={styles.backButton} onPress={() => router.back()}>
+                        <Ionicons name="chevron-back" size={18} color={ACCENT} />
+                    </Pressable>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.title}>{t('admin.users.title')}</Text>
+                        <Text style={styles.subtitle}>{t('admin.users.subtitle')}</Text>
+                    </View>
                 </View>
-            ) : error ? (
-                <View style={styles.errorBox}>
-                    <Ionicons name="alert-circle" size={18} color="#C62828" />
-                    <Text style={styles.errorText}>{error}</Text>
-                </View>
-            ) : (
-                <FlatList
-                    data={users}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderUserItem}
-                    contentContainerStyle={styles.listContent}
-                    ListEmptyComponent={
-                        <View style={styles.emptyState}>
-                            <Ionicons name="people-outline" size={26} color="#9BA5B7" />
-                            <Text style={styles.emptyText}>{t('admin.users.empty')}</Text>
-                        </View>
-                    }
-                />
-            )}
+
+                {loading ? (
+                    <View style={styles.centered}>
+                        <ActivityIndicator />
+                    </View>
+                ) : error ? (
+                    <View style={styles.errorBox}>
+                        <Ionicons name="alert-circle" size={18} color="#C62828" />
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={users}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={renderUserItem}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Ionicons name="people-outline" size={26} color="#9BA5B7" />
+                                <Text style={styles.emptyText}>{t('admin.users.empty')}</Text>
+                            </View>
+                        }
+                    />
+                )}
+            </View>
 
             <Modal
                 transparent
@@ -250,6 +274,16 @@ export default function AdminUsersScreen() {
                     </View>
                 </View>
             </Modal>
+
+            <NavigationMenu
+                visible={menuVisible}
+                onClose={() => setMenuVisible(false)}
+                onNavigateHome={handleNavigateHome}
+                onNavigateEvents={handleNavigateEvents}
+                onNavigateDashboard={handleNavigateDashboard}
+                showDashboard={hasRole(['ROLE_ADMIN'])}
+                t={t}
+            />
         </View>
     );
 }
@@ -258,6 +292,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: SURFACE,
+    },
+    content: {
+        flex: 1,
     },
     header: {
         flexDirection: 'row',

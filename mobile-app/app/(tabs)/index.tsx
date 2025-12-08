@@ -7,20 +7,19 @@ import {
   ScrollView,
   Pressable,
   Linking,
-  Modal,
-  Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
+import { AppHeader } from "../../components/app-header";
+import { NavigationMenu } from "../../components/navigation-menu";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user, signOut, hasRole } = useAuth();
   const { t } = useTranslation();
   const [menuVisible, setMenuVisible] = React.useState(false);
-  const menuScale = React.useRef(new Animated.Value(1)).current;
 
   const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
 
@@ -62,49 +61,11 @@ export default function HomeScreen() {
     router.push("/admin");
   };
 
-  const handleMenuPressIn = () => {
-    Animated.spring(menuScale, {
-      toValue: 0.92,
-      useNativeDriver: true,
-      speed: 20,
-      bounciness: 6,
-    }).start();
-  };
-
-  const handleMenuPressOut = () => {
-    Animated.spring(menuScale, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 20,
-      bounciness: 8,
-    }).start();
-  };
-
   return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* HEADER */}
-          <View style={styles.header}>
-            <Image
-                source={require("../../assets/mana/manaLogo.png")}
-                style={styles.logo}
-                resizeMode="contain"
-            />
-            <Pressable
-                onPress={() => setMenuVisible(true)}
-                onPressIn={handleMenuPressIn}
-                onPressOut={handleMenuPressOut}
-                hitSlop={12}
-                style={({ pressed }) => [
-                  styles.menuButton,
-                  pressed && styles.menuButtonPressed,
-                ]}
-            >
-              <Animated.View style={{ transform: [{ scale: menuScale }] }}>
-                <Ionicons name="menu" size={28} color="#0056A8" />
-              </Animated.View>
-            </Pressable>
-          </View>
+          <AppHeader onMenuPress={() => setMenuVisible(true)} />
 
           {/* HERO / GALA BANNER */}
           <Image
@@ -226,88 +187,15 @@ export default function HomeScreen() {
         </Pressable>
 
         {/* HAMBURGER MENU */}
-        <Modal
+        <NavigationMenu
             visible={menuVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setMenuVisible(false)}
-        >
-          <View style={styles.menuOverlay}>
-            <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuVisible(false)} />
-            <View style={styles.menuContainer}>
-              <View style={styles.menuHeader}>
-                <View style={styles.menuBadge}>
-                  <Ionicons name="sparkles" size={16} color={BLUE} />
-                </View>
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.menuTitle}>{t("menu.navigation")}</Text>
-                  <Text style={styles.menuSubtitle}>{t("menu.quickAccess")}</Text>
-                </View>
-                <Pressable hitSlop={12} onPress={() => setMenuVisible(false)}>
-                  <Ionicons name="close" size={20} color="#2D3B57" />
-                </Pressable>
-              </View>
-
-              <View style={styles.menuDivider} />
-
-              <Pressable
-                  style={({ pressed }) => [
-                    styles.menuItem,
-                    pressed && styles.menuItemPressed,
-                  ]}
-                  onPress={handleNavigateHome}
-              >
-                <View style={styles.menuItemLeft}>
-                  <Ionicons name="home" size={20} color={BLUE} />
-                  <Text style={styles.menuItemText}>{t("menu.home")}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={BLUE} />
-              </Pressable>
-
-              <Pressable
-                  style={({ pressed }) => [
-                    styles.menuItem,
-                    styles.menuItemElevated,
-                    pressed && styles.menuItemPressed,
-                ]}
-                onPress={handleNavigateEvents}
-              >
-                <View style={styles.menuItemLeft}>
-                  <Ionicons name="calendar" size={20} color={BLUE} />
-                  <Text style={styles.menuItemText}>{t("menu.events")}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={BLUE} />
-              </Pressable>
-
-              {hasRole(["ROLE_ADMIN"]) && (
-                  <Pressable
-                      style={({ pressed }) => [
-                        styles.menuItem,
-                        styles.menuItemElevated,
-                        pressed && styles.menuItemPressed,
-                      ]}
-                      onPress={handleNavigateDashboard}
-                  >
-                    <View style={styles.menuItemLeft}>
-                      <Ionicons name="speedometer" size={20} color={BLUE} />
-                      <Text style={styles.menuItemText}>{t("menu.dashboard")}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color={BLUE} />
-                  </Pressable>
-              )}
-
-              <View style={[styles.menuItem, styles.menuItemDisabled]}>
-                <View style={styles.menuItemLeft}>
-                  <Ionicons name="person-circle" size={20} color="#9BA5B7" />
-                  <Text style={[styles.menuItemText, styles.menuItemTextDisabled]}>
-                    {t("menu.profile")}
-                  </Text>
-                </View>
-                <Text style={styles.menuPill}>{t("menu.soon")}</Text>
-              </View>
-            </View>
-          </View>
-        </Modal>
+            onClose={() => setMenuVisible(false)}
+            onNavigateHome={handleNavigateHome}
+            onNavigateEvents={handleNavigateEvents}
+            showDashboard={hasRole(["ROLE_ADMIN"])}
+            onNavigateDashboard={handleNavigateDashboard}
+            t={t}
+        />
       </View>
   );
 }
@@ -350,19 +238,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 120,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-  },
-  logo: {
-    width: 170,
-    height: 40,
   },
   heroImage: {
     width: "100%",
@@ -517,111 +392,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
     marginBottom: 4,
-  },
-  menuButton: {
-    padding: 6,
-    borderRadius: 18,
-    backgroundColor: "#FFFFFF",
-  },
-  menuButtonPressed: {
-    backgroundColor: "rgba(0,86,168,0.08)",
-  },
-  menuOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(4,15,34,0.3)",
-    paddingTop: 60,
-    paddingHorizontal: 12,
-  },
-  menuContainer: {
-    marginLeft: "auto",
-    width: 232,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E5ECF8",
-    shadowColor: "#000",
-    shadowOpacity: 0.14,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
-    gap: 10,
-  },
-  menuHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menuBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "#EAF1FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  menuTitle: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#1A2D4A",
-    letterSpacing: 0.2,
-  },
-  menuSubtitle: {
-    fontSize: 12,
-    color: "#6F7B91",
-    marginTop: 2,
-  },
-  menuDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "#E2E8F2",
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderRadius: 12,
-    backgroundColor: "#F8FAFE",
-  },
-  menuItemPressed: {
-    opacity: 0.8,
-  },
-  menuItemElevated: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#D9E5FF",
-    shadowColor: "#2F64C0",
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 4,
-  },
-  menuItemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  },
-  menuItemText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#1A2D4A",
-  },
-  menuItemDisabled: {
-    backgroundColor: "#F1F3F7",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E2E7EF",
-  },
-  menuItemTextDisabled: {
-    color: "#9BA5B7",
-    fontWeight: "500",
-  },
-  menuPill: {
-    backgroundColor: "#EAF1FF",
-    color: BLUE,
-    fontSize: 11,
-    fontWeight: "700",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
 });

@@ -3,6 +3,9 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { AppHeader } from '../../components/app-header';
+import { NavigationMenu } from '../../components/navigation-menu';
+import { useAuth } from '../../context/AuthContext';
 
 const ACCENT = '#0056A8';
 const SURFACE = '#F5F7FB';
@@ -10,42 +13,73 @@ const SURFACE = '#F5F7FB';
 export default function AdminDashboardScreen() {
     const router = useRouter();
     const { t } = useTranslation();
+    const { hasRole } = useAuth();
+    const [menuVisible, setMenuVisible] = React.useState(false);
+
+    const handleNavigateHome = () => {
+        setMenuVisible(false);
+        router.replace('/');
+    };
+
+    const handleNavigateEvents = () => {
+        setMenuVisible(false);
+        router.push('/events');
+    };
+
+    const handleNavigateDashboard = () => {
+        setMenuVisible(false);
+        router.push('/admin');
+    };
 
     return (
         <View style={styles.container}>
-            <View style={styles.hero}>
-                <View style={styles.heroIcon}>
-                    <Ionicons name="shield-checkmark" size={22} color={ACCENT} />
+            <AppHeader onMenuPress={() => setMenuVisible(true)} />
+
+            <View style={styles.content}>
+                <View style={styles.hero}>
+                    <View style={styles.heroIcon}>
+                        <Ionicons name="shield-checkmark" size={22} color={ACCENT} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.title}>{t('admin.dashboard.title')}</Text>
+                        <Text style={styles.subtitle}>{t('admin.dashboard.subtitle')}</Text>
+                    </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={styles.title}>{t('admin.dashboard.title')}</Text>
-                    <Text style={styles.subtitle}>{t('admin.dashboard.subtitle')}</Text>
+
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionLabel}>{t('admin.dashboard.management')}</Text>
+                    <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{t('admin.dashboard.adminOnly')}</Text>
+                    </View>
                 </View>
+
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.card,
+                        pressed && styles.cardPressed,
+                    ]}
+                    onPress={() => router.push('/admin/users')}
+                >
+                    <View style={styles.cardIcon}>
+                        <Ionicons name="people-circle" size={26} color={ACCENT} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.cardTitle}>{t('admin.dashboard.users')}</Text>
+                        <Text style={styles.cardDescription}>{t('admin.dashboard.usersDescription')}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                </Pressable>
             </View>
 
-            <View style={styles.sectionHeader}>
-                <Text style={styles.sectionLabel}>{t('admin.dashboard.management')}</Text>
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{t('admin.dashboard.adminOnly')}</Text>
-                </View>
-            </View>
-
-            <Pressable
-                style={({ pressed }) => [
-                    styles.card,
-                    pressed && styles.cardPressed,
-                ]}
-                onPress={() => router.push('/admin/users')}
-            >
-                <View style={styles.cardIcon}>
-                    <Ionicons name="people-circle" size={26} color={ACCENT} />
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{t('admin.dashboard.users')}</Text>
-                    <Text style={styles.cardDescription}>{t('admin.dashboard.usersDescription')}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={ACCENT} />
-            </Pressable>
+            <NavigationMenu
+                visible={menuVisible}
+                onClose={() => setMenuVisible(false)}
+                onNavigateHome={handleNavigateHome}
+                onNavigateEvents={handleNavigateEvents}
+                onNavigateDashboard={handleNavigateDashboard}
+                showDashboard={hasRole(['ROLE_ADMIN'])}
+                t={t}
+            />
         </View>
     );
 }
@@ -54,6 +88,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: SURFACE,
+    },
+    content: {
+        flex: 1,
         paddingHorizontal: 18,
         paddingVertical: 18,
     },

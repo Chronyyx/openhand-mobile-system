@@ -66,8 +66,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const hasRole = (allowedRoles: string[]) => {
-        if (!user || !user.roles) return false;
-        return user.roles.some(role => allowedRoles.includes(role));
+        if (!user || !user.roles) {
+            console.log('[AuthContext] hasRole: user or roles missing', { user: !!user, roles: user?.roles });
+            return false;
+        }
+
+        // Normalize roles to be case-insensitive and tolerant of missing/extra ROLE_ prefix
+        const normalize = (role: string) => role.trim().toUpperCase().replace(/^ROLE_/, '');
+        const allowed = allowedRoles.map(normalize);
+
+        const result = user.roles.some((role) => {
+            const normalized = normalize(role);
+            return allowed.includes(normalized);
+        });
+
+        console.log('[AuthContext] hasRole check:', {
+            allowedRoles,
+            allowedNormalized: allowed,
+            userRoles: user.roles,
+            result,
+        });
+        return result;
     };
 
     return (

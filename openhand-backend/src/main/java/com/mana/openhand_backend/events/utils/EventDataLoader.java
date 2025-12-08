@@ -3,6 +3,7 @@ package com.mana.openhand_backend.events.utils;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -12,15 +13,19 @@ import java.time.LocalDateTime;
 public class EventDataLoader implements CommandLineRunner {
 
     private final EventRepository eventRepository;
+        private final RegistrationRepository registrationRepository;
 
-    public EventDataLoader(EventRepository eventRepository) {
+        public EventDataLoader(EventRepository eventRepository,
+                                                   RegistrationRepository registrationRepository) {
         this.eventRepository = eventRepository;
+                this.registrationRepository = registrationRepository;
     }
 
     @Override
     public void run(String... args) {
-
-        eventRepository.deleteAll();
+                // Clear registrations first to avoid FK constraint when wiping events
+                registrationRepository.deleteAll();
+                eventRepository.deleteAll();
 
         LocalDateTime now = LocalDateTime.now();
 

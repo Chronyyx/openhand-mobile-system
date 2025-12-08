@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 // This is required for physical devices to reach the backend on your computer.
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.0.16:8080/api';
 
 const setItem = async (key: string, value: string) => {
     if (Platform.OS === 'web') {
@@ -61,6 +61,7 @@ const login = (email: string, password: string) => {
         })
         .then(async (response) => {
             console.log(`[AuthService] Login success. Status: ${response.status}`);
+            console.log(`[AuthService] Response data:`, response.data);
             if (response.data.token) {
                 const userToStore = {
                     token: response.data.token,
@@ -69,6 +70,7 @@ const login = (email: string, password: string) => {
                     email: response.data.email,
                     roles: response.data.roles,
                 };
+                console.log(`[AuthService] Storing user:`, userToStore);
                 await setItem('userToken', JSON.stringify(userToStore));
             }
             return response.data;

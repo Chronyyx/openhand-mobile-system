@@ -8,6 +8,8 @@ import {
     Pressable,
     Modal,
     Image,
+    Alert,
+    ScrollView,
     type ImageSourcePropType,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +20,8 @@ import {
     getUpcomingEvents,
     type EventSummary,
 } from '../../services/events.service';
+import { registerForEvent } from '../../services/registration.service';
+import { useAuth } from '../../context/AuthContext';
 
 // ---- Static image map for events ----
 const eventImages: Record<string, ImageSourcePropType> = {
@@ -104,6 +108,7 @@ function getStatusLabel(status: EventSummary['status'], t: (k: string) => string
 export default function EventsScreen() {
     // super simple typing for t
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
+    const { user, hasRole } = useAuth();
 
     const [events, setEvents] = useState<EventSummary[]>([]);
     const [loading, setLoading] = useState(true);
@@ -146,6 +151,46 @@ export default function EventsScreen() {
     const closeEventModal = () => {
         setModalVisible(false);
         setSelectedEvent(null);
+    };
+
+    const handleRegister = async () => {
+        if (!user || !selectedEvent) {
+            return;
+        }
+
+        try {
+            const registration = await registerForEvent(selectedEvent.id, user.token);
+
+            if (registration.status === 'CONFIRMED') {
+                Alert.alert(
+                    'Registration confirmed! ✅',
+                    `You are registered for "${selectedEvent.title}".`,
+                    [{ text: 'OK' }]
+                );
+            } else if (registration.status === 'WAITLISTED') {
+                Alert.alert(
+                    'Added to waitlist',
+                    `The event is full. You are in position ${registration.waitlistedPosition} on the waitlist.`,
+                    [{ text: 'OK' }]
+                );
+            }
+
+            closeEventModal();
+        } catch (err: any) {
+            if (err?.status === 409) {
+                Alert.alert(
+                    'Already registered',
+                    'You are already registered or on the waitlist for this event.',
+                    [{ text: 'OK' }]
+                );
+            } else {
+                Alert.alert(
+                    'Error',
+                    'Unable to complete registration. Please try again.',
+                    [{ text: 'OK' }]
+                );
+            }
+        }
     };
 
     if (loading) {
@@ -284,7 +329,7 @@ export default function EventsScreen() {
                             </ThemedText>
                         </View>
 
-                        <View style={styles.modalBody}>
+                        <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
                             <ThemedText style={styles.sectionTitle}>
                                 {t('events.fields.description')}
                             </ThemedText>
@@ -335,7 +380,21 @@ export default function EventsScreen() {
                                         </ThemedText>
                                     </View>
                                 )}
-                        </View>
+
+                            {/* Register button - only visible for ROLE_MEMBER */}
+                            {user && hasRole(['ROLE_MEMBER']) && (
+                                <Pressable
+                                    style={styles.registerButton}
+                                    onPress={handleRegister}
+                                >
+                                    <ThemedText style={styles.registerButtonText}>
+                                        {selectedEvent?.status === 'FULL'
+                                            ? t('events.actions.joinWaitlist')
+                                            : t('events.actions.register')}
+                                    </ThemedText>
+                                </Pressable>
+                            )}
+                        </ScrollView>
 
                         <Pressable
                             style={styles.modalCloseButton}
@@ -450,13 +509,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 16,
+        paddingVertical: 40,
     },
     modalCard: {
         width: '100%',
         maxWidth: 420,
+        maxHeight: '80%',
         borderRadius: 16,
         backgroundColor: '#ffffff',
         overflow: 'hidden',
+        flexDirection: 'column',
     },
     modalHeader: {
         backgroundColor: '#0057B8',
@@ -499,6 +561,19 @@ const styles = StyleSheet.create({
     },
     modalCloseButtonText: {
         color: '#ffffff',
+        fontWeight: '600',
+    },
+    registerButton: {
+        marginTop: 16,
+        backgroundColor: '#22c55e',
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    registerButtonText: {
+        color: '#ffffff',
+        fontSize: 16,
         fontWeight: '600',
     },
 });

@@ -1,7 +1,7 @@
 // mobile-app/services/events.service.ts
 
 const API_BASE =
-    process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.2.12:8080/api';
+    process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.0.16:8080/api';
 
 export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL';
 

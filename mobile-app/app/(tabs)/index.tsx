@@ -201,30 +201,28 @@ export default function HomeScreen() {
 }
 
 type ServiceCardProps = {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    title: string;
+    description: string;
 };
 
 function ServiceCard({ icon, title, description }: ServiceCardProps) {
-  return (
-      <View style={styles.serviceCard}>
-        <Ionicons name={icon} size={24} color="#0056A8" />
-        <Text style={styles.serviceTitle}>{title}</Text>
-        <Text style={styles.serviceDescription}>{description}</Text>
-      </View>
-  );
+    return (
+        <View style={styles.serviceCard}>
+            <Ionicons name={icon} size={24} color="#0056A8" />
+            <Text style={styles.serviceTitle}>{title}</Text>
+            <Text style={styles.serviceDescription}>{description}</Text>
+        </View>
+    );
 }
 
 function Footer({ t }: { t: (key: string) => string }) {
-  return (
-      <View style={styles.footerContainer}>
-        <Text style={styles.footerText}>
-          {t("home.footer.copyright")}
-        </Text>
-        <Text style={styles.footerText}>{t("home.footer.phone")}</Text>
-      </View>
-  );
+    return (
+        <View style={styles.footerContainer}>
+            <Text style={styles.footerText}>{t("home.footer.copyright")}</Text>
+            <Text style={styles.footerText}>{t("home.footer.phone")}</Text>
+        </View>
+    );
 }
 
 const BLUE = "#0056A8";

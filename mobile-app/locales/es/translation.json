@@ -11,6 +11,15 @@
     "home": "Inicio",
     "explore": "Explorar"
   },
+  "menu": {
+    "navigation": "Navegación",
+    "quickAccess": "Acceso rápido",
+    "home": "Inicio",
+    "events": "Eventos",
+    "dashboard": "Panel de control",
+    "profile": "Perfil",
+    "soon": "Próximamente"
+  },
   "home": {
     "browseEvents": "Explorar eventos",
     "loginRegister": "Iniciar sesión / Registrarse",
@@ -122,6 +131,32 @@
       "gala": "Noche de reconocimiento del patrimonio intercultural de MANA.",
       "distribution_mardi": "Distribución solidaria de alimentos para la comunidad.",
       "formation_mediateur": "Sesión de capacitación para mediadores interculturales."
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Panel de control del administrador",
+      "subtitle": "Gestiona los roles y accesos de tu comunidad.",
+      "management": "Gestión",
+      "adminOnly": "Admin",
+      "users": "Usuarios",
+      "usersDescription": "Ver cuentas y actualizar sus roles"
+    },
+    "users": {
+      "title": "Usuarios",
+      "subtitle": "Actualiza lo que cada persona puede hacer en la app.",
+      "edit": "Editar",
+      "editRole": "Editar rol del usuario",
+      "selectRole": "Seleccionar un rol",
+      "save": "Guardar cambios",
+      "empty": "No se encontraron usuarios.",
+      "loadError": "No se pudieron cargar los usuarios.",
+      "updateError": "No se pudo actualizar el rol del usuario.",
+      "roles": {
+        "admin": "Administrador",
+        "member": "Miembro",
+        "employee": "Empleado"
+      }
     }
   }
 }

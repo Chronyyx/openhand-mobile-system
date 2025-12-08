@@ -2,6 +2,7 @@ package com.mana.openhand_backend.identity;
 
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.identity.utils.RoleUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,27 +22,25 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        if (!userRepository.existsByEmail("admin@mana.org")) {
-            User admin = new User();
-            admin.setEmail("admin@mana.org");
-            admin.setPasswordHash(passwordEncoder.encode("admin123"));
-            Set<String> roles = new HashSet<>();
-            roles.add("ROLE_ADMIN");
-            roles.add("ROLE_MEMBER");
-            admin.setRoles(roles);
-            userRepository.save(admin);
-            System.out.println("Admin Initialized");
-        }
+        createUserIfMissing("admin@mana.org", "admin123",
+                Set.of(RoleUtils.ROLE_ADMIN, RoleUtils.ROLE_MEMBER));
 
-        if (!userRepository.existsByEmail("member@mana.org")) {
-            User member = new User();
-            member.setEmail("member@mana.org");
-            member.setPasswordHash(passwordEncoder.encode("member123"));
-            Set<String> roles = new HashSet<>();
-            roles.add("ROLE_MEMBER");
-            member.setRoles(roles);
-            userRepository.save(member);
-            System.out.println("Member Initialized");
+        createUserIfMissing("member@mana.org", "member123",
+                Set.of(RoleUtils.ROLE_MEMBER));
+
+        createUserIfMissing("employee@mana.org", "employee123",
+                Set.of(RoleUtils.ROLE_EMPLOYEE));
+    }
+
+    private void createUserIfMissing(String email, String rawPassword, Set<String> roles) {
+        if (userRepository.existsByEmail(email)) {
+            return;
         }
+        User user = new User();
+        user.setEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setRoles(new HashSet<>(roles));
+        userRepository.save(user);
+        System.out.printf("User %s initialized%n", email);
     }
 }

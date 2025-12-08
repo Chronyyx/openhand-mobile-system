@@ -11,6 +11,15 @@
     "home": "Home",
     "explore": "Explore"
   },
+  "menu": {
+    "navigation": "Navigation",
+    "quickAccess": "Quick access",
+    "home": "Home",
+    "events": "Events",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "soon": "Soon"
+  },
   "home": {
     "browseEvents": "Browse Events",
     "loginRegister": "Log In / Register",
@@ -130,6 +139,32 @@
       "gala": "Recognition evening for MANA's intercultural heritage.",
       "distribution_mardi": "Solidarity food distribution for the community.",
       "formation_mediateur": "Training session for intercultural mediators."
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Administrator Dashboard",
+      "subtitle": "Manage roles and access for your community.",
+      "management": "Management",
+      "adminOnly": "Admin",
+      "users": "Users",
+      "usersDescription": "View accounts and update their roles"
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Update what each person can do in the app.",
+      "edit": "Edit",
+      "editRole": "Edit user role",
+      "selectRole": "Select a role",
+      "save": "Save changes",
+      "empty": "No users found.",
+      "loadError": "Unable to load users.",
+      "updateError": "Unable to update the user role.",
+      "roles": {
+        "admin": "Administrator",
+        "member": "Member",
+        "employee": "Employee"
+      }
     }
   }
 }

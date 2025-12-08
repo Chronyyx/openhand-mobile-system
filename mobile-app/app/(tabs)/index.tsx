@@ -12,11 +12,14 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
+import { AppHeader } from "../../components/app-header";
+import { NavigationMenu } from "../../components/navigation-menu";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuth();
+  const { user, signOut, hasRole } = useAuth();
   const { t } = useTranslation();
+  const [menuVisible, setMenuVisible] = React.useState(false);
 
   const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
 
@@ -43,18 +46,26 @@ export default function HomeScreen() {
     }
   };
 
+  const handleNavigateHome = () => {
+    setMenuVisible(false);
+    router.replace("/");
+  };
+
+  const handleNavigateEvents = () => {
+    setMenuVisible(false);
+    router.push("/events");
+  };
+
+  const handleNavigateDashboard = () => {
+    setMenuVisible(false);
+    router.push("/admin");
+  };
+
   return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* HEADER */}
-          <View style={styles.header}>
-            <Image
-                source={require("../../assets/mana/manaLogo.png")}
-                style={styles.logo}
-                resizeMode="contain"
-            />
-            <Ionicons name="menu" size={28} color="#0056A8" />
-          </View>
+          <AppHeader onMenuPress={() => setMenuVisible(true)} />
 
           {/* HERO / GALA BANNER */}
           <Image
@@ -174,6 +185,17 @@ export default function HomeScreen() {
         <Pressable style={styles.whatsappButton} onPress={handleWhatsAppContact}>
           <Ionicons name="logo-whatsapp" size={26} color="#FFFFFF" />
         </Pressable>
+
+        {/* HAMBURGER MENU */}
+        <NavigationMenu
+            visible={menuVisible}
+            onClose={() => setMenuVisible(false)}
+            onNavigateHome={handleNavigateHome}
+            onNavigateEvents={handleNavigateEvents}
+            showDashboard={hasRole(["ROLE_ADMIN"])}
+            onNavigateDashboard={handleNavigateDashboard}
+            t={t}
+        />
       </View>
   );
 }
@@ -216,19 +238,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 120,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 40,
-    paddingBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-  },
-  logo: {
-    width: 170,
-    height: 40,
   },
   heroImage: {
     width: "100%",

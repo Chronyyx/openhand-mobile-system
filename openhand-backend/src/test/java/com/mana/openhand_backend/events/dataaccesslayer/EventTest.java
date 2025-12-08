@@ -29,7 +29,7 @@ class EventTest {
         event.setMaxCapacity(50);
         event.setCurrentRegistrations(5);
 
-        assertNull(event.getId()); // not set
+        assertNull(event.getId()); // not setcd
         assertEquals("Title", event.getTitle());
         assertEquals("Desc", event.getDescription());
         assertEquals(start, event.getStartDateTime());

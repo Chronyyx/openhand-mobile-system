@@ -13,6 +13,11 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     container_name: openhand-backend
@@ -27,7 +32,8 @@ services:
       - DATABASE_URL=jdbc:postgresql://db:5432/openhanddb
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - backend-build-cache:/root/.gradle
 
@@ -36,8 +42,6 @@ services:
     build:
       context: ./mobile-app
       dockerfile: Dockerfile
-    # WORKDIR already set in Dockerfile, so this is optional
-    # working_dir: /app
     ports:
       - "19000:19000"
       - "19001:19001"
@@ -52,10 +56,13 @@ services:
       NODE_ENV: "development"
       EXPO_DEVTOOLS_LISTEN_ADDRESS: "0.0.0.0"
       EXPO_NO_TELEMETRY: "1"
+      EXPO_PUBLIC_API_URL: "http://192.168.0.16:8080/api"
     stdin_open: true
     tty: true
     depends_on:
       - backend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   mobile-node-modules:

@@ -11,6 +11,14 @@
     "home": "Home",
     "explore": "Explore"
   },
+  "menu": {
+    "navigation": "Navigation",
+    "quickAccess": "Quick access",
+    "home": "Home",
+    "events": "Events",
+    "profile": "Profile",
+    "soon": "Soon"
+  },
   "home": {
     "browseEvents": "Browse Events",
     "loginRegister": "Log In / Register",

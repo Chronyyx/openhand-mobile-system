@@ -109,7 +109,9 @@
     },
     "actions": {
       "viewDetails": "View details",
-      "close": "Close"
+      "close": "Close",
+      "register": "📝 Register for this event",
+      "joinWaitlist": "📝 Join waitlist"
     },
     "status": {
       "OPEN": "OPEN",

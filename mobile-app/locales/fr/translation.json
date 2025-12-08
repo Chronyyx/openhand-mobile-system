@@ -101,7 +101,9 @@
     },
     "actions": {
       "viewDetails": "Voir détails",
-      "close": "Fermer"
+      "close": "Fermer",
+      "register": "📝 S'inscrire à cet événement",
+      "joinWaitlist": "📝 Rejoindre la liste d'attente"
     },
     "status": {
       "OPEN": "OUVERT",

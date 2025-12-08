@@ -9,6 +9,8 @@ import {
     Pressable,
     Modal,
     Image,
+    Alert,
+    ScrollView,
     type ImageSourcePropType,
 } from 'react-native';
 
@@ -16,8 +18,12 @@ import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import {
     getUpcomingEvents,
+    getEventById,
     type EventSummary,
+    type EventDetail,
 } from '../../services/events.service';
+import { registerForEvent } from '../../services/registration.service';
+import { useAuth } from '../../context/AuthContext';
 
 const eventImages: Record<string, ImageSourcePropType> = {
     'Gala de reconnaissance MANA': require('../../assets/mana/Gala_image_Mana.png'),
@@ -84,6 +90,21 @@ export default function EventsScreen() {
     // modal state
     const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [eventDetail, setEventDetail] = useState<EventDetail | null>(null);
+    const [modalLoading, setModalLoading] = useState(false);
+    const [modalError, setModalError] = useState<string | null>(null);
+
+    // Auth context for checking if user can register
+    const { user, hasRole } = useAuth();
+
+    // Debug: Log user info when component loads
+    useEffect(() => {
+        console.log('[EventDetail] User:', user);
+        console.log('[EventDetail] Has ROLE_MEMBER:', hasRole(['ROLE_MEMBER']));
+        console.log('[EventDetail] eventDetail:', eventDetail);
+        console.log('[EventDetail] eventDetail.status:', eventDetail?.status);
+        console.log('[EventDetail] Show register button?', user && hasRole(['ROLE_MEMBER']) && eventDetail?.status !== 'FULL');
+    }, [user, hasRole, eventDetail]);
 
     const loadEvents = async () => {
         try {
@@ -112,14 +133,88 @@ export default function EventsScreen() {
         loadEvents();
     };
 
-    const openEventModal = (event: EventSummary) => {
+    const openEventModal = async (event: EventSummary) => {
+        console.log('[EventDetail] Opening modal for event:', event);
         setSelectedEvent(event);
         setModalVisible(true);
+        setModalLoading(true);
+        setModalError(null);
+        setEventDetail(null);
+
+        try {
+            // Fetch full event details from backend instead of using list data
+            const detail = await getEventById(event.id);
+            console.log('[EventDetail] Loaded event details:', detail);
+            setEventDetail(detail);
+        } catch (e) {
+            console.error('Failed to load event details', e);
+            setModalError(
+                e instanceof Error
+                    ? e.message
+                    : "Impossible de charger les détails de l'événement",
+            );
+        } finally {
+            setModalLoading(false);
+        }
     };
 
     const closeEventModal = () => {
         setModalVisible(false);
         setSelectedEvent(null);
+        setEventDetail(null);
+        setModalError(null);
+    };
+
+    const handleRegister = async () => {
+        if (!user || !eventDetail) return;
+
+        try {
+            const registration = await registerForEvent(eventDetail.id, user.token);
+
+            // Show success message based on status
+            if (registration.status === 'CONFIRMED') {
+                Alert.alert(
+                    'Inscription confirmée! ✅',
+                    `Vous êtes inscrit(e) à l'événement "${eventDetail.title}".`,
+                    [{ text: 'OK' }]
+                );
+            } else if (registration.status === 'WAITLISTED') {
+                Alert.alert(
+                    'Ajouté à la liste d\'attente',
+                    `L'événement est complet. Vous êtes en position ${registration.waitlistedPosition} sur la liste d'attente.`,
+                    [{ text: 'OK' }]
+                );
+            }
+
+            // Refresh event details to update capacity
+            const updatedEvent = await getEventById(eventDetail.id);
+            setEventDetail(updatedEvent);
+
+        } catch (error) {
+            console.error('Registration failed', error);
+            const errorMessage = error instanceof Error ? error.message : 'Inscription échouée';
+
+            // Handle specific error cases
+            if (errorMessage.includes('409')) {
+                Alert.alert(
+                    'Déjà inscrit',
+                    'Vous êtes déjà inscrit(e) à cet événement.',
+                    [{ text: 'OK' }]
+                );
+            } else if (errorMessage.includes('400')) {
+                Alert.alert(
+                    'Événement complet',
+                    'Cet événement est complet et n\'accepte plus d\'inscriptions.',
+                    [{ text: 'OK' }]
+                );
+            } else {
+                Alert.alert(
+                    'Erreur',
+                    'Impossible de compléter l\'inscription. Veuillez réessayer.',
+                    [{ text: 'OK' }]
+                );
+            }
+        }
     };
 
     // ---- Loading / error / empty states ----
@@ -245,44 +340,114 @@ export default function EventsScreen() {
                             </ThemedText>
                         </View>
 
-                        <View style={styles.modalBody}>
-                            <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-                            <ThemedText>{selectedEvent?.description}</ThemedText>
+                        <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
+                            {/* Loading state while fetching event details */}
+                            {modalLoading && (
+                                <View style={styles.modalLoadingContainer}>
+                                    <ActivityIndicator size="large" color="#0057B8" />
+                                    <ThemedText style={styles.modalLoadingText}>
+                                        Chargement des détails...
+                                    </ThemedText>
+                                </View>
+                            )}
 
-                            <View style={styles.modalRow}>
-                                <ThemedText style={styles.sectionTitle}>Date</ThemedText>
-                                <ThemedText>
-                                    {selectedEvent && formatDate(selectedEvent.startDateTime)}
-                                </ThemedText>
-                            </View>
+                            {/* Error state if event cannot be loaded */}
+                            {modalError && !modalLoading && (
+                                <View style={styles.modalErrorContainer}>
+                                    <ThemedText style={styles.modalErrorText}>
+                                        ❌ {modalError}
+                                    </ThemedText>
+                                    <ThemedText style={styles.modalErrorHint}>
+                                        Veuillez réessayer plus tard.
+                                    </ThemedText>
+                                </View>
+                            )}
 
-                            <View style={styles.modalRow}>
-                                <ThemedText style={styles.sectionTitle}>Heure</ThemedText>
-                                <ThemedText>
-                                    {selectedEvent &&
-                                        formatTimeRange(
-                                            selectedEvent.startDateTime,
-                                            selectedEvent.endDateTime,
-                                        )}
-                                </ThemedText>
-                            </View>
+                            {/* Event details - only show when loaded successfully */}
+                            {!modalLoading && !modalError && eventDetail && (
+                                <>
+                                    <ThemedText style={styles.sectionTitle}>Description</ThemedText>
+                                    <ThemedText>{eventDetail.description}</ThemedText>
 
-                            <View style={styles.modalRow}>
-                                <ThemedText style={styles.sectionTitle}>Lieu</ThemedText>
-                                <ThemedText>{selectedEvent?.address}</ThemedText>
-                            </View>
-
-                            {selectedEvent?.maxCapacity != null &&
-                                selectedEvent.currentRegistrations != null && (
                                     <View style={styles.modalRow}>
-                                        <ThemedText style={styles.sectionTitle}>Capacité</ThemedText>
+                                        <ThemedText style={styles.sectionTitle}>Date</ThemedText>
                                         <ThemedText>
-                                            {selectedEvent.currentRegistrations}/
-                                            {selectedEvent.maxCapacity}
+                                            {formatDate(eventDetail.startDateTime)}
                                         </ThemedText>
                                     </View>
-                                )}
-                        </View>
+
+                                    <View style={styles.modalRow}>
+                                        <ThemedText style={styles.sectionTitle}>Heure</ThemedText>
+                                        <ThemedText>
+                                            {formatTimeRange(
+                                                eventDetail.startDateTime,
+                                                eventDetail.endDateTime,
+                                            )}
+                                        </ThemedText>
+                                    </View>
+
+                                    <View style={styles.modalRow}>
+                                        <ThemedText style={styles.sectionTitle}>Lieu</ThemedText>
+                                        <ThemedText>{eventDetail.address}</ThemedText>
+                                    </View>
+
+                                    <View style={styles.modalRow}>
+                                        <ThemedText style={styles.sectionTitle}>Statut</ThemedText>
+                                        <ThemedText>{getStatusLabel(eventDetail.status)}</ThemedText>
+                                    </View>
+
+                                    {eventDetail.maxCapacity != null &&
+                                        eventDetail.currentRegistrations != null && (
+                                            <View style={styles.modalRow}>
+                                                <ThemedText style={styles.sectionTitle}>
+                                                    Capacité restante
+                                                </ThemedText>
+                                                <ThemedText>
+                                                    {eventDetail.currentRegistrations}/
+                                                    {eventDetail.maxCapacity}
+                                                </ThemedText>
+                                            </View>
+                                        )}
+
+                                    {/* Debug panel to surface button conditions visibly */}
+                                    <View style={styles.debugBox}>
+                                        <ThemedText style={styles.debugTitle}>Debug bouton</ThemedText>
+                                        <ThemedText style={styles.debugItem}>hasUser: {String(!!user)}</ThemedText>
+                                        <ThemedText style={styles.debugItem}>hasRole(ROLE_MEMBER): {String(hasRole(['ROLE_MEMBER']))}</ThemedText>
+                                        <ThemedText style={styles.debugItem}>status: {eventDetail?.status ?? 'n/a'}</ThemedText>
+                                        <ThemedText style={styles.debugItem}>statusNotFull: {String(eventDetail?.status !== 'FULL')}</ThemedText>
+                                    </View>
+
+                                    {/* Register button - TEMPORARY: always visible for testing */}
+                                    <View style={{ gap: 8, marginTop: 16 }}>
+                                        {eventDetail?.status === 'FULL' && (
+                                            <ThemedText style={styles.infoText}>
+                                                L&apos;événement est complet : vous serez placé(e) sur liste d&apos;attente.
+                                            </ThemedText>
+                                        )}
+                                        <Pressable
+                                            style={styles.registerButton}
+                                            onPress={handleRegister}
+                                        >
+                                            <ThemedText style={styles.registerButtonText}>
+                                                {eventDetail?.status === 'FULL'
+                                                    ? '📝 Rejoindre la liste d\'attente'
+                                                    : '📝 S\'inscrire à cet événement'}
+                                            </ThemedText>
+                                        </Pressable>
+                                    </View>
+
+                                    {/* Message for non-members */}
+                                    {!user && (
+                                        <View style={styles.infoBox}>
+                                            <ThemedText style={styles.infoText}>
+                                                ℹ️ Connectez-vous en tant que membre pour vous inscrire
+                                            </ThemedText>
+                                        </View>
+                                    )}
+                                </>
+                            )}
+                        </ScrollView>
 
                         <Pressable
                             style={styles.modalCloseButton}
@@ -374,6 +539,22 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 14,
     },
+    debugBox: {
+        marginTop: 12,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#d0d7de',
+        borderRadius: 8,
+        backgroundColor: '#f6f8fa',
+    },
+    debugTitle: {
+        fontWeight: '700',
+        marginBottom: 4,
+    },
+    debugItem: {
+        fontSize: 13,
+        color: '#4a5568',
+    },
     centered: {
         flex: 1,
         alignItems: 'center',
@@ -403,6 +584,7 @@ const styles = StyleSheet.create({
     modalCard: {
         width: '100%',
         maxWidth: 420,
+        maxHeight: '80%',
         borderRadius: 16,
         backgroundColor: '#ffffff',
         overflow: 'hidden',
@@ -426,9 +608,9 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     modalBody: {
+        flex: 1,
         paddingHorizontal: 16,
         paddingVertical: 16,
-        gap: 8,
     },
     sectionTitle: {
         fontWeight: '700',
@@ -445,5 +627,61 @@ const styles = StyleSheet.create({
     modalCloseButtonText: {
         color: '#ffffff',
         fontWeight: '600',
+    },
+    modalLoadingContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 32,
+    },
+    modalLoadingText: {
+        marginTop: 12,
+        fontSize: 14,
+        color: '#666',
+    },
+    modalErrorContainer: {
+        backgroundColor: '#FFEBEE',
+        borderRadius: 8,
+        padding: 16,
+        marginVertical: 8,
+    },
+    modalErrorText: {
+        color: '#D32F2F',
+        fontSize: 14,
+        fontWeight: '600',
+        marginBottom: 4,
+    },
+    modalErrorHint: {
+        color: '#666',
+        fontSize: 12,
+    },
+    registerButton: {
+        backgroundColor: '#4CAF50',
+        borderRadius: 8,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        marginTop: 16,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    registerButtonText: {
+        color: '#ffffff',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+    infoBox: {
+        backgroundColor: '#E3F2FD',
+        borderRadius: 8,
+        padding: 12,
+        marginTop: 16,
+        borderLeftWidth: 4,
+        borderLeftColor: '#2196F3',
+    },
+    infoText: {
+        color: '#1565C0',
+        fontSize: 13,
     },
 });

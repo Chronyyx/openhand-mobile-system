@@ -6,8 +6,8 @@ import com.mana.openhand_backend.identity.presentationlayer.payload.JwtResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.LoginRequest;
 import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
+import com.mana.openhand_backend.identity.utils.RoleUtils;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
 import jakarta.validation.Valid;
@@ -23,7 +23,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -85,28 +84,17 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
+        Set<String> roles;
+        try {
+            roles = RoleUtils.normalizeRolesWithDefault(signUpRequest.getRoles());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(new MessageResponse(ex.getMessage()));
+        }
+
         // Create new user's account
         User user = new User();
         user.setEmail(signUpRequest.getEmail());
         user.setPasswordHash(encoder.encode(signUpRequest.getPassword()));
-
-        Set<String> strRoles = signUpRequest.getRoles();
-        Set<String> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            roles.add("ROLE_MEMBER"); // Default role
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        roles.add("ROLE_ADMIN");
-                        break;
-                    default:
-                        roles.add("ROLE_MEMBER");
-                }
-            });
-        }
-
         user.setRoles(roles);
         userRepository.save(user);
 

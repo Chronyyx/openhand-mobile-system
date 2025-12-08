@@ -16,6 +16,7 @@
     "quickAccess": "Accès rapide",
     "home": "Accueil",
     "events": "Événements",
+    "dashboard": "Tableau de bord",
     "profile": "Profil",
     "soon": "Bientôt"
   },
@@ -128,6 +129,32 @@
       "gala": "Soirée de reconnaissance du patrimoine interculturel MANA.",
       "distribution_mardi": "Distribution alimentaire solidaire pour la communauté.",
       "formation_mediateur": "Séance de formation pour les médiateurs interculturels."
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Tableau de bord administrateur",
+      "subtitle": "Gérez les rôles et les accès de votre communauté.",
+      "management": "Gestion",
+      "adminOnly": "Admin",
+      "users": "Utilisateurs",
+      "usersDescription": "Consulter les comptes et mettre à jour leurs rôles"
+    },
+    "users": {
+      "title": "Utilisateurs",
+      "subtitle": "Ajustez ce que chaque personne peut faire dans l'application.",
+      "edit": "Modifier",
+      "editRole": "Modifier le rôle",
+      "selectRole": "Sélectionner un rôle",
+      "save": "Enregistrer",
+      "empty": "Aucun utilisateur trouvé.",
+      "loadError": "Impossible de charger les utilisateurs.",
+      "updateError": "Impossible de mettre à jour le rôle de l'utilisateur.",
+      "roles": {
+        "admin": "Administrateur",
+        "member": "Membre",
+        "employee": "Employé"
+      }
     }
   }
 }

@@ -108,10 +108,7 @@ public class RegistrationServiceImpl implements RegistrationService {
         Registration registration = registrationRepository.findByUserIdAndEventId(userId, eventId)
                 .orElseThrow(() -> new RuntimeException("Registration not found for user " + userId + " and event " + eventId));
 
-        registration.setStatus(RegistrationStatus.CANCELLED);
-        registration.setCancelledAt(LocalDateTime.now());
-
-        // If this was a confirmed registration, update event capacity
+        // If this was a confirmed registration, update event capacity BEFORE changing status
         if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
             Event event = registration.getEvent();
             if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
@@ -131,6 +128,9 @@ public class RegistrationServiceImpl implements RegistrationService {
                 eventRepository.save(event);
             }
         }
+
+        registration.setStatus(RegistrationStatus.CANCELLED);
+        registration.setCancelledAt(LocalDateTime.now());
 
         return registrationRepository.save(registration);
     }

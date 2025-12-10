@@ -69,17 +69,27 @@ class RegistrationControllerIntegrationTest {
                 testUser = userRepository.save(testUser);
 
                 testEvent = new Event(
-                                "Test Event",
-                                "Test Description",
-                                eventStart,
-                                eventEnd,
-                                "Test Location",
-                                "Test Address",
-                                EventStatus.OPEN,
-                                2,
-                                0,
-                                "General");
+                        "Test Event",
+                        "Test Description",
+                        eventStart,
+                        eventEnd,
+                        "Test Location",
+                        "Test Address",
+                        EventStatus.OPEN,
+                        2,
+                        0,
+                        "General"
+                );
                 testEvent = eventRepository.save(testEvent);
+        }
+
+        // Helper: swallow JsonProcessingException inside a RuntimeException
+        private String asJsonString(final Object obj) {
+                try {
+                        return objectMapper.writeValueAsString(obj);
+                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                        throw new RuntimeException("Failed to serialize object to JSON", e);
+                }
         }
 
         // ========== registerForEvent Tests ==========
@@ -95,13 +105,13 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.id", notNullValue()))
-                                .andExpect(jsonPath("$.userId", equalTo(testUser.getId().intValue())))
-                                .andExpect(jsonPath("$.eventId", equalTo(testEvent.getId().intValue())))
-                                .andExpect(jsonPath("$.status", equalTo("CONFIRMED")))
-                                .andExpect(jsonPath("$.eventTitle", equalTo("Test Event")));
+                                .content(asJsonString(request)))
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.id", notNullValue()))
+                        .andExpect(jsonPath("$.userId", equalTo(testUser.getId().intValue())))
+                        .andExpect(jsonPath("$.eventId", equalTo(testEvent.getId().intValue())))
+                        .andExpect(jsonPath("$.status", equalTo("CONFIRMED")))
+                        .andExpect(jsonPath("$.eventTitle", equalTo("Test Event")));
         }
 
         @Test
@@ -109,7 +119,7 @@ class RegistrationControllerIntegrationTest {
         @Transactional
         void registerForEvent_whenEventAtCapacity_shouldReturn201WithWaitlistedStatus() throws Exception {
                 // Arrange - fill event to capacity
-                Event filledEvent = eventRepository.findById(testEvent.getId()).get();
+                Event filledEvent = eventRepository.findById(testEvent.getId()).orElseThrow();
                 filledEvent.setCurrentRegistrations(2);
                 filledEvent.setStatus(EventStatus.FULL);
                 eventRepository.save(filledEvent);
@@ -120,10 +130,10 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.status", equalTo("WAITLISTED")))
-                                .andExpect(jsonPath("$.waitlistedPosition", equalTo(1)));
+                                .content(asJsonString(request)))
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.status", equalTo("WAITLISTED")))
+                        .andExpect(jsonPath("$.waitlistedPosition", equalTo(1)));
         }
 
         @Test
@@ -137,8 +147,8 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isForbidden());
+                                .content(asJsonString(request)))
+                        .andExpect(status().isForbidden());
         }
 
         // ========== getMyRegistrations Tests ==========
@@ -156,11 +166,11 @@ class RegistrationControllerIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(get("/api/registrations/my-registrations")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(1)))
-                                .andExpect(jsonPath("$[0].userId", equalTo(testUser.getId().intValue())))
-                                .andExpect(jsonPath("$[0].eventId", equalTo(testEvent.getId().intValue())))
-                                .andExpect(jsonPath("$[0].status", equalTo("CONFIRMED")));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)))
+                        .andExpect(jsonPath("$[0].userId", equalTo(testUser.getId().intValue())))
+                        .andExpect(jsonPath("$[0].eventId", equalTo(testEvent.getId().intValue())))
+                        .andExpect(jsonPath("$[0].status", equalTo("CONFIRMED")));
         }
 
         @Test
@@ -170,8 +180,8 @@ class RegistrationControllerIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(get("/api/registrations/my-registrations")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(0)));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(0)));
         }
 
         @Test
@@ -180,16 +190,17 @@ class RegistrationControllerIntegrationTest {
         void getMyRegistrations_withMultipleRegistrations_shouldReturnAll() throws Exception {
                 // Arrange
                 Event event2 = new Event(
-                                "Event 2",
-                                "Description 2",
-                                eventStart,
-                                eventEnd,
-                                "Location 2",
-                                "Address 2",
-                                EventStatus.OPEN,
-                                10,
-                                0,
-                                "General");
+                        "Event 2",
+                        "Description 2",
+                        eventStart,
+                        eventEnd,
+                        "Location 2",
+                        "Address 2",
+                        EventStatus.OPEN,
+                        10,
+                        0,
+                        "General"
+                );
                 event2 = eventRepository.save(event2);
 
                 Registration reg1 = new Registration(testUser, testEvent);
@@ -203,10 +214,10 @@ class RegistrationControllerIntegrationTest {
                 // Act & Assert
                 mockMvc.perform(get("/api/registrations/my-registrations")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(2)))
-                                .andExpect(jsonPath("$[0].status", equalTo("CONFIRMED")))
-                                .andExpect(jsonPath("$[1].status", equalTo("WAITLISTED")));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].status", equalTo("CONFIRMED")))
+                        .andExpect(jsonPath("$[1].status", equalTo("WAITLISTED")));
         }
 
         // ========== cancelRegistration Tests ==========
@@ -225,9 +236,9 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(delete("/api/registrations/event/" + testEvent.getId())
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.status", equalTo("CANCELLED")))
-                                .andExpect(jsonPath("$.cancelledAt", notNullValue()));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.status", equalTo("CANCELLED")))
+                        .andExpect(jsonPath("$.cancelledAt", notNullValue()));
         }
 
         // ========== Scenario Tests ==========
@@ -243,29 +254,29 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.status", equalTo("CONFIRMED")));
+                                .content(asJsonString(request)))
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.status", equalTo("CONFIRMED")));
 
                 // Act 2
                 mockMvc.perform(get("/api/registrations/my-registrations")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(1)));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)));
 
                 // Act 3
                 mockMvc.perform(delete("/api/registrations/event/" + testEvent.getId())
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.status", equalTo("CANCELLED")));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.status", equalTo("CANCELLED")));
 
                 // Act 4
                 mockMvc.perform(get("/api/registrations/my-registrations")
                                 .contentType(MediaType.APPLICATION_JSON))
-                                .andExpect(status().isOk())
-                                .andExpect(jsonPath("$", hasSize(1)))
-                                .andExpect(jsonPath("$[0].status", equalTo("CANCELLED")));
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)))
+                        .andExpect(jsonPath("$[0].status", equalTo("CANCELLED")));
         }
 
         @Test
@@ -273,7 +284,7 @@ class RegistrationControllerIntegrationTest {
         @Transactional
         void registrationWorkflow_registerForFullEvent_shouldWaitlist() throws Exception {
                 // Arrange
-                Event filledEvent = eventRepository.findById(testEvent.getId()).get();
+                Event filledEvent = eventRepository.findById(testEvent.getId()).orElseThrow();
                 filledEvent.setCurrentRegistrations(2);
                 filledEvent.setStatus(EventStatus.FULL);
                 eventRepository.save(filledEvent);
@@ -284,10 +295,10 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isCreated())
-                                .andExpect(jsonPath("$.status", equalTo("WAITLISTED")))
-                                .andExpect(jsonPath("$.waitlistedPosition", greaterThan(0)));
+                                .content(asJsonString(request)))
+                        .andExpect(status().isCreated())
+                        .andExpect(jsonPath("$.status", equalTo("WAITLISTED")))
+                        .andExpect(jsonPath("$.waitlistedPosition", greaterThan(0)));
         }
 
         @Test
@@ -301,14 +312,14 @@ class RegistrationControllerIntegrationTest {
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isCreated());
+                                .content(asJsonString(request)))
+                        .andExpect(status().isCreated());
 
                 // Act 2
                 mockMvc.perform(post("/api/registrations")
                                 .with(csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isConflict());
+                                .content(asJsonString(request)))
+                        .andExpect(status().isConflict());
         }
 }

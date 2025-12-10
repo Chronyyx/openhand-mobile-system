@@ -49,7 +49,7 @@ class RegistrationServiceImplTest {
     @BeforeEach
     void setUp() {
         now = LocalDateTime.now();
-        
+
         testUser = new User();
         testUser.setEmail("test@example.com");
 
@@ -64,8 +64,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 2,
-                0
-        );
+                0,
+                "General");
     }
 
     // ========== registerForEvent Tests ==========
@@ -107,8 +107,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.FULL,
                 2,
-                2
-        );
+                2,
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -179,8 +179,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 null,
-                null
-        );
+                null,
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -209,8 +209,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 10,
-                7
-        );
+                7,
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -239,8 +239,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.NEARLY_FULL,
                 10,
-                9
-        );
+                9,
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -271,8 +271,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.FULL,
                 10,
-                10
-        );
+                10,
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -303,13 +303,16 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.NEARLY_FULL,
                 10,
-                10
-        );
+                10,
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.existsByUserIdAndEventId(1L, 1L)).thenReturn(false);
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(9L); // Not all are confirmed
+        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(9L); // Not
+                                                                                                               // all
+                                                                                                               // are
+                                                                                                               // confirmed
         when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED)).thenReturn(1L);
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -333,10 +336,10 @@ class RegistrationServiceImplTest {
                 LocalDateTime.now().plusDays(2),
                 "Test Location",
                 "Test Address",
-                EventStatus.FULL,  // Marked FULL explicitly
+                EventStatus.FULL, // Marked FULL explicitly
                 10,
-                5  // But only 5 registered
-        );
+                5, // But only 5 registered
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -357,7 +360,8 @@ class RegistrationServiceImplTest {
 
     @Test
     void registerForEvent_withAllCapacitySignalsFalse_shouldCreateConfirmedRegistration() {
-        // Arrange - All capacity checks are false: confirmedCount < max, currentRegs < max, status not FULL
+        // Arrange - All capacity checks are false: confirmedCount < max, currentRegs <
+        // max, status not FULL
         testEvent = new Event(
                 "Test Event",
                 "Test Description",
@@ -367,8 +371,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 100,
-                30  // Below capacity
-        );
+                30, // Below capacity
+                "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
@@ -462,8 +466,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 10,
-                1
-        );
+                1,
+                "General");
 
         registration.setEvent(testEvent);
 
@@ -525,8 +529,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.FULL,
                 10,
-                10
-        );
+                10,
+                "General");
 
         registration.setEvent(testEvent);
 
@@ -546,7 +550,8 @@ class RegistrationServiceImplTest {
 
     @Test
     void cancelRegistration_changesEventStatusFromNearlyFullToOpen() {
-        // Arrange - Event at nearly full (9/10 = 90%), after cancel will be 8/10 = 80% exactly at boundary
+        // Arrange - Event at nearly full (9/10 = 90%), after cancel will be 8/10 = 80%
+        // exactly at boundary
         // At 80% boundary, it should still be NEARLY_FULL since >= 0.8 is the threshold
         Registration registration = new Registration(testUser, testEvent);
         registration.setStatus(RegistrationStatus.CONFIRMED);
@@ -560,8 +565,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.NEARLY_FULL,
                 10,
-                9
-        );
+                9,
+                "General");
 
         registration.setEvent(testEvent);
 
@@ -595,8 +600,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 10,
-                0  // Already 0
-        );
+                0, // Already 0
+                "General");
 
         registration.setEvent(testEvent);
 
@@ -629,8 +634,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.OPEN,
                 10,
-                null  // null currentRegistrations
-        );
+                null, // null currentRegistrations
+                "General");
 
         registration.setEvent(testEvent);
 
@@ -662,8 +667,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.NEARLY_FULL,
                 100,
-                81  // 81% capacity
-        );
+                81, // 81% capacity
+                "General");
 
         registration.setEvent(testEvent);
 
@@ -696,8 +701,8 @@ class RegistrationServiceImplTest {
                 "Test Address",
                 EventStatus.NEARLY_FULL,
                 100,
-                71  // 71% capacity
-        );
+                71, // 71% capacity
+                "General");
 
         registration.setEvent(testEvent);
 

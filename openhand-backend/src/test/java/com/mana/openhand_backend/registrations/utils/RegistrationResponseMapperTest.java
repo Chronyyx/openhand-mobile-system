@@ -40,8 +40,8 @@ class RegistrationResponseMapperTest {
                 "123 Test St",
                 EventStatus.OPEN,
                 100,
-                50
-        );
+                50,
+                "General");
         Field eventIdField = Event.class.getDeclaredField("id");
         eventIdField.setAccessible(true);
         eventIdField.set(testEvent, 10L);
@@ -53,7 +53,8 @@ class RegistrationResponseMapperTest {
     }
 
     @Test
-    void toResponseModel_withConfirmedRegistration_shouldMapAllFields() throws NoSuchFieldException, IllegalAccessException {
+    void toResponseModel_withConfirmedRegistration_shouldMapAllFields()
+            throws NoSuchFieldException, IllegalAccessException {
         // Arrange
         testRegistration.setConfirmedAt(now.plusHours(1));
 
@@ -203,7 +204,8 @@ class RegistrationResponseMapperTest {
     }
 
     @Test
-    void toResponseModel_multipleRegistrations_shouldMapIndependently() throws NoSuchFieldException, IllegalAccessException {
+    void toResponseModel_multipleRegistrations_shouldMapIndependently()
+            throws NoSuchFieldException, IllegalAccessException {
         // Arrange
         Registration registration2 = new Registration(testUser, testEvent);
         registration2.setStatus(RegistrationStatus.CANCELLED);
@@ -259,7 +261,7 @@ class RegistrationResponseMapperTest {
     @Test
     void toResponseModel_withDifferentEventTitles_shouldMapCorrectly() {
         // Arrange
-        String[] titles = {"Gala 2025", "Workshop", "Seminar", "Conference"};
+        String[] titles = { "Gala 2025", "Workshop", "Seminar", "Conference" };
 
         // Act & Assert
         for (String title : titles) {
@@ -272,7 +274,7 @@ class RegistrationResponseMapperTest {
     @Test
     void toResponseModel_withAllStatusTypes_shouldMapCorrectly() {
         // Arrange
-        RegistrationStatus[] statuses = {RegistrationStatus.CONFIRMED, RegistrationStatus.CANCELLED};
+        RegistrationStatus[] statuses = { RegistrationStatus.CONFIRMED, RegistrationStatus.CANCELLED };
 
         // Act & Assert
         for (RegistrationStatus status : statuses) {

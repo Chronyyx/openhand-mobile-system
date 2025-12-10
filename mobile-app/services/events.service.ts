@@ -16,6 +16,7 @@ export type EventSummary = {
     status: EventStatus;
     maxCapacity: number | null;
     currentRegistrations: number | null;
+    category?: string;
 };
 
 // If later you have more fields for the detail, you can extend this.

@@ -52,8 +52,8 @@ class RegistrationRepositoryIntegrationTest {
                 "123 Test St",
                 EventStatus.OPEN,
                 100,
-                50
-        );
+                50,
+                "General");
         testEvent = eventRepository.save(testEvent);
     }
 
@@ -67,7 +67,8 @@ class RegistrationRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act
-        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(), testEvent.getId());
+        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(),
+                testEvent.getId());
 
         // Assert
         assertTrue(result.isPresent());
@@ -235,8 +236,10 @@ class RegistrationRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act
-        long confirmedCount = registrationRepository.countByEventIdAndStatus(testEvent.getId(), RegistrationStatus.CONFIRMED);
-        long waitlistedCount = registrationRepository.countByEventIdAndStatus(testEvent.getId(), RegistrationStatus.WAITLISTED);
+        long confirmedCount = registrationRepository.countByEventIdAndStatus(testEvent.getId(),
+                RegistrationStatus.CONFIRMED);
+        long waitlistedCount = registrationRepository.countByEventIdAndStatus(testEvent.getId(),
+                RegistrationStatus.WAITLISTED);
 
         // Assert
         assertEquals(2L, confirmedCount);
@@ -258,7 +261,8 @@ class RegistrationRepositoryIntegrationTest {
         registrationRepository.save(registration);
         entityManager.flush();
 
-        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(), testEvent.getId());
+        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(),
+                testEvent.getId());
 
         // Assert
         assertTrue(result.isPresent());
@@ -281,7 +285,8 @@ class RegistrationRepositoryIntegrationTest {
         registrationRepository.save(registration);
         entityManager.flush();
 
-        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(), testEvent.getId());
+        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(),
+                testEvent.getId());
 
         // Assert
         assertTrue(result.isPresent());
@@ -424,7 +429,8 @@ class RegistrationRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act
-        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(), testEvent.getId());
+        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(),
+                testEvent.getId());
 
         // Assert
         assertTrue(result.isPresent());
@@ -441,7 +447,8 @@ class RegistrationRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act
-        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(), testEvent.getId());
+        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(),
+                testEvent.getId());
 
         // Assert
         assertTrue(result.isPresent());
@@ -462,8 +469,8 @@ class RegistrationRepositoryIntegrationTest {
                 "Address 2",
                 EventStatus.OPEN,
                 100,
-                50
-        );
+                50,
+                "General");
         event2 = eventRepository.save(event2);
 
         Registration reg1 = new Registration(testUser, testEvent);
@@ -482,7 +489,8 @@ class RegistrationRepositoryIntegrationTest {
         entityManager.flush();
 
         // Act
-        long event1Count = registrationRepository.countByEventIdAndStatus(testEvent.getId(), RegistrationStatus.CONFIRMED);
+        long event1Count = registrationRepository.countByEventIdAndStatus(testEvent.getId(),
+                RegistrationStatus.CONFIRMED);
         long event2Count = registrationRepository.countByEventIdAndStatus(event2.getId(), RegistrationStatus.CONFIRMED);
 
         // Assert
@@ -510,7 +518,8 @@ class RegistrationRepositoryIntegrationTest {
         registrationRepository.save(registration);
         entityManager.flush();
 
-        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(), testEvent.getId());
+        Optional<Registration> result = registrationRepository.findByUserIdAndEventId(testUser.getId(),
+                testEvent.getId());
 
         // Assert
         assertTrue(result.isPresent());

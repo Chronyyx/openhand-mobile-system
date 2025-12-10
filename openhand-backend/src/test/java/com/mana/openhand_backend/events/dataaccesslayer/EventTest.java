@@ -17,7 +17,7 @@ class EventTest {
         Event event = ctor.newInstance();
 
         LocalDateTime start = LocalDateTime.of(2025, 1, 1, 10, 0);
-        LocalDateTime end   = LocalDateTime.of(2025, 1, 1, 12, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 1, 1, 12, 0);
 
         event.setTitle("Title");
         event.setDescription("Desc");
@@ -44,7 +44,7 @@ class EventTest {
     @Test
     void allArgsConstructor_setsAllFieldsCorrectly() {
         LocalDateTime start = LocalDateTime.of(2025, 2, 2, 9, 0);
-        LocalDateTime end   = LocalDateTime.of(2025, 2, 2, 11, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 2, 2, 11, 0);
 
         Event event = new Event(
                 "Event title",
@@ -55,8 +55,8 @@ class EventTest {
                 "456 Avenue",
                 EventStatus.FULL,
                 100,
-                75
-        );
+                75,
+                "General");
 
         assertEquals("Event title", event.getTitle());
         assertEquals("Some description", event.getDescription());

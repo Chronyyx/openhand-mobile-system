@@ -101,6 +101,8 @@
     "loading": "Chargement des événements...",
     "empty": "Aucun événement à venir pour le moment.",
     "loadError": "Impossible de charger les événements.",
+    "searchPlaceholder": "Rechercher des événements...",
+    "noResults": "Aucun résultat ne correspond à votre recherche.",
     "fields": {
       "date": "Date",
       "time": "Heure",

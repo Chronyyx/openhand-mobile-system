@@ -56,8 +56,8 @@ class EventResponseModelTest {
                 address,
                 status,
                 maxCapacity,
-                currentRegistrations
-        );
+                currentRegistrations,
+                "General");
 
         assertEquals(id, model.getId());
         assertEquals(title, model.getTitle());

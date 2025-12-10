@@ -3,6 +3,7 @@ import AuthService from '../services/auth.service';
 
 export interface User {
     token: string;
+    refreshToken: string;
     type: string;
     id: number;
     email: string;

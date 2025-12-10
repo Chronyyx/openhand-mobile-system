@@ -65,6 +65,7 @@ const login = (email: string, password: string) => {
             if (response.data.token) {
                 const userToStore = {
                     token: response.data.token,
+                    refreshToken: response.data.refreshToken,
                     type: response.data.type,
                     id: response.data.id,
                     email: response.data.email,

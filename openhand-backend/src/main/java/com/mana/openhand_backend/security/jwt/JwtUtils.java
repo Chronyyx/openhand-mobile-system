@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 public class JwtUtils {
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    @Value("${openhand.app.jwtSecret:SecretKeyMustBeAtLeast32BytesForHS256SecurityReason}")
+    @Value("${openhand.app.jwtSecret}")
     private String jwtSecret;
 
     @Value("${openhand.app.jwtExpirationMs:86400000}")

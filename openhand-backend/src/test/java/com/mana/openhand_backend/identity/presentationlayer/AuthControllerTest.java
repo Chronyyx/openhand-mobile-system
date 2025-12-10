@@ -1,5 +1,6 @@
 package com.mana.openhand_backend.identity.presentationlayer;
 
+import com.mana.openhand_backend.identity.dataaccesslayer.RefreshToken;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.presentationlayer.payload.JwtResponse;
@@ -7,8 +8,10 @@ import com.mana.openhand_backend.identity.presentationlayer.payload.LoginRequest
 import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
+import com.mana.openhand_backend.security.services.RefreshTokenService;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,170 +33,187 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
-    @Mock
-    AuthenticationManager authenticationManager;
+        @Mock
+        AuthenticationManager authenticationManager;
 
-    @Mock
-    UserRepository userRepository;
+        @Mock
+        UserRepository userRepository;
 
-    @Mock
-    UserDetailsServiceImpl userDetailsService;
+        @Mock
+        UserDetailsServiceImpl userDetailsService;
 
-    @Mock
-    PasswordEncoder encoder;
+        @Mock
+        PasswordEncoder encoder;
 
-    @Mock
-    JwtUtils jwtUtils;
+        @Mock
+        JwtUtils jwtUtils;
 
-    @InjectMocks
-    AuthController authController;
+        @Mock
+        RefreshTokenService refreshTokenService;
 
-    @Test
-    void authenticateUser_whenCredentialsAreValid_returnsJwtResponseAndResetsFailedAttempts() {
-        // arrange
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("user@example.com");
-        loginRequest.setPassword("password");
+        @InjectMocks
+        AuthController authController;
 
-        Authentication authentication = mock(Authentication.class);
-        UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+        @Test
+        void authenticateUser_whenCredentialsAreValid_returnsJwtResponseAndResetsFailedAttempts() {
+                // arrange
+                LoginRequest loginRequest = new LoginRequest();
+                loginRequest.setEmail("user@example.com");
+                loginRequest.setPassword("password");
 
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
+                HttpServletRequest request = mock(HttpServletRequest.class);
+                when(request.getHeader("User-Agent")).thenReturn("TestAgent");
 
-        when(userDetails.getId()).thenReturn(1L);
-        when(userDetails.getUsername()).thenReturn("user@example.com");
+                Authentication authentication = mock(Authentication.class);
+                UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
 
-        // return a non-null collection of authorities (content doesn't really matter here)
-        Collection<? extends GrantedAuthority> authorities =
-                Collections.singletonList((GrantedAuthority) () -> "ROLE_MEMBER");
-        doReturn(authorities).when(userDetails).getAuthorities();
+                when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                                .thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn(userDetails);
+                when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
 
-        // act
-        ResponseEntity<?> response = authController.authenticateUser(loginRequest);
+                when(userDetails.getId()).thenReturn(1L);
+                when(userDetails.getUsername()).thenReturn("user@example.com");
 
-        // assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof JwtResponse);
+                RefreshToken refreshToken = new RefreshToken();
+                refreshToken.setToken("refresh-token");
+                when(refreshTokenService.createRefreshToken(eq(1L), eq("TestAgent"))).thenReturn(refreshToken);
 
-        JwtResponse jwtResponse = (JwtResponse) response.getBody();
-        assertEquals("jwt-token", jwtResponse.getToken());
-        assertEquals(1L, jwtResponse.getId());
-        assertEquals("user@example.com", jwtResponse.getEmail());
-        // we only care that roles were mapped, not their exact type/impl
-        assertEquals(Collections.singletonList("ROLE_MEMBER"), jwtResponse.getRoles());
+                // return a non-null collection of authorities (content doesn't really matter
+                // here)
+                Collection<? extends GrantedAuthority> authorities = Collections
+                                .singletonList((GrantedAuthority) () -> "ROLE_MEMBER");
+                doReturn(authorities).when(userDetails).getAuthorities();
 
-        verify(authenticationManager, times(1))
-                .authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(jwtUtils, times(1)).generateJwtToken(authentication);
-        verify(userDetailsService, times(1)).resetFailedAttempts("user@example.com");
-        verifyNoMoreInteractions(authenticationManager, jwtUtils, userDetailsService);
-    }
+                // act
+                ResponseEntity<?> response = authController.authenticateUser(loginRequest, request);
 
-    @Test
-    void authenticateUser_whenBadCredentials_incrementsFailedAttemptsAndPropagatesException() {
-        // arrange
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setEmail("user@example.com");
-        loginRequest.setPassword("wrong");
+                // assert
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                assertTrue(response.getBody() instanceof JwtResponse);
 
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException("Bad credentials"));
+                JwtResponse jwtResponse = (JwtResponse) response.getBody();
+                assertEquals("jwt-token", jwtResponse.getToken());
+                assertEquals("refresh-token", jwtResponse.getRefreshToken());
+                assertEquals(1L, jwtResponse.getId());
+                assertEquals("user@example.com", jwtResponse.getEmail());
+                // we only care that roles were mapped, not their exact type/impl
+                assertEquals(Collections.singletonList("ROLE_MEMBER"), jwtResponse.getRoles());
 
-        User user = mock(User.class);
-        when(userRepository.findByEmail("user@example.com"))
-                .thenReturn(Optional.of(user));
+                verify(authenticationManager, times(1))
+                                .authenticate(any(UsernamePasswordAuthenticationToken.class));
+                verify(jwtUtils, times(1)).generateJwtToken(authentication);
+                verify(userDetailsService, times(1)).resetFailedAttempts("user@example.com");
+                verify(refreshTokenService, times(1)).createRefreshToken(1L, "TestAgent");
+                verifyNoMoreInteractions(authenticationManager, jwtUtils, userDetailsService, refreshTokenService);
+        }
 
-        // act + assert
-        assertThrows(BadCredentialsException.class,
-                () -> authController.authenticateUser(loginRequest));
+        @Test
+        void authenticateUser_whenBadCredentials_incrementsFailedAttemptsAndPropagatesException() {
+                // arrange
+                LoginRequest loginRequest = new LoginRequest();
+                loginRequest.setEmail("user@example.com");
+                loginRequest.setPassword("wrong");
 
-        verify(authenticationManager, times(1))
-                .authenticate(any(UsernamePasswordAuthenticationToken.class));
-        verify(userRepository, times(1)).findByEmail("user@example.com");
-        verify(userDetailsService, times(1)).increaseFailedAttempts(user);
-        verifyNoMoreInteractions(authenticationManager, userRepository, userDetailsService);
-    }
+                HttpServletRequest request = mock(HttpServletRequest.class);
 
-    @Test
-    void registerUser_whenEmailAlreadyExists_returnsBadRequest() {
-        // arrange
-        SignupRequest signupRequest = new SignupRequest();
-        signupRequest.setEmail("existing@example.com");
-        signupRequest.setPassword("password");
+                when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                                .thenThrow(new BadCredentialsException("Bad credentials"));
 
-        when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
+                User user = mock(User.class);
+                when(userRepository.findByEmail("user@example.com"))
+                                .thenReturn(Optional.of(user));
 
-        // act
-        ResponseEntity<?> response = authController.registerUser(signupRequest);
+                // act + assert
+                assertThrows(BadCredentialsException.class,
+                                () -> authController.authenticateUser(loginRequest, request));
 
-        // assert
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertTrue(response.getBody() instanceof MessageResponse);
-        MessageResponse message = (MessageResponse) response.getBody();
-        assertEquals("Error: Email is already in use!", message.getMessage());
+                verify(authenticationManager, times(1))
+                                .authenticate(any(UsernamePasswordAuthenticationToken.class));
+                verify(userRepository, times(1)).findByEmail("user@example.com");
+                verify(userDetailsService, times(1)).increaseFailedAttempts(user);
+                verifyNoMoreInteractions(authenticationManager, userRepository, userDetailsService);
+        }
 
-        verify(userRepository, times(1)).existsByEmail("existing@example.com");
-        verifyNoMoreInteractions(userRepository);
-        verifyNoInteractions(encoder);
-    }
+        @Test
+        void registerUser_whenEmailAlreadyExists_returnsBadRequest() {
+                // arrange
+                SignupRequest signupRequest = new SignupRequest();
+                signupRequest.setEmail("existing@example.com");
+                signupRequest.setPassword("password");
 
-    @Test
-    void registerUser_whenRolesNull_assignsDefaultRoleAndSavesUser() {
-        // arrange
-        SignupRequest signupRequest = new SignupRequest();
-        signupRequest.setEmail("new@example.com");
-        signupRequest.setPassword("password");
-        // roles remain null
+                when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
-        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
-        when(encoder.encode("password")).thenReturn("encoded-pass");
+                // act
+                ResponseEntity<?> response = authController.registerUser(signupRequest);
 
-        // act
-        ResponseEntity<?> response = authController.registerUser(signupRequest);
+                // assert
+                assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                assertTrue(response.getBody() instanceof MessageResponse);
+                MessageResponse message = (MessageResponse) response.getBody();
+                assertEquals("Error: Email is already in use!", message.getMessage());
 
-        // assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof MessageResponse);
-        assertEquals("User registered successfully!",
-                ((MessageResponse) response.getBody()).getMessage());
+                verify(userRepository, times(1)).existsByEmail("existing@example.com");
+                verifyNoMoreInteractions(userRepository);
+                verifyNoInteractions(encoder);
+        }
 
-        verify(userRepository, times(1)).existsByEmail("new@example.com");
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(encoder, times(1)).encode("password");
-        verifyNoMoreInteractions(userRepository, encoder);
-    }
+        @Test
+        void registerUser_whenRolesNull_assignsDefaultRoleAndSavesUser() {
+                // arrange
+                SignupRequest signupRequest = new SignupRequest();
+                signupRequest.setEmail("new@example.com");
+                signupRequest.setPassword("password");
+                // roles remain null
 
-    @Test
-    void registerUser_whenRolesContainAdmin_savesUserWithAdminRole() {
-        // arrange
-        SignupRequest signupRequest = new SignupRequest();
-        signupRequest.setEmail("admin@example.com");
-        signupRequest.setPassword("password");
-        signupRequest.setRoles(Set.of("admin"));
+                when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+                when(encoder.encode("password")).thenReturn("encoded-pass");
 
-        when(userRepository.existsByEmail("admin@example.com")).thenReturn(false);
-        when(encoder.encode("password")).thenReturn("encoded-pass");
+                // act
+                ResponseEntity<?> response = authController.registerUser(signupRequest);
 
-        // act
-        ResponseEntity<?> response = authController.registerUser(signupRequest);
+                // assert
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                assertTrue(response.getBody() instanceof MessageResponse);
+                assertEquals("User registered successfully!",
+                                ((MessageResponse) response.getBody()).getMessage());
 
-        // assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody() instanceof MessageResponse);
-        assertEquals("User registered successfully!",
-                ((MessageResponse) response.getBody()).getMessage());
+                verify(userRepository, times(1)).existsByEmail("new@example.com");
+                verify(userRepository, times(1)).save(any(User.class));
+                verify(encoder, times(1)).encode("password");
+                verifyNoMoreInteractions(userRepository, encoder);
+        }
 
-        verify(userRepository, times(1)).existsByEmail("admin@example.com");
-        verify(userRepository, times(1)).save(any(User.class));
-        verify(encoder, times(1)).encode("password");
-        verifyNoMoreInteractions(userRepository, encoder);
-    }
+        @Test
+        void registerUser_whenRolesContainAdmin_savesUserWithAdminRole() {
+                // arrange
+                SignupRequest signupRequest = new SignupRequest();
+                signupRequest.setEmail("admin@example.com");
+                signupRequest.setPassword("password");
+                signupRequest.setRoles(Set.of("admin"));
+
+                when(userRepository.existsByEmail("admin@example.com")).thenReturn(false);
+                when(encoder.encode("password")).thenReturn("encoded-pass");
+
+                // act
+                ResponseEntity<?> response = authController.registerUser(signupRequest);
+
+                // assert
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                assertTrue(response.getBody() instanceof MessageResponse);
+                assertEquals("User registered successfully!",
+                                ((MessageResponse) response.getBody()).getMessage());
+
+                verify(userRepository, times(1)).existsByEmail("admin@example.com");
+                verify(userRepository, times(1)).save(any(User.class));
+                verify(encoder, times(1)).encode("password");
+                verifyNoMoreInteractions(userRepository, encoder);
+        }
 }

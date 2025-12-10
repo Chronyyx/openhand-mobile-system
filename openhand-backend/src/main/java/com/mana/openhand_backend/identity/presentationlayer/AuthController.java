@@ -1,15 +1,15 @@
 package com.mana.openhand_backend.identity.presentationlayer;
 
+import com.mana.openhand_backend.identity.dataaccesslayer.RefreshToken;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
-import com.mana.openhand_backend.identity.presentationlayer.payload.JwtResponse;
-import com.mana.openhand_backend.identity.presentationlayer.payload.LoginRequest;
-import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
-import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
+import com.mana.openhand_backend.identity.presentationlayer.payload.*;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
+import com.mana.openhand_backend.security.services.RefreshTokenService;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,14 +45,18 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Autowired
+    RefreshTokenService refreshTokenService;
+
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
+            HttpServletRequest request) {
 
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-            
+
             userDetailsService.resetFailedAttempts(loginRequest.getEmail());
         } catch (BadCredentialsException e) {
             userRepository.findByEmail(loginRequest.getEmail()).ifPresent(user -> {
@@ -70,10 +73,56 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),
+                request.getHeader("User-Agent"));
+
         return ResponseEntity.ok(new JwtResponse(jwt,
+                refreshToken.getToken(),
                 userDetails.getId(),
                 userDetails.getUsername(),
                 roles));
+    }
+
+    @PostMapping("/refreshtoken")
+    public ResponseEntity<?> refreshtoken(@Valid @RequestBody TokenRefreshRequest request,
+            HttpServletRequest httpRequest) {
+        String requestRefreshToken = request.getRefreshToken();
+
+        return refreshTokenService.findByToken(requestRefreshToken)
+                .map(refreshTokenService::verifyExpiration)
+                .map(token -> {
+                    refreshTokenService.verifyUserAgent(token, httpRequest.getHeader("User-Agent"));
+                    return token;
+                })
+                .map(token -> {
+                    // Rotate Token
+                    RefreshToken newToken = refreshTokenService.rotateRefreshToken(token);
+
+                    // Generate new JWT
+                    // We need to rebuild the Authentication object or just generate token from user
+                    // details
+                    // Since generateJwtToken needs Authentication, we can create a dummy one or
+                    // refactor JwtUtils
+                    // For now, let's create a UsernamePasswordAuthenticationToken
+                    User user = newToken.getUser();
+                    UserDetailsImpl userDetails = UserDetailsImpl.build(user);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+
+                    String tokenStr = jwtUtils.generateJwtToken(authentication);
+
+                    return ResponseEntity.ok(new TokenRefreshResponse(tokenStr, newToken.getToken()));
+                })
+                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser() {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        Long userId = userDetails.getId();
+        refreshTokenService.deleteByUserId(userId);
+        return ResponseEntity.ok(new MessageResponse("Log out successful!"));
     }
 
     @PostMapping("/register")

@@ -92,6 +92,7 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/refreshtoken").permitAll()
                         .requestMatchers("/api/events/**").permitAll()
                         .requestMatchers("/api/registrations/**").authenticated()
                         .requestMatchers("/error").permitAll()

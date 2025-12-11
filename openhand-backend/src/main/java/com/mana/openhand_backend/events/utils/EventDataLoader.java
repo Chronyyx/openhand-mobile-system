@@ -54,7 +54,7 @@ public class EventDataLoader implements CommandLineRunner {
                                 "DISTRIBUTION");
 
                 Event foodDistribution2 = new Event(
-                                "Distribution Alimentaire - Mardi",
+                                "Distribution Alimentaire - Jeudi",
                                 "Distribution alimentaire hebdomadaire pour les familles.",
                                 now.plusDays(7).withHour(8).withMinute(0),
                                 now.plusDays(7).withHour(12).withMinute(0),
@@ -77,9 +77,22 @@ public class EventDataLoader implements CommandLineRunner {
                                 20,
                                 "FORMATION");
 
+                Event christmasBasketEvent = new Event(
+                                "Panier Noël Mana 2025",
+                                "Le Panier de Noël MANA offre aux familles un panier de denrées non périssables et d’articles d’hygiène distribué à Noël.",
+                                now.plusDays(6).withHour(14).withMinute(0),
+                                now.plusDays(6).withHour(17).withMinute(0),
+                                "Centre Communautaire MANA",
+                                "Montréal, Québec",
+                                EventStatus.OPEN,
+                                100,
+                                79,
+                                "ATELIER");
+
                 eventRepository.save(gala2025);
                 eventRepository.save(foodDistribution1);
                 eventRepository.save(foodDistribution2);
                 eventRepository.save(mediatorTraining);
+                eventRepository.save(christmasBasketEvent);
         }
 }

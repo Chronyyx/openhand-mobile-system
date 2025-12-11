@@ -110,6 +110,19 @@ function getStatusLabel(status: EventSummary['status'], t: (k: string) => string
     }
 }
 
+function getStatusColor(status: EventSummary['status']): string {
+    switch (status) {
+        case 'OPEN':
+            return '#4CAF50'; // Green
+        case 'NEARLY_FULL':
+            return '#F57C00'; // Orange
+        case 'FULL':
+            return '#D32F2F'; // Red
+        default:
+            return '#0057B8'; // Default blue
+    }
+}
+
 export default function EventsScreen() {
     // super simple typing for t
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
@@ -210,13 +223,26 @@ export default function EventsScreen() {
     const handleRegister = async () => {
         if (!selectedEvent || !user?.token) return;
         try {
-            await registerForEvent(selectedEvent.id, user.token);
-            Alert.alert(t('events.registerSuccess'));
+            const registration = await registerForEvent(selectedEvent.id, user.token);
+            
+            // Show different alerts based on registration status
+            if (registration.status === 'CONFIRMED') {
+                Alert.alert(
+                    t('alerts.registerSuccess'),
+                    t('alerts.registerSuccessMessage')
+                );
+            } else if (registration.status === 'WAITLISTED') {
+                Alert.alert(
+                    t('alerts.registerWaitlistSuccess'),
+                    t('alerts.registerWaitlistMessage', { position: registration.waitlistedPosition })
+                );
+            }
+            
             closeModal();
             onRefresh();
         } catch (e) {
             console.error(e);
-            Alert.alert(t('events.registerError'));
+            Alert.alert(t('alerts.registerError'));
         }
     };
 
@@ -224,12 +250,12 @@ export default function EventsScreen() {
         if (!selectedEvent || !user?.token) return;
         try {
             await cancelRegistration(selectedEvent.id, user.token);
-            Alert.alert(t('events.cancelSuccess'));
+            Alert.alert(t('alerts.cancelSuccess'));
             closeModal();
             onRefresh();
         } catch (e) {
             console.error(e);
-            Alert.alert(t('events.cancelError'));
+            Alert.alert(t('alerts.cancelError'));
         }
     };
 
@@ -293,7 +319,7 @@ export default function EventsScreen() {
                                     <ThemedText type="subtitle" style={styles.eventTitle}>
                                         {translatedTitle}
                                     </ThemedText>
-                                    <View style={styles.statusBadge}>
+                                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
                                         <ThemedText style={styles.statusText}>
                                             {getStatusLabel(item.status, t)}
                                         </ThemedText>
@@ -424,6 +450,15 @@ export default function EventsScreen() {
                                 <ThemedText>{selectedEvent?.address}</ThemedText>
                             </View>
 
+                            <View style={styles.modalRow}>
+                                <ThemedText style={styles.sectionTitle}>{t('events.fields.status')}</ThemedText>
+                                <View style={[styles.inlineStatusBadge, { backgroundColor: selectedEvent ? getStatusColor(selectedEvent.status) : '#0057B8' }]}>
+                                    <ThemedText style={styles.statusText}>
+                                        {selectedEvent && getStatusLabel(selectedEvent.status, t)}
+                                    </ThemedText>
+                                </View>
+                            </View>
+
                             {selectedEvent?.maxCapacity != null &&
                                 selectedEvent.currentRegistrations != null && (
                                     <View style={styles.modalRow}>
@@ -447,8 +482,8 @@ export default function EventsScreen() {
                                     />
                                 )}
 
-                            {/* Register button - only visible for ROLE_MEMBER */}
-                            {user && hasRole(['ROLE_MEMBER']) && (
+                            {/* Register button - visible for ROLE_MEMBER and ROLE_EMPLOYEE */}
+                            {user && hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) && (
                                 <Pressable
                                     style={styles.registerButton}
                                     onPress={handleRegister}
@@ -525,6 +560,13 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontSize: 12,
         fontWeight: '600',
+    },
+    inlineStatusBadge: {
+        borderRadius: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
+        marginTop: 4,
     },
     row: {
         flexDirection: 'row',

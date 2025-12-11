@@ -7,7 +7,8 @@ test.describe('Register Flow', () => {
         const randomEmail = `user${Date.now()}@test.com`;
 
         await page.getByPlaceholder(/email address/i).fill(randomEmail);
-        await page.getByPlaceholder(/password/i).fill('Password123!');
+        await page.getByPlaceholder('Password', { exact: true }).fill('Password123!');
+        await page.getByPlaceholder(/confirm password/i).fill('Password123!');
 
         // Click the big "Sign Up" button (text locator, not role)
         await page.getByText(/sign up/i).click();
@@ -24,5 +25,17 @@ test.describe('Register Flow', () => {
 
         // Frontend validation message from your RegisterScreen: "Please fill in all fields."
         await expect(page.getByText(/please fill in all fields/i)).toBeVisible();
+    });
+
+    test('Shows error when passwords do not match', async ({ page }) => {
+        await page.goto('/auth/register');
+
+        await page.getByPlaceholder(/email address/i).fill('test@example.com');
+        await page.getByPlaceholder('Password', { exact: true }).fill('Secret123!');
+        await page.getByPlaceholder(/confirm password/i).fill('WrongPass');
+
+        await page.getByText(/sign up/i).click();
+
+        await expect(page.getByText(/passwords do not match/i)).toBeVisible();
     });
 });

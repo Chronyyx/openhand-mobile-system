@@ -6,6 +6,7 @@ import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.presentationlayer.payload.*;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
+import com.mana.openhand_backend.security.services.InvalidRefreshTokenException;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
@@ -73,8 +74,12 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(),
-                request.getHeader("User-Agent"));
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent == null) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Missing User-Agent header"));
+        }
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(), userAgent);
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 refreshToken.getToken(),
@@ -113,7 +118,7 @@ public class AuthController {
 
                     return ResponseEntity.ok(new TokenRefreshResponse(tokenStr, newToken.getToken()));
                 })
-                .orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token is not in database!"));
     }
 
     @PostMapping("/logout")

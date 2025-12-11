@@ -109,6 +109,8 @@
     "loading": "Loading events...",
     "empty": "No upcoming events at the moment.",
     "loadError": "Unable to load events.",
+    "searchPlaceholder": "Search events...",
+    "noResults": "No results found matching your search.",
     "fields": {
       "date": "Date",
       "time": "Time",

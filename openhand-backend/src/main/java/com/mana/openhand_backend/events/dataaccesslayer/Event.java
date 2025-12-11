@@ -34,6 +34,9 @@ public class Event {
     private Integer maxCapacity;
     private Integer currentRegistrations;
 
+    @Column(name = "category")
+    private String category;
+
     protected Event() {
     }
 
@@ -46,8 +49,8 @@ public class Event {
             String address,
             EventStatus status,
             Integer maxCapacity,
-            Integer currentRegistrations
-    ) {
+            Integer currentRegistrations,
+            String category) {
         this.title = title;
         this.description = description;
         this.startDateTime = startDateTime;
@@ -57,8 +60,8 @@ public class Event {
         this.status = status;
         this.maxCapacity = maxCapacity;
         this.currentRegistrations = currentRegistrations;
+        this.category = category;
     }
-
 
     public Long getId() {
         return id;
@@ -134,5 +137,13 @@ public class Event {
 
     public void setCurrentRegistrations(Integer currentRegistrations) {
         this.currentRegistrations = currentRegistrations;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

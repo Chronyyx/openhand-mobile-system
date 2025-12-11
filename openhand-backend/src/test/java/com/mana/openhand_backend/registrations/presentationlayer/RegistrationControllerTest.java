@@ -72,8 +72,8 @@ class RegistrationControllerTest {
                 "Test Address",
                 EventStatus.OPEN,
                 10,
-                0
-        );
+                0,
+                "General");
 
         testRegistration = new Registration(testUser, testEvent);
         testRegistration.setStatus(RegistrationStatus.CONFIRMED);

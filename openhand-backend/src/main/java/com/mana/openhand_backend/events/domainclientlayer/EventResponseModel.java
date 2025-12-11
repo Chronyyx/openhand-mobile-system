@@ -12,20 +12,22 @@ public class EventResponseModel {
     private String status;
     private Integer maxCapacity;
     private Integer currentRegistrations;
+    private String category;
 
     public EventResponseModel() {
     }
 
     public EventResponseModel(Long id,
-                              String title,
-                              String description,
-                              String startDateTime,
-                              String endDateTime,
-                              String locationName,
-                              String address,
-                              String status,
-                              Integer maxCapacity,
-                              Integer currentRegistrations) {
+            String title,
+            String description,
+            String startDateTime,
+            String endDateTime,
+            String locationName,
+            String address,
+            String status,
+            Integer maxCapacity,
+            Integer currentRegistrations,
+            String category) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -36,8 +38,8 @@ public class EventResponseModel {
         this.status = status;
         this.maxCapacity = maxCapacity;
         this.currentRegistrations = currentRegistrations;
+        this.category = category;
     }
-
 
     public Long getId() {
         return id;
@@ -117,5 +119,13 @@ public class EventResponseModel {
 
     public void setCurrentRegistrations(Integer currentRegistrations) {
         this.currentRegistrations = currentRegistrations;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }

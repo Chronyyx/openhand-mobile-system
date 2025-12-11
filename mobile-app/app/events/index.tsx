@@ -10,9 +10,11 @@ import {
     Image,
     Alert,
     ScrollView,
+    TextInput,
     type ImageSourcePropType,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -20,7 +22,7 @@ import {
     getUpcomingEvents,
     type EventSummary,
 } from '../../services/events.service';
-import { registerForEvent } from '../../services/registration.service';
+import { registerForEvent, cancelRegistration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 
 // ---- Static image map for events ----
@@ -111,6 +113,8 @@ export default function EventsScreen() {
     const { user, hasRole } = useAuth();
 
     const [events, setEvents] = useState<EventSummary[]>([]);
+    const [filteredEvents, setFilteredEvents] = useState<EventSummary[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -124,6 +128,7 @@ export default function EventsScreen() {
             setError(null);
             const data = await getUpcomingEvents();
             setEvents(data);
+            setFilteredEvents(data);
         } catch (e) {
             console.error('Failed to load events', e);
             // store already-translated error text
@@ -138,58 +143,63 @@ export default function EventsScreen() {
         loadEvents();
     }, []);
 
-    const onRefresh = () => {
+    useEffect(() => {
+        if (searchQuery.trim() === '') {
+            setFilteredEvents(events);
+        } else {
+            const lowerQuery = searchQuery.toLowerCase().trim();
+            const filtered = events.filter(event => {
+                // Search against TRANSLATED title/description
+                const translatedTitle = getTranslatedTitle(event, t).toLowerCase();
+                const translatedDesc = getTranslatedDescription(event, t).toLowerCase();
+                const category = (event.category || '').toLowerCase();
+
+                return translatedTitle.includes(lowerQuery) ||
+                    translatedDesc.includes(lowerQuery) ||
+                    category.includes(lowerQuery);
+            });
+            setFilteredEvents(filtered);
+        }
+    }, [searchQuery, events, t]); // Add 't' to dependencies
+
+    const onRefresh = async () => {
         setRefreshing(true);
-        loadEvents();
+        await loadEvents();
     };
 
-    const openEventModal = (event: EventSummary) => {
+    const handleEventPress = (event: EventSummary) => {
         setSelectedEvent(event);
         setModalVisible(true);
     };
 
-    const closeEventModal = () => {
+    const closeModal = () => {
         setModalVisible(false);
         setSelectedEvent(null);
     };
 
     const handleRegister = async () => {
-        if (!user || !selectedEvent) {
-            return;
-        }
-
+        if (!selectedEvent || !user?.token) return;
         try {
-            const registration = await registerForEvent(selectedEvent.id, user.token);
+            await registerForEvent(selectedEvent.id, user.token);
+            Alert.alert(t('events.registerSuccess'));
+            closeModal();
+            onRefresh();
+        } catch (e) {
+            console.error(e);
+            Alert.alert(t('events.registerError'));
+        }
+    };
 
-            if (registration.status === 'CONFIRMED') {
-                Alert.alert(
-                    'Registration confirmed! ✅',
-                    `You are registered for "${selectedEvent.title}".`,
-                    [{ text: 'OK' }]
-                );
-            } else if (registration.status === 'WAITLISTED') {
-                Alert.alert(
-                    'Added to waitlist',
-                    `The event is full. You are in position ${registration.waitlistedPosition} on the waitlist.`,
-                    [{ text: 'OK' }]
-                );
-            }
-
-            closeEventModal();
-        } catch (err: any) {
-            if (err?.status === 409) {
-                Alert.alert(
-                    'Already registered',
-                    'You are already registered or on the waitlist for this event.',
-                    [{ text: 'OK' }]
-                );
-            } else {
-                Alert.alert(
-                    'Error',
-                    'Unable to complete registration. Please try again.',
-                    [{ text: 'OK' }]
-                );
-            }
+    const handleCancel = async () => {
+        if (!selectedEvent || !user?.token) return;
+        try {
+            await cancelRegistration(selectedEvent.id, user.token);
+            Alert.alert(t('events.cancelSuccess'));
+            closeModal();
+            onRefresh();
+        } catch (e) {
+            console.error(e);
+            Alert.alert(t('events.cancelError'));
         }
     };
 
@@ -210,107 +220,123 @@ export default function EventsScreen() {
         );
     }
 
-    if (events.length === 0) {
-        return (
-            <ThemedView style={styles.centered}>
-                <ThemedText style={styles.emptyText}>{t('events.empty')}</ThemedText>
-            </ThemedView>
-        );
-    }
-
-
     return (
         <ThemedView style={styles.container}>
-            <ThemedText type="title" style={styles.screenTitle}>
-                {t('events.screenTitle')}
-            </ThemedText>
+            <View style={styles.searchContainer}>
+                <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder={t('events.searchPlaceholder') || "Rechercher..."}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    clearButtonMode="while-editing"
+                />
+                {searchQuery.length > 0 && (
+                    <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
+                        <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
+                    </Pressable>
+                )}
+            </View>
 
-            <FlatList<EventSummary>
-                data={events}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => {
-                    const translatedTitle = getTranslatedTitle(item, t);
+            {events.length === 0 ? (
+                <ThemedView style={styles.centered}>
+                    <ThemedText style={styles.emptyText}>{t('events.empty')}</ThemedText>
+                </ThemedView>
+            ) : (
+                <FlatList<EventSummary>
+                    data={filteredEvents}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => {
+                        const translatedTitle = getTranslatedTitle(item, t);
 
-                    return (
-                        <Pressable
-                            style={styles.card}
-                            onPress={() => openEventModal(item)}
-                            accessibilityRole="button"
-                            accessibilityLabel={t(
-                                'events.accessibility.viewDetails',
-                                { title: translatedTitle },
-                            )}
-                        >
-                            <View style={styles.cardHeader}>
-                                <ThemedText type="subtitle" style={styles.eventTitle}>
-                                    {translatedTitle}
-                                </ThemedText>
-                                <View style={styles.statusBadge}>
-                                    <ThemedText style={styles.statusText}>
-                                        {getStatusLabel(item.status, t)}
+                        return (
+                            <Pressable
+                                style={styles.card}
+                                onPress={() => handleEventPress(item)}
+                                accessibilityRole="button"
+                                accessibilityLabel={t(
+                                    'events.accessibility.viewDetails',
+                                    { title: translatedTitle },
+                                )}
+                            >
+                                <View style={styles.cardHeader}>
+                                    <ThemedText type="subtitle" style={styles.eventTitle}>
+                                        {translatedTitle}
                                     </ThemedText>
-                                </View>
-                            </View>
-
-                            <View style={styles.row}>
-                                <ThemedText style={styles.label}>
-                                    {t('events.fields.date')}
-                                </ThemedText>
-                                <ThemedText style={styles.value}>
-                                    {formatDate(item.startDateTime)}
-                                </ThemedText>
-                            </View>
-
-                            <View style={styles.row}>
-                                <ThemedText style={styles.label}>
-                                    {t('events.fields.time')}
-                                </ThemedText>
-                                <ThemedText style={styles.value}>
-                                    {formatTimeRange(
-                                        item.startDateTime,
-                                        item.endDateTime,
-                                    )}
-                                </ThemedText>
-                            </View>
-
-                            <View style={styles.row}>
-                                <ThemedText style={styles.label}>
-                                    {t('events.fields.place')}
-                                </ThemedText>
-                                <ThemedText style={styles.value}>{item.address}</ThemedText>
-                            </View>
-
-                            {item.maxCapacity != null &&
-                                item.currentRegistrations != null && (
-                                    <View style={styles.row}>
-                                        <ThemedText style={styles.label}>
-                                            {t('events.fields.capacity')}
-                                        </ThemedText>
-                                        <ThemedText style={styles.value}>
-                                            {item.currentRegistrations}/{item.maxCapacity}
+                                    <View style={styles.statusBadge}>
+                                        <ThemedText style={styles.statusText}>
+                                            {getStatusLabel(item.status, t)}
                                         </ThemedText>
                                     </View>
-                                )}
+                                </View>
 
-                            <View style={styles.footerButton}>
-                                <ThemedText style={styles.footerButtonText}>
-                                    {t('events.actions.viewDetails')}
-                                </ThemedText>
-                            </View>
-                        </Pressable>
-                    );
-                }}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            />
+                                <View style={styles.row}>
+                                    <ThemedText style={styles.label}>
+                                        {t('events.fields.date')}
+                                    </ThemedText>
+                                    <ThemedText style={styles.value}>
+                                        {formatDate(item.startDateTime)}
+                                    </ThemedText>
+                                </View>
+
+                                <View style={styles.row}>
+                                    <ThemedText style={styles.label}>
+                                        {t('events.fields.time')}
+                                    </ThemedText>
+                                    <ThemedText style={styles.value}>
+                                        {formatTimeRange(
+                                            item.startDateTime,
+                                            item.endDateTime,
+                                        )}
+                                    </ThemedText>
+                                </View>
+
+                                <View style={styles.row}>
+                                    <ThemedText style={styles.label}>
+                                        {t('events.fields.place')}
+                                    </ThemedText>
+                                    <ThemedText style={styles.value}>{item.address}</ThemedText>
+                                </View>
+
+                                {item.maxCapacity != null &&
+                                    item.currentRegistrations != null && (
+                                        <View style={styles.row}>
+                                            <ThemedText style={styles.label}>
+                                                {t('events.fields.capacity')}
+                                            </ThemedText>
+                                            <ThemedText style={styles.value}>
+                                                {item.currentRegistrations}/{item.maxCapacity}
+                                            </ThemedText>
+                                        </View>
+                                    )}
+
+                                <View style={styles.footerButton}>
+                                    <ThemedText style={styles.footerButtonText}>
+                                        {t('events.actions.viewDetails')}
+                                    </ThemedText>
+                                </View>
+                            </Pressable>
+                        );
+                    }}
+                    contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                    ListEmptyComponent={
+                        <ThemedView style={styles.centered}>
+                            <ThemedText style={styles.emptyText}>
+                                {searchQuery ? t('events.noResults') || "Aucun résultat trouvé." : t('events.empty')}
+                            </ThemedText>
+                        </ThemedView>
+                    }
+                />
+            )}
 
             <Modal
                 visible={modalVisible && !!selectedEvent}
                 animationType="slide"
                 transparent
-                onRequestClose={closeEventModal}
+                onRequestClose={closeModal}
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalCard}>
@@ -398,7 +424,7 @@ export default function EventsScreen() {
 
                         <Pressable
                             style={styles.modalCloseButton}
-                            onPress={closeEventModal}
+                            onPress={closeModal}
                         >
                             <ThemedText style={styles.modalCloseButtonText}>
                                 {t('events.actions.close')}
@@ -575,5 +601,24 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontSize: 16,
         fontWeight: '600',
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        marginBottom: 16,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#ddd',
+    },
+    searchIcon: {
+        marginRight: 8,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#333',
     },
 });

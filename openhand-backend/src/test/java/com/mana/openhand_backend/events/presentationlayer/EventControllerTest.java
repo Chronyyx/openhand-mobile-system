@@ -40,8 +40,8 @@ class EventControllerTest {
                 "Address " + title,
                 EventStatus.OPEN,
                 100,
-                10
-        );
+                10,
+                "General");
     }
 
     @Test

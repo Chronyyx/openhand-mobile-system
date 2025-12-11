@@ -12,74 +12,74 @@ import java.time.LocalDateTime;
 @Component
 public class EventDataLoader implements CommandLineRunner {
 
-    private final EventRepository eventRepository;
+        private final EventRepository eventRepository;
         private final RegistrationRepository registrationRepository;
 
         public EventDataLoader(EventRepository eventRepository,
-                                                   RegistrationRepository registrationRepository) {
-        this.eventRepository = eventRepository;
+                        RegistrationRepository registrationRepository) {
+                this.eventRepository = eventRepository;
                 this.registrationRepository = registrationRepository;
-    }
+        }
 
-    @Override
-    public void run(String... args) {
+        @Override
+        public void run(String... args) {
                 // Clear registrations first to avoid FK constraint when wiping events
                 registrationRepository.deleteAll();
                 eventRepository.deleteAll();
 
-        LocalDateTime now = LocalDateTime.now();
+                LocalDateTime now = LocalDateTime.now();
 
-        Event gala2025 = new Event(
-                "Gala de reconnaissance MANA",
-                "Soirée de reconnaissance du patrimoine interculturel MANA.",
-                now.plusDays(3).withHour(18).withMinute(0),
-                now.plusDays(3).withHour(22).withMinute(0),
-                "Maison d’Accueil des Nouveaux Arrivants MANA",
-                "Montréal, Québec",
-                EventStatus.FULL,
-                200,
-                200
-        );
+                Event gala2025 = new Event(
+                                "Gala de reconnaissance MANA",
+                                "Soirée de reconnaissance du patrimoine interculturel MANA.",
+                                now.plusDays(3).withHour(18).withMinute(0),
+                                now.plusDays(3).withHour(22).withMinute(0),
+                                "Maison d’Accueil des Nouveaux Arrivants MANA",
+                                "Montréal, Québec",
+                                EventStatus.FULL,
+                                200,
+                                200,
+                                "GALA");
 
-        Event foodDistribution1 = new Event(
-                "Distribution Alimentaire - Mardi",
-                "Distribution alimentaire hebdomadaire pour les familles.",
-                now.plusDays(5).withHour(8).withMinute(0),
-                now.plusDays(5).withHour(12).withMinute(0),
-                "Centre MANA",
-                "1910 Boulevard René-Lévesque, Montréal, QC",
-                EventStatus.OPEN,
-                100,
-                40
-        );
+                Event foodDistribution1 = new Event(
+                                "Distribution Alimentaire - Mardi",
+                                "Distribution alimentaire hebdomadaire pour les familles.",
+                                now.plusDays(5).withHour(8).withMinute(0),
+                                now.plusDays(5).withHour(12).withMinute(0),
+                                "Centre MANA",
+                                "1910 Boulevard René-Lévesque, Montréal, QC",
+                                EventStatus.OPEN,
+                                100,
+                                40,
+                                "DISTRIBUTION");
 
-        Event foodDistribution2 = new Event(
-                "Distribution Alimentaire - Mardi",
-                "Distribution alimentaire hebdomadaire pour les familles.",
-                now.plusDays(7).withHour(8).withMinute(0),
-                now.plusDays(7).withHour(12).withMinute(0),
-                "Centre MANA",
-                "1910 Boulevard René-Lévesque, Montréal, QC",
-                EventStatus.NEARLY_FULL,
-                100,
-                85
-        );
+                Event foodDistribution2 = new Event(
+                                "Distribution Alimentaire - Mardi",
+                                "Distribution alimentaire hebdomadaire pour les familles.",
+                                now.plusDays(7).withHour(8).withMinute(0),
+                                now.plusDays(7).withHour(12).withMinute(0),
+                                "Centre MANA",
+                                "1910 Boulevard René-Lévesque, Montréal, QC",
+                                EventStatus.NEARLY_FULL,
+                                100,
+                                85,
+                                "DISTRIBUTION");
 
-        Event mediatorTraining = new Event(
-                "Formation MANA – Médiateur interculturel",
-                "Formation gratuite pour devenir médiateur interculturel.",
-                now.plusDays(10).withHour(18).withMinute(30),
-                now.plusDays(10).withHour(21).withMinute(0),
-                "Maison d’Accueil des Nouveaux Arrivants MANA",
-                "Montréal, Québec",
-                EventStatus.OPEN,
-                60,
-                20
-        );
+                Event mediatorTraining = new Event(
+                                "Formation MANA – Médiateur interculturel",
+                                "Formation gratuite pour devenir médiateur interculturel.",
+                                now.plusDays(10).withHour(18).withMinute(30),
+                                now.plusDays(10).withHour(21).withMinute(0),
+                                "Maison d’Accueil des Nouveaux Arrivants MANA",
+                                "Montréal, Québec",
+                                EventStatus.OPEN,
+                                60,
+                                20,
+                                "FORMATION");
 
-        eventRepository.save(gala2025);
-        eventRepository.save(foodDistribution1);
-        eventRepository.save(foodDistribution2);
-        eventRepository.save(mediatorTraining);
-    }
+                eventRepository.save(gala2025);
+                eventRepository.save(foodDistribution1);
+                eventRepository.save(foodDistribution2);
+                eventRepository.save(mediatorTraining);
+        }
 }

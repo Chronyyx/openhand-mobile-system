@@ -32,8 +32,8 @@ class EventResponseMapperTest {
                 "Address",
                 EventStatus.OPEN,
                 100,
-                10
-        );
+                10,
+                "General");
 
         // act
         EventResponseModel result = EventResponseMapper.toResponseModel(event);
@@ -63,8 +63,8 @@ class EventResponseMapperTest {
                 "Address",
                 null,
                 null,
-                null
-        );
+                null,
+                null);
 
         // act
         EventResponseModel result = EventResponseMapper.toResponseModel(event);

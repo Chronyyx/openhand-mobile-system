@@ -4,28 +4,25 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage.">
-      <change afterPath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mobile-app/services/events.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/Event.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/EventRepository.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/EventStatus.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/domainclientlayer/EventResponseModel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/presentationlayer/EventController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventDataLoader.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventNotFoundException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventResponseMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="quick fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/Dockerfile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/WebSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/WebSecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/events.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/events.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/Event.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/Event.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/domainclientlayer/EventResponseModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/domainclientlayer/EventResponseModel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventDataLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventDataLoader.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventResponseMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventResponseMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/dataaccesslayer/EventTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/dataaccesslayer/EventTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/domainclientlayer/EventResponseModelTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/domainclientlayer/EventResponseModelTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/presentationlayer/EventControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/presentationlayer/EventControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/utils/EventResponseMapperTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/utils/EventResponseMapperTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/businesslayer/RegistrationServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/businesslayer/RegistrationServiceImplTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/dataaccesslayer/RegistrationRepositoryIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/dataaccesslayer/RegistrationRepositoryIntegrationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/presentationlayer/RegistrationControllerIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/presentationlayer/RegistrationControllerIntegrationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/presentationlayer/RegistrationControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/presentationlayer/RegistrationControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/utils/RegistrationResponseMapperTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/utils/RegistrationResponseMapperTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -58,6 +55,11 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="KubernetesApiPersistence">{}</component>
@@ -71,43 +73,46 @@
   &quot;associatedIndex&quot;: 8
 }</component>
   <component name="ProjectId" id="35iEMWTFW6kFcOARC90aMtliqe7" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.Build openhand-backend.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.OpenhandBackendApplicationTests.dummyTest.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Tests in 'com.mana.openhand_backend'.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.Tests in 'openhand-backend'.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Spring Boot.OpenhandBackendApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/openhand-mobile-system/mobile-app&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;advanced.settings&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;D:\\openhand-mobile-system\\mobile-app\\node_modules\\typescript\\lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build openhand-backend.executor": "Run",
+    "Gradle.OpenhandBackendApplicationTests.dummyTest.executor": "Run",
+    "Gradle.Tests in 'com.mana.openhand_backend'.executor": "Run",
+    "Gradle.Tests in 'openhand-backend'.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.OpenhandBackendApplication.executor": "Run",
+    "git-widget-placeholder": "feat/OP-27__Implement__Event__Keyword__Search",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/openhand-mobile-system/mobile-app",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "advanced.settings",
+    "ts.external.directory.path": "D:\\openhand-mobile-system\\mobile-app\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\openhand-mobile-system\mobile-app\assets\images" />
@@ -196,9 +201,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.Tests in 'openhand-backend'" />
         <item itemvalue="Gradle.Tests in 'com.mana.openhand_backend'" />
         <item itemvalue="Gradle.OpenhandBackendApplicationTests.dummyTest" />
         <item itemvalue="Gradle.Tests in 'openhand-backend'" />
+        <item itemvalue="Gradle.Tests in 'com.mana.openhand_backend'" />
       </list>
     </recent_temporary>
   </component>
@@ -214,6 +221,8 @@
       <workItem from="1764192805699" duration="37000" />
       <workItem from="1764192864698" duration="19294000" />
       <workItem from="1764366421729" duration="10352000" />
+      <workItem from="1765389701771" duration="2151000" />
+      <workItem from="1765403144022" duration="2534000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -287,7 +296,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764379020542</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="quick fix">
+      <option name="closed" value="true" />
+      <created>1765389791112</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1765389791112</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -313,7 +330,8 @@
     <MESSAGE value="Home page, Whatsapp integration." />
     <MESSAGE value="Updated CI tests." />
     <MESSAGE value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
-    <option name="LAST_COMMIT_MESSAGE" value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
+    <MESSAGE value="quick fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="quick fix" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

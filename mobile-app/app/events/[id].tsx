@@ -466,39 +466,32 @@ export default function EventsScreen() {
                                         onRetry={() => loadRegistrationSummary(eventDetail.id)}
                                     />
 
-                                    {/* Debug panel to surface button conditions visibly */}
-                                    <View style={styles.debugBox}>
-                                        <ThemedText style={styles.debugTitle}>Debug bouton</ThemedText>
-                                        <ThemedText style={styles.debugItem}>hasUser: {String(!!user)}</ThemedText>
-                                        <ThemedText style={styles.debugItem}>hasRole(ROLE_MEMBER): {String(hasRole(['ROLE_MEMBER']))}</ThemedText>
-                                        <ThemedText style={styles.debugItem}>status: {eventDetail?.status ?? 'n/a'}</ThemedText>
-                                        <ThemedText style={styles.debugItem}>statusNotFull: {String(eventDetail?.status !== 'FULL')}</ThemedText>
-                                    </View>
+                                    {/* Register button - visible for ROLE_MEMBER and ROLE_EMPLOYEE */}
+                                    {user && hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) && (
+                                        <View style={{ gap: 8, marginTop: 16 }}>
+                                            {eventDetail?.status === 'FULL' && (
+                                                <ThemedText style={styles.infoText}>
+                                                    L&apos;événement est complet : vous serez placé(e) sur liste d&apos;attente.
+                                                </ThemedText>
+                                            )}
+                                            <Pressable
+                                                style={styles.registerButton}
+                                                onPress={handleRegister}
+                                            >
+                                                <ThemedText style={styles.registerButtonText}>
+                                                    {eventDetail?.status === 'FULL'
+                                                        ? '📝 Rejoindre la liste d\'attente'
+                                                        : '📝 S\'inscrire à cet événement'}
+                                                </ThemedText>
+                                            </Pressable>
+                                        </View>
+                                    )}
 
-                                    {/* Register button - TEMPORARY: always visible for testing */}
-                                    <View style={{ gap: 8, marginTop: 16 }}>
-                                        {eventDetail?.status === 'FULL' && (
-                                            <ThemedText style={styles.infoText}>
-                                                L&apos;événement est complet : vous serez placé(e) sur liste d&apos;attente.
-                                            </ThemedText>
-                                        )}
-                                        <Pressable
-                                            style={styles.registerButton}
-                                            onPress={handleRegister}
-                                        >
-                                            <ThemedText style={styles.registerButtonText}>
-                                                {eventDetail?.status === 'FULL'
-                                                    ? '📝 Rejoindre la liste d\'attente'
-                                                    : '📝 S\'inscrire à cet événement'}
-                                            </ThemedText>
-                                        </Pressable>
-                                    </View>
-
-                                    {/* Message for non-members */}
+                                    {/* Message for non-members/employees */}
                                     {!user && (
                                         <View style={styles.infoBox}>
                                             <ThemedText style={styles.infoText}>
-                                                ℹ️ Connectez-vous en tant que membre pour vous inscrire
+                                                ℹ️ Connectez-vous pour vous inscrire
                                             </ThemedText>
                                         </View>
                                     )}

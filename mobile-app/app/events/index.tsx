@@ -482,8 +482,8 @@ export default function EventsScreen() {
                                     />
                                 )}
 
-                            {/* Register button - only visible for ROLE_MEMBER */}
-                            {user && hasRole(['ROLE_MEMBER']) && (
+                            {/* Register button - visible for ROLE_MEMBER and ROLE_EMPLOYEE */}
+                            {user && hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) && (
                                 <Pressable
                                     style={styles.registerButton}
                                     onPress={handleRegister}

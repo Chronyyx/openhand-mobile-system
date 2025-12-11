@@ -29,7 +29,7 @@ public class RegistrationController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_MEMBER')")
+    @PreAuthorize("hasRole('ROLE_MEMBER') or hasRole('ROLE_EMPLOYEE')")
     @ResponseStatus(HttpStatus.CREATED)
     public RegistrationResponseModel registerForEvent(
             @RequestBody RegistrationRequestModel request,
@@ -44,7 +44,7 @@ public class RegistrationController {
     }
 
     @GetMapping("/my-registrations")
-    @PreAuthorize("hasRole('ROLE_MEMBER')")
+    @PreAuthorize("hasRole('ROLE_MEMBER') or hasRole('ROLE_EMPLOYEE')")
     public List<RegistrationResponseModel> getMyRegistrations(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Long userId = extractUserIdFromEmail(userDetails.getUsername());
@@ -56,7 +56,7 @@ public class RegistrationController {
     }
 
     @DeleteMapping("/event/{eventId}")
-    @PreAuthorize("hasRole('ROLE_MEMBER')")
+    @PreAuthorize("hasRole('ROLE_MEMBER') or hasRole('ROLE_EMPLOYEE')")
     public RegistrationResponseModel cancelRegistration(
             @PathVariable Long eventId,
             Authentication authentication) {

@@ -186,7 +186,7 @@ export default function EventsScreen() {
             setSummaryError(
                 e instanceof Error
                     ? e.message
-                    : 'Impossible de charger le résumé des inscriptions',
+                    : t('events.registrationSummary.loadingError'),
             );
         } finally {
             setSummaryLoading(false);

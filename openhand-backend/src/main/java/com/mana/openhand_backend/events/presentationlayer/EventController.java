@@ -3,6 +3,7 @@ package com.mana.openhand_backend.events.presentationlayer;
 import com.mana.openhand_backend.events.businesslayer.EventService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.domainclientlayer.EventResponseModel;
+import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
 import com.mana.openhand_backend.events.utils.EventResponseMapper;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,5 +32,10 @@ public class EventController {
     public EventResponseModel getEventById(@PathVariable Long id) {
         Event event = eventService.getEventById(id);
         return EventResponseMapper.toResponseModel(event);
+    }
+
+    @GetMapping("/{id}/registration-summary")
+    public RegistrationSummaryResponseModel getRegistrationSummary(@PathVariable Long id) {
+        return eventService.getRegistrationSummary(id);
     }
 }

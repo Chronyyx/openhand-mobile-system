@@ -64,7 +64,8 @@ class EventControllerRegistrationSummaryIntegrationTest {
                 "123 Test St",
                 EventStatus.OPEN,
                 100,
-                40
+                40,
+                "Test"
         );
         testEvent = eventRepository.save(testEvent);
     }
@@ -105,7 +106,8 @@ class EventControllerRegistrationSummaryIntegrationTest {
                 "456 Test Ave",
                 EventStatus.OPEN,
                 null,
-                25
+                25,
+                "Test"
         );
         unlimitedEvent = eventRepository.save(unlimitedEvent);
 
@@ -134,7 +136,8 @@ class EventControllerRegistrationSummaryIntegrationTest {
                 "789 Test Blvd",
                 EventStatus.OPEN,
                 50,
-                0
+                0,
+                "Test"
         );
         emptyEvent = eventRepository.save(emptyEvent);
 
@@ -163,7 +166,8 @@ class EventControllerRegistrationSummaryIntegrationTest {
                 "321 Test Rd",
                 EventStatus.FULL,
                 50,
-                50
+                50,
+                "Test"
         );
         fullEvent = eventRepository.save(fullEvent);
 
@@ -208,7 +212,8 @@ class EventControllerRegistrationSummaryIntegrationTest {
                 "654 Test Way",
                 EventStatus.OPEN,
                 75,
-                null
+                null,
+                "Test"
         );
         legacyEvent = eventRepository.save(legacyEvent);
 

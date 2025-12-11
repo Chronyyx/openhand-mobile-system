@@ -45,7 +45,8 @@ class RegistrationRepositoryRegistrationSummaryIntegrationTest {
                 "123 Test St",
                 EventStatus.OPEN,
                 100,
-                0
+                0,
+                "Test Category"
         );
         testEvent = eventRepository.save(testEvent);
     }

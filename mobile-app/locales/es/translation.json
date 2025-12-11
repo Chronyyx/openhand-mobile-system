@@ -106,7 +106,8 @@
       "time": "Hora",
       "place": "Lugar",
       "capacity": "Capacidad",
-      "description": "Descripción"
+      "description": "Descripción",
+      "status": "Estado"
     },
     "actions": {
       "viewDetails": "Ver detalles",
@@ -146,6 +147,15 @@
       "distribution_mardi": "Distribución solidaria de alimentos para la comunidad.",
       "formation_mediateur": "Sesión de capacitación para mediadores interculturales."
     }
+  },
+  "alerts": {
+    "registerSuccess": "¡Registro confirmado! ✅",
+    "registerSuccessMessage": "Te has registrado para el evento.",
+    "registerWaitlistSuccess": "Agregado a la lista de espera",
+    "registerWaitlistMessage": "Este evento está lleno. Estás en la posición {{position}} en la lista de espera.",
+    "registerError": "El registro falló. Por favor, intente de nuevo.",
+    "cancelSuccess": "Registro cancelado",
+    "cancelError": "La cancelación falló. Por favor, intente de nuevo."
   },
   "admin": {
     "dashboard": {

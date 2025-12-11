@@ -13,6 +13,7 @@ import {
     ScrollView,
     type ImageSourcePropType,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -71,20 +72,25 @@ function formatTimeRange(startIso: string, endIso: string | null) {
     return endStr ? `${startStr} - ${endStr}` : startStr;
 }
 
-function getStatusLabel(status: EventSummary['status']) {
+function getStatusLabel(status: EventSummary['status'], t: (key: string, defaultValue: string) => string) {
+    return t(`events.status.${status}`, status);
+}
+
+function getStatusColor(status: EventSummary['status']): string {
     switch (status) {
         case 'OPEN':
-            return 'OUVERT';
+            return '#4CAF50'; // Green
         case 'NEARLY_FULL':
-            return 'PLACES LIMITÉES';
+            return '#F57C00'; // Orange
         case 'FULL':
-            return 'COMPLET';
+            return '#D32F2F'; // Red
         default:
-            return status;
+            return '#0057B8'; // Default blue
     }
 }
 
 export default function EventsScreen() {
+    const { t } = useTranslation();
     const [events, setEvents] = useState<EventSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -307,9 +313,9 @@ export default function EventsScreen() {
                             <ThemedText type="subtitle" style={styles.eventTitle}>
                                 {item.title}
                             </ThemedText>
-                            <View style={styles.statusBadge}>
+                            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
                                 <ThemedText style={styles.statusText}>
-                                    {getStatusLabel(item.status)}
+                                    {getStatusLabel(item.status, t)}
                                 </ThemedText>
                             </View>
                         </View>
@@ -432,7 +438,11 @@ export default function EventsScreen() {
 
                                     <View style={styles.modalRow}>
                                         <ThemedText style={styles.sectionTitle}>Statut</ThemedText>
-                                        <ThemedText>{getStatusLabel(eventDetail.status)}</ThemedText>
+                                        <View style={[styles.inlineStatusBadge, { backgroundColor: getStatusColor(eventDetail.status) }]}>
+                                            <ThemedText style={styles.statusText}>
+                                                {getStatusLabel(eventDetail.status, t)}
+                                            </ThemedText>
+                                        </View>
                                     </View>
 
                                     {eventDetail.maxCapacity != null &&
@@ -559,6 +569,13 @@ const styles = StyleSheet.create({
         color: '#ffffff',
         fontSize: 12,
         fontWeight: '600',
+    },
+    inlineStatusBadge: {
+        borderRadius: 6,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        alignSelf: 'flex-start',
+        marginTop: 4,
     },
     row: {
         flexDirection: 'row',

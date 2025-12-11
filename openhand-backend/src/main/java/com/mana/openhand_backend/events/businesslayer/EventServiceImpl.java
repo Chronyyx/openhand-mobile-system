@@ -54,7 +54,11 @@ public class EventServiceImpl implements EventService {
 
         if (maxCapacity != null) {
             remainingSpots = Math.max(0, maxCapacity - (int) confirmedCount);
-            percentageFull = (confirmedCount * 100.0) / maxCapacity;
+            if (maxCapacity > 0) {
+                percentageFull = (confirmedCount * 100.0) / maxCapacity;
+            } else {
+                percentageFull = 0.0;
+            }
         }
 
         return new RegistrationSummaryResponseModel(

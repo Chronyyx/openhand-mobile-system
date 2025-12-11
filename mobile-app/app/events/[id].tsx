@@ -16,11 +16,14 @@ import {
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
+import { RegistrationSummaryComponent } from '../../components/registration-summary';
 import {
     getUpcomingEvents,
     getEventById,
+    getRegistrationSummary,
     type EventSummary,
     type EventDetail,
+    type RegistrationSummary,
 } from '../../services/events.service';
 import { registerForEvent } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
@@ -94,6 +97,11 @@ export default function EventsScreen() {
     const [modalLoading, setModalLoading] = useState(false);
     const [modalError, setModalError] = useState<string | null>(null);
 
+    // Registration summary state
+    const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
+    const [summaryLoading, setSummaryLoading] = useState(false);
+    const [summaryError, setSummaryError] = useState<string | null>(null);
+
     // Auth context for checking if user can register
     const { user, hasRole } = useAuth();
 
@@ -133,6 +141,24 @@ export default function EventsScreen() {
         loadEvents();
     };
 
+    const loadRegistrationSummary = async (eventId: number) => {
+        try {
+            setSummaryError(null);
+            setSummaryLoading(true);
+            const summary = await getRegistrationSummary(eventId);
+            setRegistrationSummary(summary);
+        } catch (e) {
+            console.error('Failed to load registration summary', e);
+            setSummaryError(
+                e instanceof Error
+                    ? e.message
+                    : 'Impossible de charger le résumé des inscriptions',
+            );
+        } finally {
+            setSummaryLoading(false);
+        }
+    };
+
     const openEventModal = async (event: EventSummary) => {
         console.log('[EventDetail] Opening modal for event:', event);
         setSelectedEvent(event);
@@ -140,6 +166,11 @@ export default function EventsScreen() {
         setModalLoading(true);
         setModalError(null);
         setEventDetail(null);
+
+        // Reset registration summary state
+        setRegistrationSummary(null);
+        setSummaryLoading(false);
+        setSummaryError(null);
 
         try {
             // Fetch full event details from backend instead of using list data
@@ -156,6 +187,9 @@ export default function EventsScreen() {
         } finally {
             setModalLoading(false);
         }
+
+        // Load registration summary in parallel
+        loadRegistrationSummary(event.id);
     };
 
     const closeEventModal = () => {
@@ -163,6 +197,8 @@ export default function EventsScreen() {
         setSelectedEvent(null);
         setEventDetail(null);
         setModalError(null);
+        setRegistrationSummary(null);
+        setSummaryError(null);
     };
 
     const handleRegister = async () => {
@@ -189,6 +225,9 @@ export default function EventsScreen() {
             // Refresh event details to update capacity
             const updatedEvent = await getEventById(eventDetail.id);
             setEventDetail(updatedEvent);
+
+            // Refresh registration summary
+            loadRegistrationSummary(eventDetail.id);
 
         } catch (error) {
             console.error('Registration failed', error);
@@ -408,6 +447,14 @@ export default function EventsScreen() {
                                                 </ThemedText>
                                             </View>
                                         )}
+
+                                    {/* Registration Summary Component */}
+                                    <RegistrationSummaryComponent
+                                        summary={registrationSummary}
+                                        loading={summaryLoading}
+                                        error={summaryError}
+                                        onRetry={() => loadRegistrationSummary(eventDetail.id)}
+                                    />
 
                                     {/* Debug panel to surface button conditions visibly */}
                                     <View style={styles.debugBox}>

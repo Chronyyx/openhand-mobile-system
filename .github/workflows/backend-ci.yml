@@ -36,10 +36,8 @@ jobs:
           --health-retries=5
 
     env:
-      # Spring Boot tests will see these and use the same DB config
-      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/openhanddb
-      SPRING_DATASOURCE_USERNAME: openhand
-      SPRING_DATASOURCE_PASSWORD: openhand
+      # Use test profile which uses H2 in-memory database
+      SPRING_PROFILES_ACTIVE: test
 
     steps:
       - name: Checkout repository

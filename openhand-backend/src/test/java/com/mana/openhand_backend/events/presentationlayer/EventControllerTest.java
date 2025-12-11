@@ -4,6 +4,7 @@ import com.mana.openhand_backend.events.businesslayer.EventService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.domainclientlayer.EventResponseModel;
+import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
 import com.mana.openhand_backend.events.utils.EventResponseMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -92,6 +93,37 @@ class EventControllerTest {
         assertEquals(expected.getStatus(), result.getStatus());
 
         verify(eventService, times(1)).getEventById(id);
+        verifyNoMoreInteractions(eventService);
+    }
+
+    @Test
+    void getRegistrationSummary_returnsRegistrationSummaryFromService() {
+        // arrange
+        Long eventId = 1L;
+        RegistrationSummaryResponseModel summary = new RegistrationSummaryResponseModel(
+                eventId,
+                40,
+                5,
+                100,
+                60,
+                40.0
+        );
+
+        when(eventService.getRegistrationSummary(eventId)).thenReturn(summary);
+
+        // act
+        RegistrationSummaryResponseModel result = eventController.getRegistrationSummary(eventId);
+
+        // assert
+        assertNotNull(result);
+        assertEquals(eventId, result.getEventId());
+        assertEquals(40, result.getTotalRegistrations());
+        assertEquals(5, result.getWaitlistedCount());
+        assertEquals(100, result.getMaxCapacity());
+        assertEquals(60, result.getRemainingSpots());
+        assertEquals(40.0, result.getPercentageFull());
+
+        verify(eventService, times(1)).getRegistrationSummary(eventId);
         verifyNoMoreInteractions(eventService);
     }
 }

@@ -122,6 +122,20 @@
     "accessibility": {
       "viewDetails": "Ver detalles, {{title}}"
     },
+    "registrationSummary": {
+      "title": "Resumen de Inscripciones",
+      "confirmedRegistrations": "Inscripciones Confirmadas",
+      "waitlisted": "Lista de Espera",
+      "capacity": "Capacidad",
+      "remainingSpots": "Cupos Restantes",
+      "unlimited": "Ilimitada",
+      "noRegistrations": "Ninguna inscripción por el momento.",
+      "eventFull": "⚠️ El evento está lleno. Las nuevas inscripciones se agregarán a la lista de espera.",
+      "limitedSpots": "⏰ ¡Solo {{count}} cupo(s) restante(s)!",
+      "loading": "Cargando resumen...",
+      "loadingError": "No se pudo cargar el resumen de inscripciones.",
+      "retry": "Reintentar"
+    },
     "names": {
       "gala": "Gala de reconocimiento MANA",
       "distribution_mardi": "Distribución de alimentos – Martes",

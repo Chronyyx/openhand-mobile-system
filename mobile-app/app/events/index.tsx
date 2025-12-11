@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -18,9 +18,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
+import { RegistrationSummaryComponent } from '../../components/registration-summary';
 import {
     getUpcomingEvents,
+    getRegistrationSummary,
     type EventSummary,
+    type RegistrationSummary,
 } from '../../services/events.service';
 import { registerForEvent, cancelRegistration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
@@ -123,7 +126,12 @@ export default function EventsScreen() {
     const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
 
-    const loadEvents = async () => {
+        // Registration summary state
+        const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
+        const [summaryLoading, setSummaryLoading] = useState(false);
+        const [summaryError, setSummaryError] = useState<string | null>(null);
+
+            const loadEvents = useCallback(async () => {
         try {
             setError(null);
             const data = await getUpcomingEvents();
@@ -137,11 +145,11 @@ export default function EventsScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    };
+            }, [t]);
 
     useEffect(() => {
         loadEvents();
-    }, []);
+        }, [loadEvents]);
 
     useEffect(() => {
         if (searchQuery.trim() === '') {
@@ -167,14 +175,36 @@ export default function EventsScreen() {
         await loadEvents();
     };
 
+    const loadRegistrationSummary = async (eventId: number) => {
+        try {
+            setSummaryError(null);
+            setSummaryLoading(true);
+            const summary = await getRegistrationSummary(eventId);
+            setRegistrationSummary(summary);
+        } catch (e) {
+            console.error('Failed to load registration summary', e);
+            setSummaryError(
+                e instanceof Error
+                    ? e.message
+                    : t('events.registrationSummary.loadingError'),
+            );
+        } finally {
+            setSummaryLoading(false);
+        }
+    };
+
     const handleEventPress = (event: EventSummary) => {
         setSelectedEvent(event);
         setModalVisible(true);
+        // Load registration summary
+        loadRegistrationSummary(event.id);
     };
 
     const closeModal = () => {
         setModalVisible(false);
         setSelectedEvent(null);
+        setRegistrationSummary(null);
+        setSummaryError(null);
     };
 
     const handleRegister = async () => {
@@ -405,6 +435,16 @@ export default function EventsScreen() {
                                             {selectedEvent.maxCapacity}
                                         </ThemedText>
                                     </View>
+                                )}
+
+                                {/* Registration Summary - only visible for ROLE_ADMIN and ROLE_EMPLOYEE */}
+                                {selectedEvent && user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && (
+                                    <RegistrationSummaryComponent
+                                        loading={summaryLoading}
+                                        error={summaryError}
+                                        summary={registrationSummary}
+                                        onRetry={() => loadRegistrationSummary(selectedEvent.id)}
+                                    />
                                 )}
 
                             {/* Register button - only visible for ROLE_MEMBER */}

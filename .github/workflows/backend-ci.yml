@@ -65,4 +65,4 @@ jobs:
           echo "DB did not start in time" && exit 1
 
       - name: Run tests
-        run: ./gradlew clean test
+        run: ./gradlew clean test -Dspring.profiles.active=test

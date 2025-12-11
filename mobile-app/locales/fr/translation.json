@@ -108,7 +108,8 @@
       "time": "Heure",
       "place": "Lieu",
       "capacity": "Capacité",
-      "description": "Description"
+      "description": "Description",
+      "status": "Statut"
     },
     "actions": {
       "viewDetails": "Voir détails",
@@ -148,6 +149,15 @@
       "distribution_mardi": "Distribution alimentaire solidaire pour la communauté.",
       "formation_mediateur": "Séance de formation pour les médiateurs interculturels."
     }
+  },
+  "alerts": {
+    "registerSuccess": "Inscription confirmée ! ✅",
+    "registerSuccessMessage": "Vous êtes inscrit(e) à l'événement.",
+    "registerWaitlistSuccess": "Ajouté à la liste d'attente",
+    "registerWaitlistMessage": "L'événement est complet. Vous êtes en position {{position}} sur la liste d'attente.",
+    "registerError": "L'inscription a échoué. Veuillez réessayer.",
+    "cancelSuccess": "Inscription annulée",
+    "cancelError": "L'annulation a échoué. Veuillez réessayer."
   },
   "admin": {
     "dashboard": {

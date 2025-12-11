@@ -132,6 +132,20 @@
     "accessibility": {
       "viewDetails": "View details, {{title}}"
     },
+    "registrationSummary": {
+      "title": "Registration Summary",
+      "loading": "Loading summary...",
+      "confirmedRegistrations": "Confirmed Registrations",
+      "waitlisted": "Waitlisted",
+      "capacity": "Capacity",
+      "remainingSpots": "Remaining Spots",
+      "unlimited": "Unlimited",
+      "noRegistrations": "No registrations yet.",
+      "eventFull": "⚠️ The event is full. New registrations will be added to the waitlist.",
+      "limitedSpots": "⏰ Only {{count}} spot(s) remaining!",
+      "loadingError": "Unable to load registration summary.",
+      "retry": "Retry"
+    },
     "names": {
       "gala": "MANA Recognition Gala",
       "distribution_mardi": "Food Distribution – Tuesday",

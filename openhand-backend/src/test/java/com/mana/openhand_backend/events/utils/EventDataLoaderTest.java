@@ -32,8 +32,8 @@ class EventDataLoaderTest {
         // assert
         verify(registrationRepository, times(1)).deleteAll();
         verify(eventRepository, times(1)).deleteAll();
-        // four events are created in the loader
-        verify(eventRepository, times(4)).save(any(Event.class));
+        // five events are created in the loader
+        verify(eventRepository, times(5)).save(any(Event.class));
         verifyNoMoreInteractions(eventRepository);
         verifyNoMoreInteractions(registrationRepository);
     }

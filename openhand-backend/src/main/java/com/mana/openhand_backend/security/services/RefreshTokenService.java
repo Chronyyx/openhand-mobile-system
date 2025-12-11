@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.mana.openhand_backend.identity.utils.UserNotFoundException;
 
 import java.time.Instant;
 import java.util.Optional;
@@ -31,7 +32,7 @@ public class RefreshTokenService {
         RefreshToken refreshToken = new RefreshToken();
 
         refreshToken.setUser(userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId)));
+                .orElseThrow(() -> new UserNotFoundException(userId)));
         refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken.setUserAgent(userAgent);
@@ -61,7 +62,7 @@ public class RefreshTokenService {
     @Transactional
     public int deleteByUserId(Long userId) {
         return refreshTokenRepository.deleteByUser(userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId)));
+                .orElseThrow(() -> new UserNotFoundException(userId)));
     }
 
     @Transactional

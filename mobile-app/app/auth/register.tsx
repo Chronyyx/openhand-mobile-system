@@ -103,7 +103,7 @@ export default function RegisterScreen() {
                                 onChangeText={setPassword}
                                 secureTextEntry={!isPasswordVisible}
                             />
-                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility", "Toggle password visibility")}>
                                 <Ionicons
                                     name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                     size={20}
@@ -121,6 +121,8 @@ export default function RegisterScreen() {
                                 value={confirmPassword}
                                 onChangeText={setConfirmPassword}
                                 secureTextEntry={!isPasswordVisible}
+                                accessibilityLabel={t("auth.confirm_password_placeholder", "Confirm Password")}
+                                testID="confirm-password-input"
                             />
                         </View>
                     </View>

@@ -105,7 +105,7 @@ export default function LoginScreen() {
                                 onChangeText={setPassword}
                                 secureTextEntry={!isPasswordVisible}
                             />
-                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility", "Toggle password visibility")}>
                                 <Ionicons
                                     name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                     size={20}

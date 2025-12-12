@@ -104,6 +104,7 @@
       "fill_all_fields_register": "Please fill in all required fields (Name, Email, Password, Age).",
       "fill_all_fields_login": "Please fill in all fields.",
       "invalid_email": "Please enter a valid email address.",
+      "invalid_phone_number": "Please enter a valid phone number.",
       "passwords_do_not_match": "Passwords do not match.",
       "invalid_age": "Please enter a valid age.",
       "registration_failed": "Registration failed. Please try again.",

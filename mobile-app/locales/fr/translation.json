@@ -28,6 +28,7 @@
     "celebrateDiversity": "CÉLÉBREZ LA DIVERSITÉ",
     "reserve": "RÉSERVER",
     "latestNews": "Dernières actualités",
+    "logout": "Se déconnecter",
     "ourServices": "Nos Services",
     "ourServicesSubtitle": "Découvrez comment nous pouvons vous aider",
     "services": {
@@ -103,6 +104,7 @@
       "fill_all_fields_register": "Veuillez remplir tous les champs requis (Nom, Email, Mot de passe, Âge).",
       "fill_all_fields_login": "Veuillez remplir tous les champs.",
       "invalid_email": "Veuillez entrer une adresse email valide.",
+      "invalid_phone_number": "Veuillez entrer un numéro de téléphone valide.",
       "passwords_do_not_match": "Les mots de passe ne correspondent pas.",
       "invalid_age": "Veuillez entrer un âge valide.",
       "registration_failed": "L'inscription a échoué. Veuillez réessayer.",

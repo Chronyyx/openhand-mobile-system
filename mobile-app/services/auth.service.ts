@@ -42,7 +42,7 @@ const deleteItem = async (key: string) => {
     }
 };
 
-const register = (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => {
+const register = (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: number) => {
     return axios.post(API_URL + '/auth/register', {
         email,
         password,

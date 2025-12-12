@@ -58,13 +58,13 @@ public class AuthController {
             HttpServletRequest request) {
 
         String username = loginRequest.getEmail();
-        logger.info("Login attempt with username: {}", username);
+        logger.info("Login attempt received.");
         if (username != null && !username.contains("@")) {
             // Standardized log message to avoid leaking user existence
             logger.info("Login attempt with phone number.");
 
-            // Normalize phone number (strip non-digits)
-            String normalizedPhoneInput = username.replaceAll("[^0-9]", "");
+            // Normalize phone number (strip non-digits, preserve +)
+            String normalizedPhoneInput = username.replaceAll("[^0-9+]", "");
 
             String resolvedEmail = userRepository.findByPhoneNumber(normalizedPhoneInput)
                     .map(User::getEmail)
@@ -76,10 +76,14 @@ public class AuthController {
                 // To prevent user enumeration, perform a dummy authentication attempt
                 // and always return a generic error message.
                 try {
-                    // Use a dummy username and password to simulate authentication time
-                    authenticationManager.authenticate(
-                            new UsernamePasswordAuthenticationToken("dummy_user@example.com",
-                                    loginRequest.getPassword()));
+                    // Use a dummy password check to simulate authentication time (bcrypt check)
+                    // This mitigates timing attacks by ensuring "user not found" takes similar time
+                    // to "bad password"
+                    String dummyHash = "$2a$10$wS2a.9.2./.9.3.5.1.4.1.2.3.5.1.2.3.5.1.2.3.5.1.2.3.5."; // Invalid, but
+                                                                                                       // structurally
+                                                                                                       // correct-ish
+                                                                                                       // length
+                    encoder.matches(loginRequest.getPassword(), dummyHash);
                 } catch (Exception ignored) {
                     // Ignore the result, always return the same error
                 }
@@ -177,7 +181,7 @@ public class AuthController {
         }
 
         if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().isEmpty()) {
-            String normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9]", "");
+            String normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", "");
             if (userRepository.existsByPhoneNumber(normalizedPhone)) {
                 return ResponseEntity
                         .badRequest()
@@ -201,7 +205,7 @@ public class AuthController {
 
         // Normalize phone number before saving
         if (signUpRequest.getPhoneNumber() != null) {
-            user.setPhoneNumber(signUpRequest.getPhoneNumber().replaceAll("[^0-9]", ""));
+            user.setPhoneNumber(signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", ""));
         }
 
         user.setGender(signUpRequest.getGender());

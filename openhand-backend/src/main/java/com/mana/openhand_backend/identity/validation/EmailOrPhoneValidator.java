@@ -25,8 +25,8 @@ public class EmailOrPhoneValidator implements ConstraintValidator<EmailOrPhone, 
             return true;
         }
 
-        // Check if it matches phone pattern (after stripping non-digits)
-        String digitsOnly = value.replaceAll("[^0-9]", "");
+        // Check if it matches phone pattern (after stripping non-digits, preserving +)
+        String digitsOnly = value.replaceAll("[^0-9+]", "");
         return Pattern.matches(PHONE_PATTERN, digitsOnly);
     }
 }

@@ -49,6 +49,13 @@ export default function RegisterScreen() {
             setError(t("auth.error.invalid_email"));
             return;
         }
+
+        const isValidPhone = (phone: string) => /^\+?[0-9]{10,15}$/.test(phone);
+        if (phoneNumber && !isValidPhone(phoneNumber)) {
+            setError(t("auth.error.invalid_phone_number"));
+            return;
+        }
+
         if (password !== confirmPassword) {
             setError(t("auth.error.passwords_do_not_match"));
             return;

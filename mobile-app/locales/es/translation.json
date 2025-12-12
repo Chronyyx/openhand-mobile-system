@@ -28,6 +28,7 @@
     "celebrateDiversity": "CELEBRA LA DIVERSIDAD",
     "reserve": "RESERVAR",
     "latestNews": "Últimas noticias",
+    "logout": "Cerrar sesión",
     "ourServices": "Nuestros Servicios",
     "ourServicesSubtitle": "Descubre cómo podemos ayudarte",
     "services": {
@@ -103,6 +104,7 @@
       "fill_all_fields_register": "Por favor complete todos los campos requeridos (Nombre, Email, Contraseña, Edad).",
       "fill_all_fields_login": "Por favor complete todos los campos.",
       "invalid_email": "Por favor ingrese una dirección de correo válida.",
+      "invalid_phone_number": "Por favor ingrese un número de teléfono válido.",
       "passwords_do_not_match": "Las contraseñas no coinciden.",
       "invalid_age": "Por favor ingrese una edad válida.",
       "registration_failed": "El registro falló. Por favor intente de nuevo.",

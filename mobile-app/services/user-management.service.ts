@@ -1,7 +1,9 @@
 import axios from 'axios';
 import AuthService from './auth.service';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.2.12:8080/api';
+// Keep the fallback consistent with the rest of the app (auth/events/registration),
+// otherwise you can end up logging into one backend and calling admin endpoints on another.
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.0.16:8080/api';
 
 export type ManagedUser = {
     id: number;

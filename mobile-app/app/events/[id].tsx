@@ -29,6 +29,7 @@ import {
 } from '../../services/events.service';
 import { registerForEvent } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
+import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
 const eventImages: Record<string, ImageSourcePropType> = {
     'gala': require('../../assets/mana/Gala_image_Mana.png'),
@@ -41,59 +42,8 @@ function getEventImage(event: EventSummary | null): ImageSourcePropType | undefi
     return eventImages[event.title];
 }
 
-// ---- Translation helper functions ----
-// Backend now sends translation key identifiers directly (e.g., "gala", "distribution_mardi")
-function getTranslatedTitle(
-    title: string,
-    t: (key: string, options?: any) => string,
-) {
-    const translationKey = `events.names.${title}`;
-    return t(translationKey, { defaultValue: title });
-}
-
-function getTranslatedDescription(
-    description: string,
-    t: (key: string, options?: any) => string,
-) {
-    // Backend sends translation keys like "gala_description", convert to actual translation key
-    const descriptionKey = description.replace('_description', '');
-    const translationKey = `events.descriptions.${descriptionKey}`;
-    return t(translationKey, { defaultValue: description });
-}
-
-function formatDate(iso: string) {
-    const date = new Date(iso);
-        // Format date using the currently selected app language's locale
-        // This ensures persistency when the user changes language settings
-        const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
-        return date.toLocaleDateString(locale, {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
-}
-
-function formatTimeRange(startIso: string, endIso: string | null) {
-    const start = new Date(startIso);
-    const end = endIso ? new Date(endIso) : null;
-
-        const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
-        const startStr = start.toLocaleTimeString(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    });
-
-    const endStr = end
-            ? end.toLocaleTimeString(locale, {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-        })
-        : '';
-
-    return endStr ? `${startStr} - ${endStr}` : startStr;
-}
+const formatDate = formatIsoDate;
+const formatTimeRange = formatIsoTimeRange;
 
 function getStatusLabel(status: EventSummary['status'], t: (key: string, defaultValue: string) => string) {
     return t(`events.status.${status}`, status);

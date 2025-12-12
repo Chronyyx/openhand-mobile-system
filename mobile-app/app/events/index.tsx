@@ -28,6 +28,7 @@ import {
 } from '../../services/events.service';
 import { registerForEvent, cancelRegistration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
+import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
 // ---- Static image map for events ----
 const eventImages: Record<string, ImageSourcePropType> = {
@@ -63,37 +64,8 @@ function getTranslatedDescription(
     return t(translationKey, { defaultValue: event.description });
 }
 
-function formatDate(iso: string) {
-    const date = new Date(iso);
-    const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
-    return date.toLocaleDateString(locale, {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
-}
-
-function formatTimeRange(startIso: string, endIso: string | null) {
-    const start = new Date(startIso);
-    const end = endIso ? new Date(endIso) : null;
-
-    const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
-    const startStr = start.toLocaleTimeString(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    });
-
-    const endStr = end
-        ? end.toLocaleTimeString(locale, {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-        })
-        : '';
-
-    return endStr ? `${startStr} - ${endStr}` : startStr;
-}
+const formatDate = formatIsoDate;
+const formatTimeRange = formatIsoTimeRange;
 
 function getStatusLabel(status: EventSummary['status'], t: (k: string) => string) {
     switch (status) {

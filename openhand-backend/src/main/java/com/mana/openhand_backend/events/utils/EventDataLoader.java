@@ -28,9 +28,11 @@ public class EventDataLoader implements CommandLineRunner {
 
         @Override
         public void run(String... args) {
-                // Clear registrations first to avoid FK constraint when wiping events
-                registrationRepository.deleteAll();
-                eventRepository.deleteAll();
+                // Only seed initial events for fresh databases.
+                // Do not wipe existing data (otherwise admin-created events disappear on restart).
+                if (eventRepository.count() > 0) {
+                        return;
+                }
 
                 LocalDateTime now = LocalDateTime.now();
 

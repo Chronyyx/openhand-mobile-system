@@ -1,0 +1,802 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Keyboard,
+    KeyboardAvoidingView,
+    FlatList,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableWithoutFeedback,
+    View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
+
+import { AppHeader } from '../../components/app-header';
+import { DateTimePickerModal } from '../../components/date-time-picker-modal';
+import { NavigationMenu } from '../../components/navigation-menu';
+import { useAuth } from '../../context/AuthContext';
+import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
+import { createEvent } from '../../services/event-management.service';
+
+const ACCENT = '#0056A8';
+const SURFACE = '#F5F7FB';
+
+type FieldErrors = Partial<Record<
+    | 'title'
+    | 'description'
+    | 'startDateTime'
+    | 'endDateTime'
+    | 'locationName'
+    | 'address'
+    | 'maxCapacity',
+    string
+>>;
+
+function pad2(value: number) {
+    return value.toString().padStart(2, '0');
+}
+
+function formatLocalDateTimeForDisplay(date: Date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())} ${pad2(
+        date.getHours(),
+    )}:${pad2(date.getMinutes())}`;
+}
+
+function formatLocalDateTimeForApi(date: Date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(
+        date.getHours(),
+    )}:${pad2(date.getMinutes())}`;
+}
+
+export default function AdminEventsScreen() {
+    const router = useRouter();
+    const { t } = useTranslation();
+    const { hasRole } = useAuth();
+
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [events, setEvents] = useState<EventSummary[]>([]);
+    const [error, setError] = useState<string | null>(null);
+
+    const [createOpen, setCreateOpen] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [category, setCategory] = useState('');
+    const [startDateTime, setStartDateTime] = useState<Date | null>(null);
+    const [endDateTime, setEndDateTime] = useState<Date | null>(null);
+    const [locationName, setLocationName] = useState('');
+    const [address, setAddress] = useState('');
+    const [maxCapacity, setMaxCapacity] = useState('');
+
+    const [activePickerField, setActivePickerField] = useState<'start' | 'end' | null>(null);
+    const [pickerVisible, setPickerVisible] = useState(false);
+    const [pickerInitialValue, setPickerInitialValue] = useState<Date>(new Date());
+
+    const loadEvents = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await getUpcomingEvents();
+            setEvents(data);
+        } catch (e) {
+            console.error('Failed to load events for admin', e);
+            setError(t('admin.events.loadError'));
+        } finally {
+            setLoading(false);
+        }
+    }, [t]);
+
+    useEffect(() => {
+        loadEvents();
+    }, [loadEvents]);
+
+    const resetForm = () => {
+        setTitle('');
+        setDescription('');
+        setCategory('');
+        setStartDateTime(null);
+        setEndDateTime(null);
+        setLocationName('');
+        setAddress('');
+        setMaxCapacity('');
+        setFieldErrors({});
+    };
+
+    const openCreate = () => {
+        resetForm();
+        setCreateOpen(true);
+    };
+
+    const closeCreate = () => {
+        setCreateOpen(false);
+        setSaving(false);
+        setFieldErrors({});
+        closePicker();
+    };
+
+    const validate = (): boolean => {
+        const nextErrors: FieldErrors = {};
+
+        if (!title.trim()) nextErrors.title = t('admin.events.fields.titleRequired');
+        if (!description.trim()) nextErrors.description = t('admin.events.fields.descriptionRequired');
+        if (!locationName.trim()) nextErrors.locationName = t('admin.events.fields.locationNameRequired');
+        if (!address.trim()) nextErrors.address = t('admin.events.fields.addressRequired');
+
+        if (!startDateTime) nextErrors.startDateTime = t('admin.events.fields.startDateTimeInvalid');
+        if (startDateTime && endDateTime && endDateTime.getTime() <= startDateTime.getTime()) {
+            nextErrors.endDateTime = t('admin.events.fields.endDateTimeInvalid');
+        }
+
+        if (maxCapacity.trim()) {
+            const parsed = Number(maxCapacity);
+            if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+                nextErrors.maxCapacity = t('admin.events.fields.maxCapacityInvalid');
+            }
+        }
+
+        setFieldErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+
+    const handleCreate = async () => {
+        if (!validate()) return;
+
+        setSaving(true);
+        setError(null);
+        try {
+            await createEvent({
+                title: title.trim(),
+                description: description.trim(),
+                startDateTime: formatLocalDateTimeForApi(startDateTime!),
+                endDateTime: endDateTime ? formatLocalDateTimeForApi(endDateTime) : null,
+                locationName: locationName.trim(),
+                address: address.trim(),
+                maxCapacity: maxCapacity.trim() ? Number(maxCapacity) : null,
+                category: category.trim() ? category.trim() : null,
+            });
+
+            closeCreate();
+            await loadEvents();
+            Alert.alert(t('admin.events.createSuccessTitle'), t('admin.events.createSuccessMessage'));
+        } catch (e) {
+            console.error('Failed to create event', e);
+            setError(t('admin.events.createError'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const openDateTimePicker = (field: 'start' | 'end') => {
+        Keyboard.dismiss();
+
+        setFieldErrors((current) => {
+            const next = { ...current };
+            delete next.startDateTime;
+            delete next.endDateTime;
+            return next;
+        });
+
+        setActivePickerField(field);
+
+        const currentValue = field === 'start' ? startDateTime : endDateTime;
+        const initialValue = currentValue ?? new Date();
+
+        setPickerInitialValue(initialValue);
+        setPickerVisible(true);
+    };
+
+    const closePicker = () => {
+        setPickerVisible(false);
+        setActivePickerField(null);
+    };
+
+    const confirmPicker = (value: Date) => {
+        const normalized = new Date(value);
+        normalized.setSeconds(0, 0);
+        if (activePickerField === 'start') setStartDateTime(normalized);
+        if (activePickerField === 'end') setEndDateTime(normalized);
+        closePicker();
+    };
+
+    const handleNavigateHome = () => {
+        setMenuVisible(false);
+        router.replace('/');
+    };
+
+    const handleNavigateEvents = () => {
+        setMenuVisible(false);
+        router.push('/events');
+    };
+
+    const handleNavigateDashboard = () => {
+        setMenuVisible(false);
+        router.push('/admin');
+    };
+
+    const renderEventItem = ({ item }: { item: EventSummary }) => (
+        <View style={styles.eventCard}>
+            <View style={styles.eventHeader}>
+                <View style={styles.eventIcon}>
+                    <Ionicons name="calendar-outline" size={18} color={ACCENT} />
+                </View>
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.eventTitle}>{item.title}</Text>
+                    <Text style={styles.eventMeta}>
+                        {item.startDateTime.replace('T', ' ').slice(0, 16)} • {item.address}
+                    </Text>
+                </View>
+                <View style={styles.statusPill}>
+                    <Text style={styles.statusPillText}>{item.status}</Text>
+                </View>
+            </View>
+        </View>
+    );
+
+    return (
+        <View style={styles.container}>
+            <AppHeader onMenuPress={() => setMenuVisible(true)} />
+
+            <View style={styles.content}>
+                <View style={styles.hero}>
+                    <View style={styles.heroIcon}>
+                        <Ionicons name="calendar" size={22} color={ACCENT} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.title}>{t('admin.events.title')}</Text>
+                        <Text style={styles.subtitle}>{t('admin.events.subtitle')}</Text>
+                    </View>
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.createButton,
+                            pressed && styles.createButtonPressed,
+                        ]}
+                        onPress={openCreate}
+                    >
+                        <Ionicons name="add" size={18} color="#FFFFFF" />
+                        <Text style={styles.createButtonText}>{t('admin.events.createButton')}</Text>
+                    </Pressable>
+                </View>
+
+                {error ? (
+                    <View style={styles.errorBox}>
+                        <Ionicons name="alert-circle" size={18} color="#C62828" />
+                        <Text style={styles.errorText}>{error}</Text>
+                    </View>
+                ) : null}
+
+                {loading ? (
+                    <View style={styles.centered}>
+                        <ActivityIndicator />
+                    </View>
+                ) : (
+                    <FlatList
+                        data={events}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={renderEventItem}
+                        contentContainerStyle={styles.listContent}
+                        ListEmptyComponent={
+                            <View style={styles.emptyState}>
+                                <Ionicons name="calendar-outline" size={26} color="#9BA5B7" />
+                                <Text style={styles.emptyText}>{t('admin.events.empty')}</Text>
+                            </View>
+                        }
+                    />
+                )}
+            </View>
+
+            <Modal
+                transparent
+                visible={createOpen}
+                animationType="slide"
+                onRequestClose={closeCreate}
+            >
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                    <View style={styles.modalOverlay}>
+                        <KeyboardAvoidingView
+                            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                            keyboardVerticalOffset={Platform.OS === 'ios' ? 24 : 0}
+                        >
+                            <TouchableWithoutFeedback accessible={false}>
+                                <View style={styles.modalCard}>
+                        <View style={styles.modalHeader}>
+                            <Ionicons name="add-circle-outline" size={18} color={ACCENT} />
+                            <Text style={styles.modalTitle}>{t('admin.events.createTitle')}</Text>
+                            <Pressable onPress={Keyboard.dismiss} hitSlop={10}>
+                                <Ionicons name="chevron-down" size={20} color="#5C6A80" />
+                            </Pressable>
+                            <Pressable onPress={closeCreate} hitSlop={10}>
+                                <Ionicons name="close" size={20} color="#5C6A80" />
+                            </Pressable>
+                        </View>
+
+                        <ScrollView
+                            style={{ marginTop: 12 }}
+                            contentContainerStyle={styles.form}
+                            keyboardDismissMode="on-drag"
+                            keyboardShouldPersistTaps="handled"
+                            onScrollBeginDrag={Keyboard.dismiss}
+                        >
+                            <Text style={styles.fieldLabel}>{t('admin.events.fields.title')}</Text>
+                            <TextInput
+                                style={[styles.input, fieldErrors.title && styles.inputError]}
+                                value={title}
+                                onChangeText={setTitle}
+                                placeholder={t('admin.events.fields.titlePlaceholder')}
+                                placeholderTextColor="#9BA5B7"
+                            />
+                            {fieldErrors.title ? <Text style={styles.fieldError}>{fieldErrors.title}</Text> : null}
+
+                            <Text style={styles.fieldLabel}>{t('admin.events.fields.description')}</Text>
+                            <TextInput
+                                style={[styles.textarea, fieldErrors.description && styles.inputError]}
+                                value={description}
+                                onChangeText={setDescription}
+                                placeholder={t('admin.events.fields.descriptionPlaceholder')}
+                                placeholderTextColor="#9BA5B7"
+                                multiline
+                            />
+                            {fieldErrors.description ? (
+                                <Text style={styles.fieldError}>{fieldErrors.description}</Text>
+                            ) : null}
+
+                            <View style={styles.row}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.category')}</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={category}
+                                        onChangeText={setCategory}
+                                        placeholder={t('admin.events.fields.categoryPlaceholder')}
+                                        placeholderTextColor="#9BA5B7"
+                                    />
+                                </View>
+                                <View style={{ width: 12 }} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.maxCapacity')}</Text>
+                                    <TextInput
+                                        style={[styles.input, fieldErrors.maxCapacity && styles.inputError]}
+                                        value={maxCapacity}
+                                        onChangeText={setMaxCapacity}
+                                        placeholder={t('admin.events.fields.maxCapacityPlaceholder')}
+                                        placeholderTextColor="#9BA5B7"
+                                        keyboardType="numeric"
+                                    />
+                                    {fieldErrors.maxCapacity ? (
+                                        <Text style={styles.fieldError}>{fieldErrors.maxCapacity}</Text>
+                                    ) : null}
+                                </View>
+                            </View>
+
+                            <Text style={styles.fieldLabel}>{t('admin.events.fields.locationName')}</Text>
+                            <TextInput
+                                style={[styles.input, fieldErrors.locationName && styles.inputError]}
+                                value={locationName}
+                                onChangeText={setLocationName}
+                                placeholder={t('admin.events.fields.locationNamePlaceholder')}
+                                placeholderTextColor="#9BA5B7"
+                            />
+                            {fieldErrors.locationName ? (
+                                <Text style={styles.fieldError}>{fieldErrors.locationName}</Text>
+                            ) : null}
+
+                            <Text style={styles.fieldLabel}>{t('admin.events.fields.address')}</Text>
+                            <TextInput
+                                style={[styles.input, fieldErrors.address && styles.inputError]}
+                                value={address}
+                                onChangeText={setAddress}
+                                placeholder={t('admin.events.fields.addressPlaceholder')}
+                                placeholderTextColor="#9BA5B7"
+                            />
+                            {fieldErrors.address ? (
+                                <Text style={styles.fieldError}>{fieldErrors.address}</Text>
+                            ) : null}
+
+                            <View style={styles.row}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.startDateTime')}</Text>
+                                    <Pressable
+                                        style={({ pressed }) => [
+                                            styles.pickerField,
+                                            fieldErrors.startDateTime && styles.inputError,
+                                            pressed && styles.pickerFieldPressed,
+                                        ]}
+                                        onPress={() => openDateTimePicker('start')}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.pickerFieldText,
+                                                !startDateTime && styles.pickerFieldPlaceholder,
+                                            ]}
+                                        >
+                                            {startDateTime
+                                                ? formatLocalDateTimeForDisplay(startDateTime)
+                                                : t('admin.events.fields.dateTimePlaceholder')}
+                                        </Text>
+                                        <Ionicons name="calendar-outline" size={18} color={ACCENT} />
+                                    </Pressable>
+                                    {fieldErrors.startDateTime ? (
+                                        <Text style={styles.fieldError}>{fieldErrors.startDateTime}</Text>
+                                    ) : null}
+                                </View>
+                                <View style={{ width: 12 }} />
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.endDateTime')}</Text>
+                                    <Pressable
+                                        style={({ pressed }) => [
+                                            styles.pickerField,
+                                            fieldErrors.endDateTime && styles.inputError,
+                                            pressed && styles.pickerFieldPressed,
+                                        ]}
+                                        onPress={() => openDateTimePicker('end')}
+                                    >
+                                        <Text
+                                            style={[
+                                                styles.pickerFieldText,
+                                                !endDateTime && styles.pickerFieldPlaceholder,
+                                            ]}
+                                        >
+                                            {endDateTime
+                                                ? formatLocalDateTimeForDisplay(endDateTime)
+                                                : t('admin.events.fields.endDateTimePlaceholder')}
+                                        </Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            {endDateTime ? (
+                                                <Pressable
+                                                    onPress={() => setEndDateTime(null)}
+                                                    hitSlop={10}
+                                                >
+                                                    <Ionicons name="close-circle" size={18} color="#9BA5B7" />
+                                                </Pressable>
+                                            ) : null}
+                                            <Ionicons name="time-outline" size={18} color={ACCENT} />
+                                        </View>
+                                    </Pressable>
+                                    {fieldErrors.endDateTime ? (
+                                        <Text style={styles.fieldError}>{fieldErrors.endDateTime}</Text>
+                                    ) : null}
+                                </View>
+                            </View>
+                        </ScrollView>
+
+                        <View style={styles.modalActions}>
+                            <Pressable style={styles.secondaryButton} onPress={closeCreate} disabled={saving}>
+                                <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
+                            </Pressable>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.primaryButton,
+                                    pressed && styles.primaryButtonPressed,
+                                    saving && styles.primaryButtonDisabled,
+                                ]}
+                                onPress={handleCreate}
+                                disabled={saving}
+                            >
+                                {saving ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.primaryButtonText}>{t('admin.events.createSubmit')}</Text>
+                                )}
+                            </Pressable>
+                        </View>
+                                </View>
+                            </TouchableWithoutFeedback>
+                        </KeyboardAvoidingView>
+                        <DateTimePickerModal
+                            visible={pickerVisible}
+                            title={
+                                activePickerField === 'start'
+                                    ? t('admin.events.fields.startDateTime')
+                                    : t('admin.events.fields.endDateTime')
+                            }
+                            initialValue={pickerInitialValue}
+                            accentColor={ACCENT}
+                            cancelLabel={t('common.cancel')}
+                            confirmLabel={t('common.confirm')}
+                            timeLabel={t('events.fields.time')}
+                            onCancel={closePicker}
+                            onConfirm={confirmPicker}
+                        />
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
+
+            <NavigationMenu
+                visible={menuVisible}
+                onClose={() => setMenuVisible(false)}
+                onNavigateHome={handleNavigateHome}
+                onNavigateEvents={handleNavigateEvents}
+                onNavigateDashboard={handleNavigateDashboard}
+                showDashboard={hasRole(['ROLE_ADMIN'])}
+                t={t}
+            />
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: SURFACE,
+    },
+    content: {
+        flex: 1,
+        paddingHorizontal: 18,
+        paddingVertical: 18,
+    },
+    hero: {
+        flexDirection: 'row',
+        backgroundColor: '#FFFFFF',
+        padding: 16,
+        borderRadius: 14,
+        alignItems: 'center',
+        gap: 12,
+        shadowColor: '#000',
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+    },
+    heroIcon: {
+        width: 46,
+        height: 46,
+        borderRadius: 14,
+        backgroundColor: '#EAF1FF',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#0F2848',
+    },
+    subtitle: {
+        color: '#5C6A80',
+        marginTop: 4,
+        fontSize: 14,
+        maxWidth: 220,
+    },
+    createButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: ACCENT,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 12,
+        gap: 6,
+    },
+    createButtonPressed: {
+        opacity: 0.92,
+    },
+    createButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        fontSize: 13,
+    },
+    errorBox: {
+        marginTop: 12,
+        backgroundColor: '#FDECEA',
+        borderColor: '#F5C6C6',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: 12,
+        padding: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    errorText: {
+        color: '#8A1F1F',
+        flex: 1,
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    listContent: {
+        paddingTop: 14,
+        paddingBottom: 18,
+        gap: 12,
+    },
+    emptyState: {
+        alignItems: 'center',
+        paddingVertical: 36,
+        gap: 8,
+    },
+    emptyText: {
+        color: '#5C6A80',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    eventCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 14,
+        padding: 14,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 3,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: '#E0E7F3',
+    },
+    eventHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    eventIcon: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: '#F3F7FF',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    eventTitle: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#0F2848',
+    },
+    eventMeta: {
+        marginTop: 3,
+        fontSize: 12,
+        color: '#5C6A80',
+    },
+    statusPill: {
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        backgroundColor: '#EAF1FF',
+        borderRadius: 999,
+    },
+    statusPillText: {
+        color: ACCENT,
+        fontSize: 12,
+        fontWeight: '800',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 28, 48, 0.5)',
+        justifyContent: 'flex-end',
+        position: 'relative',
+    },
+    modalCard: {
+        backgroundColor: '#FFFFFF',
+        borderTopLeftRadius: 18,
+        borderTopRightRadius: 18,
+        padding: 16,
+        maxHeight: '92%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    modalTitle: {
+        flex: 1,
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0F2848',
+    },
+    form: {
+        marginTop: 12,
+        gap: 10,
+    },
+    fieldLabel: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#1B2F4A',
+        marginTop: 6,
+    },
+    input: {
+        backgroundColor: '#F7F9FD',
+        borderColor: '#DCE4F2',
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        color: '#0F2848',
+        fontSize: 14,
+    },
+    textarea: {
+        backgroundColor: '#F7F9FD',
+        borderColor: '#DCE4F2',
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        color: '#0F2848',
+        fontSize: 14,
+        minHeight: 90,
+        textAlignVertical: 'top',
+    },
+    inputError: {
+        borderColor: '#C62828',
+    },
+    fieldError: {
+        color: '#8A1F1F',
+        fontSize: 12,
+        fontWeight: '600',
+        marginTop: 4,
+    },
+    pickerField: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: '#F7F9FD',
+        borderColor: '#DCE4F2',
+        borderWidth: 1,
+        borderRadius: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 12,
+        gap: 10,
+    },
+    pickerFieldPressed: {
+        opacity: 0.92,
+    },
+    pickerFieldText: {
+        flex: 1,
+        color: '#0F2848',
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    pickerFieldPlaceholder: {
+        color: '#9BA5B7',
+        fontWeight: '600',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+    },
+    modalActions: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 14,
+    },
+    secondaryButton: {
+        flex: 1,
+        borderRadius: 12,
+        paddingVertical: 12,
+        borderWidth: 1,
+        borderColor: '#DCE4F2',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FFFFFF',
+    },
+    secondaryButtonText: {
+        color: '#1B2F4A',
+        fontWeight: '800',
+        fontSize: 14,
+    },
+    primaryButton: {
+        flex: 1,
+        borderRadius: 12,
+        paddingVertical: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: ACCENT,
+    },
+    primaryButtonPressed: {
+        opacity: 0.92,
+    },
+    primaryButtonDisabled: {
+        opacity: 0.7,
+    },
+    primaryButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '800',
+        fontSize: 14,
+    },
+});

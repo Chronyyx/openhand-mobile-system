@@ -42,6 +42,7 @@ services:
     build:
       context: ./mobile-app
       dockerfile: Dockerfile
+    command: ["bash", "./scripts/docker-start.sh"]
     ports:
       - "19000:19000"
       - "19001:19001"

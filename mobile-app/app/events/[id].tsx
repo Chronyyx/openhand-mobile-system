@@ -14,6 +14,7 @@ import {
     type ImageSourcePropType,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/config';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -31,11 +32,9 @@ import { useAuth } from '../../context/AuthContext';
 import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
 const eventImages: Record<string, ImageSourcePropType> = {
-    'Gala de reconnaissance MANA': require('../../assets/mana/Gala_image_Mana.png'),
-    'Distribution Alimentaire - Mardi':
-        require('../../assets/mana/boutiqueSolidaire_Mana.png'),
-    'Formation MANA – Médiateur interculturel':
-        require('../../assets/mana/Interculturelle_Mana.png'),
+    'gala': require('../../assets/mana/Gala_image_Mana.png'),
+    'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
+    'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
 };
 
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
@@ -281,11 +280,11 @@ export default function EventsScreen() {
                         style={styles.card}
                         onPress={() => openEventModal(item)}
                         accessibilityRole="button"
-                        accessibilityLabel={`Voir détails, ${item.title}`}
+                        accessibilityLabel={`Voir détails, ${getTranslatedTitle(item.title, t)}`}
                     >
                         <View style={styles.cardHeader}>
                             <ThemedText type="subtitle" style={styles.eventTitle}>
-                                {item.title}
+                                {getTranslatedTitle(item.title, t)}
                             </ThemedText>
                             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
                                 <ThemedText style={styles.statusText}>
@@ -355,7 +354,7 @@ export default function EventsScreen() {
                                 />
                             )}
                             <ThemedText type="title" style={styles.modalTitle}>
-                                {selectedEvent?.title}
+                                {selectedEvent && getTranslatedTitle(selectedEvent.title, t)}
                             </ThemedText>
                         </View>
 
@@ -386,7 +385,7 @@ export default function EventsScreen() {
                             {!modalLoading && !modalError && eventDetail && (
                                 <>
                                     <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-                                    <ThemedText>{eventDetail.description}</ThemedText>
+                                    <ThemedText>{getTranslatedDescription(eventDetail.description, t)}</ThemedText>
 
                                     <View style={styles.modalRow}>
                                         <ThemedText style={styles.sectionTitle}>Date</ThemedText>

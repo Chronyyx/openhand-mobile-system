@@ -27,7 +27,6 @@
     "liveEmotion": "LIVE THE EMOTION",
     "celebrateDiversity": "CELEBRATE DIVERSITY",
     "reserve": "RESERVE",
-    "logout": "Logout",
     "latestNews": "Latest News",
     "ourServices": "Our Services",
     "ourServicesSubtitle": "Discover how we can help you",
@@ -80,23 +79,36 @@
   "auth": {
     "title": "Welcome Back",
     "create_account": "Create Account",
-    "email_placeholder": "Email Address",
+    "email_placeholder": "Email or Phone Number",
     "password_placeholder": "Password",
-    "confirm_password_placeholder": "Confirm Password",
     "login_button": "Log In",
     "register_button": "Sign Up",
     "register_prompt": "Don't have an account?",
     "register_link": "Register",
     "login_prompt": "Already have an account?",
     "login_link": "Log In",
-    "validation": {
-      "fillAllFields": "Please fill in all fields.",
-      "invalidEmail": "Please enter a valid email address.",
-      "invalidCredentials": "Invalid email or password.",
-      "loginFailed": "Login failed. Please try again later.",
-      "networkError": "Network error. Please check your connection.",
-      "passwordsMismatch": "Passwords do not match.",
-      "registrationFailed": "Registration failed. Please try again."
+    "name_placeholder": "Full Name",
+    "phone_placeholder": "Phone Number (Optional)",
+    "age_placeholder": "Age",
+    "gender_label": "Gender",
+    "confirm_password_placeholder": "Confirm Password",
+    "toggle_password_visibility": "Toggle password visibility",
+    "gender_options": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "prefer_not_to_say": "Prefer not to say"
+    },
+    "error": {
+      "fill_all_fields_register": "Please fill in all required fields (Name, Email, Password, Age).",
+      "fill_all_fields_login": "Please fill in all fields.",
+      "invalid_email": "Please enter a valid email address.",
+      "passwords_do_not_match": "Passwords do not match.",
+      "invalid_age": "Please enter a valid age.",
+      "registration_failed": "Registration failed. Please try again.",
+      "invalid_credentials": "Invalid email or password.",
+      "login_failed": "Login failed. Please try again later.",
+      "network_error": "Network error. Please check your connection."
     }
   },
   "settings": {
@@ -161,16 +173,12 @@
     "names": {
       "gala": "MANA Recognition Gala",
       "distribution_mardi": "Food Distribution – Tuesday",
-      "distribution_jeudi": "Food Distribution – Thursday",
-      "formation_mediateur": "MANA Training – Intercultural Mediator",
-      "panier_noel": "MANA Christmas Basket 2025"
+      "formation_mediateur": "MANA Training – Intercultural Mediator"
     },
     "descriptions": {
       "gala": "Recognition evening for MANA's intercultural heritage.",
       "distribution_mardi": "Solidarity food distribution for the community.",
-      "distribution_jeudi": "Weekly food distribution for families.",
-      "formation_mediateur": "Training session for intercultural mediators.",
-      "panier_noel": "The MANA Christmas Basket offers families a basket of food and gifts to celebrate the holidays."
+      "formation_mediateur": "Training session for intercultural mediators."
     }
   },
   "alerts": {

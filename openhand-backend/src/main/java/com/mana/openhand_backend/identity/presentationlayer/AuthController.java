@@ -53,14 +53,36 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
 
+        String username = loginRequest.getEmail();
+        System.out.println("Login attempt with username: " + username);
+        if (username != null && !username.contains("@")) {
+            System.out.println("Wait, this looks like a phone number. Looking up email...");
+            String resolvedEmail = userRepository.findByPhoneNumber(username)
+                    .map(User::getEmail)
+                    .orElse(null);
+            System.out.println("Lookup result: " + resolvedEmail);
+
+            if (resolvedEmail != null) {
+                username = resolvedEmail;
+            } else {
+                // Fallback or error? If we can't find the email, authentication will likely
+                // fail
+                // unless the "username" in Spring Security is actually the phone number (which
+                // it isn't usually).
+                System.out.println("Could not find email for phone number: " + username);
+            }
+        }
+
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
 
-            userDetailsService.resetFailedAttempts(loginRequest.getEmail());
+            userDetailsService.resetFailedAttempts(username);
         } catch (BadCredentialsException e) {
-            userRepository.findByEmail(loginRequest.getEmail()).ifPresent(user -> {
+            System.out.println("Bad credentials for: " + username);
+            String finalUsername = username;
+            userRepository.findByEmail(finalUsername).ifPresent(user -> {
                 userDetailsService.increaseFailedAttempts(user);
             });
             throw e;
@@ -138,6 +160,15 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
+        if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().isEmpty()) {
+            String normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9]", "");
+            if (userRepository.existsByPhoneNumber(normalizedPhone)) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("Error: Phone number is already in use!"));
+            }
+        }
+
         Set<String> roles;
         try {
             roles = RoleUtils.normalizeRolesWithDefault(signUpRequest.getRoles());
@@ -150,6 +181,15 @@ public class AuthController {
         user.setEmail(signUpRequest.getEmail());
         user.setPasswordHash(encoder.encode(signUpRequest.getPassword()));
         user.setRoles(roles);
+        user.setName(signUpRequest.getName());
+
+        // Normalize phone number before saving
+        if (signUpRequest.getPhoneNumber() != null) {
+            user.setPhoneNumber(signUpRequest.getPhoneNumber().replaceAll("[^0-9]", ""));
+        }
+
+        user.setGender(signUpRequest.getGender());
+        user.setAge(signUpRequest.getAge());
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

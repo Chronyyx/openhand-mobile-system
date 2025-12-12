@@ -104,4 +104,38 @@ export const styles = StyleSheet.create({
         color: "#0056A8",
         fontWeight: "700",
     },
+    genderContainer: {
+        marginBottom: 20,
+    },
+    genderLabel: {
+        fontSize: 16,
+        color: "#333",
+        marginBottom: 10,
+        fontWeight: "600",
+    },
+    genderButtonContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 10,
+    },
+    genderButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#E0E4EC",
+        backgroundColor: "#FFFFFF",
+    },
+    genderButtonSelected: {
+        backgroundColor: "#0056A8",
+        borderColor: "#0056A8",
+    },
+    genderButtonText: {
+        fontSize: 14,
+        color: "#666",
+    },
+    genderButtonTextSelected: {
+        color: "#FFFFFF",
+        fontWeight: "600",
+    },
 });

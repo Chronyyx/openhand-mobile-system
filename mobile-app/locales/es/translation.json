@@ -27,7 +27,6 @@
     "liveEmotion": "VIVE LA EMOCIÓN",
     "celebrateDiversity": "CELEBRA LA DIVERSIDAD",
     "reserve": "RESERVAR",
-    "logout": "Cerrar sesión",
     "latestNews": "Últimas noticias",
     "ourServices": "Nuestros Servicios",
     "ourServicesSubtitle": "Descubre cómo podemos ayudarte",
@@ -79,24 +78,37 @@
   },
   "auth": {
     "title": "Iniciar sesión / Registrarse",
-    "create_account": "Crear cuenta",
-    "email_placeholder": "Correo electrónico",
+    "create_account": "Crear Cuenta",
+    "email_placeholder": "Correo o Número de teléfono",
     "password_placeholder": "Contraseña",
-    "confirm_password_placeholder": "Confirmar contraseña",
     "login_button": "Iniciar sesión",
     "register_button": "Registrarse",
     "register_prompt": "¿No tienes una cuenta?",
     "register_link": "Registrarse",
     "login_prompt": "¿Ya tienes una cuenta?",
     "login_link": "Iniciar sesión",
-    "validation": {
-      "fillAllFields": "Por favor rellena todos los campos.",
-      "invalidEmail": "Por favor ingresa una dirección de correo electrónico válida.",
-      "invalidCredentials": "Correo electrónico o contraseña inválidos.",
-      "loginFailed": "El inicio de sesión falló. Por favor intenta más tarde.",
-      "networkError": "Error de red. Por favor verifica tu conexión.",
-      "passwordsMismatch": "Las contraseñas no coinciden.",
-      "registrationFailed": "El registro falló. Por favor intenta de nuevo."
+    "name_placeholder": "Nombre completo",
+    "phone_placeholder": "Número de teléfono (Opcional)",
+    "age_placeholder": "Edad",
+    "gender_label": "Género",
+    "confirm_password_placeholder": "Confirmar contraseña",
+    "toggle_password_visibility": "Alternar visibilidad de contraseña",
+    "gender_options": {
+      "male": "Hombre",
+      "female": "Mujer",
+      "other": "Otro",
+      "prefer_not_to_say": "Prefiero no decirlo"
+    },
+    "error": {
+      "fill_all_fields_register": "Por favor complete todos los campos requeridos (Nombre, Email, Contraseña, Edad).",
+      "fill_all_fields_login": "Por favor complete todos los campos.",
+      "invalid_email": "Por favor ingrese una dirección de correo válida.",
+      "passwords_do_not_match": "Las contraseñas no coinciden.",
+      "invalid_age": "Por favor ingrese una edad válida.",
+      "registration_failed": "El registro falló. Por favor intente de nuevo.",
+      "invalid_credentials": "Correo o contraseña inválidos.",
+      "login_failed": "El inicio de sesión falló. Por favor intente más tarde.",
+      "network_error": "Error de red. Por favor verifique su conexión."
     }
   },
   "settings": {
@@ -159,16 +171,12 @@
     "names": {
       "gala": "Gala de reconocimiento MANA",
       "distribution_mardi": "Distribución de alimentos – Martes",
-      "distribution_jeudi": "Distribución de alimentos – Jueves",
-      "formation_mediateur": "Capacitación MANA – Mediador intercultural",
-      "panier_noel": "Canasta de Navidad MANA 2025"
+      "formation_mediateur": "Capacitación MANA – Mediador intercultural"
     },
     "descriptions": {
       "gala": "Noche de reconocimiento del patrimonio intercultural de MANA.",
       "distribution_mardi": "Distribución solidaria de alimentos para la comunidad.",
-      "distribution_jeudi": "Distribución semanal de alimentos para familias.",
-      "formation_mediateur": "Sesión de capacitación para mediadores interculturales.",
-      "panier_noel": "La Canasta de Navidad MANA ofrece a las familias una canasta de alimentos y regalos para celebrar las fiestas."
+      "formation_mediateur": "Sesión de capacitación para mediadores interculturales."
     }
   },
   "alerts": {

@@ -14,6 +14,7 @@ import {
     type ImageSourcePropType,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/config';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -30,11 +31,9 @@ import { registerForEvent } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 
 const eventImages: Record<string, ImageSourcePropType> = {
-    'Gala de reconnaissance MANA': require('../../assets/mana/Gala_image_Mana.png'),
-    'Distribution Alimentaire - Mardi':
-        require('../../assets/mana/boutiqueSolidaire_Mana.png'),
-    'Formation MANA – Médiateur interculturel':
-        require('../../assets/mana/Interculturelle_Mana.png'),
+    'gala': require('../../assets/mana/Gala_image_Mana.png'),
+    'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
+    'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
 };
 
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
@@ -42,9 +41,32 @@ function getEventImage(event: EventSummary | null): ImageSourcePropType | undefi
     return eventImages[event.title];
 }
 
+// ---- Translation helper functions ----
+// Backend now sends translation key identifiers directly (e.g., "gala", "distribution_mardi")
+function getTranslatedTitle(
+    title: string,
+    t: (key: string, options?: any) => string,
+) {
+    const translationKey = `events.names.${title}`;
+    return t(translationKey, { defaultValue: title });
+}
+
+function getTranslatedDescription(
+    description: string,
+    t: (key: string, options?: any) => string,
+) {
+    // Backend sends translation keys like "gala_description", convert to actual translation key
+    const descriptionKey = description.replace('_description', '');
+    const translationKey = `events.descriptions.${descriptionKey}`;
+    return t(translationKey, { defaultValue: description });
+}
+
 function formatDate(iso: string) {
     const date = new Date(iso);
-    return date.toLocaleDateString('fr-CA', {
+        // Format date using the currently selected app language's locale
+        // This ensures persistency when the user changes language settings
+        const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
+        return date.toLocaleDateString(locale, {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
@@ -55,14 +77,15 @@ function formatTimeRange(startIso: string, endIso: string | null) {
     const start = new Date(startIso);
     const end = endIso ? new Date(endIso) : null;
 
-    const startStr = start.toLocaleTimeString('fr-CA', {
+        const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
+        const startStr = start.toLocaleTimeString(locale, {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
     });
 
     const endStr = end
-        ? end.toLocaleTimeString('fr-CA', {
+            ? end.toLocaleTimeString(locale, {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
@@ -307,11 +330,11 @@ export default function EventsScreen() {
                         style={styles.card}
                         onPress={() => openEventModal(item)}
                         accessibilityRole="button"
-                        accessibilityLabel={`Voir détails, ${item.title}`}
+                        accessibilityLabel={`Voir détails, ${getTranslatedTitle(item.title, t)}`}
                     >
                         <View style={styles.cardHeader}>
                             <ThemedText type="subtitle" style={styles.eventTitle}>
-                                {item.title}
+                                {getTranslatedTitle(item.title, t)}
                             </ThemedText>
                             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
                                 <ThemedText style={styles.statusText}>
@@ -381,7 +404,7 @@ export default function EventsScreen() {
                                 />
                             )}
                             <ThemedText type="title" style={styles.modalTitle}>
-                                {selectedEvent?.title}
+                                {selectedEvent && getTranslatedTitle(selectedEvent.title, t)}
                             </ThemedText>
                         </View>
 
@@ -412,7 +435,7 @@ export default function EventsScreen() {
                             {!modalLoading && !modalError && eventDetail && (
                                 <>
                                     <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-                                    <ThemedText>{eventDetail.description}</ThemedText>
+                                    <ThemedText>{getTranslatedDescription(eventDetail.description, t)}</ThemedText>
 
                                     <View style={styles.modalRow}>
                                         <ThemedText style={styles.sectionTitle}>Date</ThemedText>

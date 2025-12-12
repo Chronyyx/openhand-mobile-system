@@ -27,6 +27,7 @@
     "liveEmotion": "VIVEZ L'ÉMOTION",
     "celebrateDiversity": "CÉLÉBREZ LA DIVERSITÉ",
     "reserve": "RÉSERVER",
+    "logout": "Déconnexion",
     "latestNews": "Dernières actualités",
     "ourServices": "Nos Services",
     "ourServicesSubtitle": "Découvrez comment nous pouvons vous aider",
@@ -78,7 +79,25 @@
   },
   "auth": {
     "title": "Se connecter / S'inscrire",
-    "placeholder": "TODO : construire le formulaire d'authentification."
+    "create_account": "Créer un compte",
+    "email_placeholder": "Adresse e-mail",
+    "password_placeholder": "Mot de passe",
+    "confirm_password_placeholder": "Confirmer le mot de passe",
+    "login_button": "Se connecter",
+    "register_button": "S'inscrire",
+    "register_prompt": "Vous n'avez pas de compte?",
+    "register_link": "S'inscrire",
+    "login_prompt": "Vous avez déjà un compte?",
+    "login_link": "Se connecter",
+    "validation": {
+      "fillAllFields": "Veuillez remplir tous les champs.",
+      "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
+      "invalidCredentials": "E-mail ou mot de passe invalide.",
+      "loginFailed": "La connexion a échoué. Veuillez réessayer plus tard.",
+      "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+      "passwordsMismatch": "Les mots de passe ne correspondent pas.",
+      "registrationFailed": "L'inscription a échoué. Veuillez réessayer."
+    }
   },
   "settings": {
     "language": {
@@ -142,12 +161,16 @@
     "names": {
       "gala": "Gala de reconnaissance MANA",
       "distribution_mardi": "Distribution Alimentaire - Mardi",
-      "formation_mediateur": "Formation MANA – Médiateur interculturel"
+      "distribution_jeudi": "Distribution Alimentaire - Jeudi",
+      "formation_mediateur": "Formation MANA – Médiateur interculturel",
+      "panier_noel": "Panier Noël MANA 2025"
     },
     "descriptions": {
       "gala": "Soirée de reconnaissance du patrimoine interculturel MANA.",
       "distribution_mardi": "Distribution alimentaire solidaire pour la communauté.",
-      "formation_mediateur": "Séance de formation pour les médiateurs interculturels."
+      "distribution_jeudi": "Distribution alimentaire hebdomadaire pour les familles.",
+      "formation_mediateur": "Séance de formation pour les médiateurs interculturels.",
+      "panier_noel": "Le Panier de Noël MANA offre aux familles un panier de denrées alimentaires et de cadeaux pour célébrer les fêtes."
     }
   },
   "alerts": {

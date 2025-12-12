@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import i18n from '../../i18n/config';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -30,11 +31,9 @@ import { useAuth } from '../../context/AuthContext';
 
 // ---- Static image map for events ----
 const eventImages: Record<string, ImageSourcePropType> = {
-    'Gala de reconnaissance MANA': require('../../assets/mana/Gala_image_Mana.png'),
-    'Distribution Alimentaire - Mardi':
-        require('../../assets/mana/boutiqueSolidaire_Mana.png'),
-    'Formation MANA – Médiateur interculturel':
-        require('../../assets/mana/Interculturelle_Mana.png'),
+    'gala': require('../../assets/mana/Gala_image_Mana.png'),
+    'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
+    'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
 };
 
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
@@ -43,33 +42,31 @@ function getEventImage(event: EventSummary | null): ImageSourcePropType | undefi
 }
 
 // ---- Map backend title ➜ translation key slug ----
-const eventTranslationKeys: Record<string, string> = {
-    'Gala de reconnaissance MANA': 'gala',
-    'Distribution Alimentaire - Mardi': 'distribution_mardi',
-    'Formation MANA – Médiateur interculturel': 'formation_mediateur',
-};
-
+// Backend now sends translation key identifiers directly (e.g., "gala", "distribution_mardi")
+// so we can use them directly to look up translations
 function getTranslatedTitle(
     event: EventSummary,
     t: (key: string, options?: any) => string,
 ) {
-    const slug = eventTranslationKeys[event.title];
-    if (!slug) return event.title;
-    return t(`events.names.${slug}`, { defaultValue: event.title });
+    // Backend now sends translation keys directly, so use them to get translated title
+    const translationKey = `events.names.${event.title}`;
+    return t(translationKey, { defaultValue: event.title });
 }
 
 function getTranslatedDescription(
     event: EventSummary,
     t: (key: string, options?: any) => string,
 ) {
-    const slug = eventTranslationKeys[event.title];
-    if (!slug) return event.description;
-    return t(`events.descriptions.${slug}`, { defaultValue: event.description });
+    // Backend sends translation keys like "gala_description", convert to actual translation key
+    const descriptionKey = event.description.replace('_description', '');
+    const translationKey = `events.descriptions.${descriptionKey}`;
+    return t(translationKey, { defaultValue: event.description });
 }
 
 function formatDate(iso: string) {
     const date = new Date(iso);
-    return date.toLocaleDateString('fr-CA', {
+    const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
+    return date.toLocaleDateString(locale, {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
@@ -80,14 +77,15 @@ function formatTimeRange(startIso: string, endIso: string | null) {
     const start = new Date(startIso);
     const end = endIso ? new Date(endIso) : null;
 
-    const startStr = start.toLocaleTimeString('fr-CA', {
+    const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
+    const startStr = start.toLocaleTimeString(locale, {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
     });
 
     const endStr = end
-        ? end.toLocaleTimeString('fr-CA', {
+        ? end.toLocaleTimeString(locale, {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false,
@@ -282,7 +280,7 @@ export default function EventsScreen() {
                 <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder={t('events.searchPlaceholder') || "Rechercher..."}
+                        placeholder={t('events.searchPlaceholder')}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     clearButtonMode="while-editing"
@@ -381,7 +379,7 @@ export default function EventsScreen() {
                     ListEmptyComponent={
                         <ThemedView style={styles.centered}>
                             <ThemedText style={styles.emptyText}>
-                                {searchQuery ? t('events.noResults') || "Aucun résultat trouvé." : t('events.empty')}
+                                    {searchQuery ? t('events.noResults') : t('events.empty')}
                             </ThemedText>
                         </ThemedView>
                     }

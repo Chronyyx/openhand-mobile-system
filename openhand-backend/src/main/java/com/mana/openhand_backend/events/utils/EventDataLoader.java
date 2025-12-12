@@ -9,6 +9,11 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/**
+ * Seeds sample event data into the database on application startup.
+ * Uses translation key identifiers for titles and descriptions that can be translated by the frontend.
+ * The frontend maps these identifiers to proper translations in all supported languages (en/fr/es).
+ */
 @Component
 public class EventDataLoader implements CommandLineRunner {
 
@@ -29,9 +34,11 @@ public class EventDataLoader implements CommandLineRunner {
 
                 LocalDateTime now = LocalDateTime.now();
 
+                // Event 1: MANA Recognition Gala
+                // Frontend will translate using key "gala" from events.names.gala and events.descriptions.gala
                 Event gala2025 = new Event(
-                                "Gala de reconnaissance MANA",
-                                "Soirée de reconnaissance du patrimoine interculturel MANA.",
+                                "gala",  // Translation key identifier
+                                "gala_description",  // Translation key identifier for description
                                 now.plusDays(3).withHour(18).withMinute(0),
                                 now.plusDays(3).withHour(22).withMinute(0),
                                 "Maison d’Accueil des Nouveaux Arrivants MANA",
@@ -41,9 +48,10 @@ public class EventDataLoader implements CommandLineRunner {
                                 200,
                                 "GALA");
 
+                // Event 2: Food Distribution - Tuesday
                 Event foodDistribution1 = new Event(
-                                "Distribution Alimentaire - Mardi",
-                                "Distribution alimentaire hebdomadaire pour les familles.",
+                                "distribution_mardi",
+                                "distribution_mardi_description",
                                 now.plusDays(5).withHour(8).withMinute(0),
                                 now.plusDays(5).withHour(12).withMinute(0),
                                 "Centre MANA",
@@ -53,9 +61,10 @@ public class EventDataLoader implements CommandLineRunner {
                                 40,
                                 "DISTRIBUTION");
 
+                // Event 3: Food Distribution - Thursday
                 Event foodDistribution2 = new Event(
-                                "Distribution Alimentaire - Jeudi",
-                                "Distribution alimentaire hebdomadaire pour les familles.",
+                                "distribution_jeudi",
+                                "distribution_jeudi_description",
                                 now.plusDays(7).withHour(8).withMinute(0),
                                 now.plusDays(7).withHour(12).withMinute(0),
                                 "Centre MANA",
@@ -65,9 +74,10 @@ public class EventDataLoader implements CommandLineRunner {
                                 85,
                                 "DISTRIBUTION");
 
+                // Event 4: MANA Training - Intercultural Mediator
                 Event mediatorTraining = new Event(
-                                "Formation MANA – Médiateur interculturel",
-                                "Formation gratuite pour devenir médiateur interculturel.",
+                                "formation_mediateur",
+                                "formation_mediateur_description",
                                 now.plusDays(10).withHour(18).withMinute(30),
                                 now.plusDays(10).withHour(21).withMinute(0),
                                 "Maison d’Accueil des Nouveaux Arrivants MANA",
@@ -77,9 +87,10 @@ public class EventDataLoader implements CommandLineRunner {
                                 20,
                                 "FORMATION");
 
+                // Event 5: MANA Christmas Basket 2025
                 Event christmasBasketEvent = new Event(
-                                "Panier Noël Mana 2025",
-                                "Le Panier de Noël MANA offre aux familles un panier de denrées non périssables et d’articles d’hygiène distribué à Noël.",
+                                "panier_noel",
+                                "panier_noel_description",
                                 now.plusDays(6).withHour(14).withMinute(0),
                                 now.plusDays(6).withHour(17).withMinute(0),
                                 "Centre Communautaire MANA",

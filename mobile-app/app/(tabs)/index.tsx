@@ -95,7 +95,7 @@ export default function HomeScreen() {
                     style={[styles.secondaryButton, styles.actionButton]}
                     onPress={signOut}
                 >
-                  <Text style={styles.secondaryButtonText}>Logout ({user.email})</Text>
+                  <Text style={styles.secondaryButtonText}>{t("home.logout")} ({user.email})</Text>
                 </Pressable>
             )}
 

@@ -5,6 +5,8 @@ import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.presentationlayer.payload.*;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
 import com.mana.openhand_backend.security.services.InvalidRefreshTokenException;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -54,22 +58,34 @@ public class AuthController {
             HttpServletRequest request) {
 
         String username = loginRequest.getEmail();
-        System.out.println("Login attempt with username: " + username);
+        logger.info("Login attempt with username: {}", username);
         if (username != null && !username.contains("@")) {
-            System.out.println("Wait, this looks like a phone number. Looking up email...");
-            String resolvedEmail = userRepository.findByPhoneNumber(username)
+            // Standardized log message to avoid leaking user existence
+            logger.info("Login attempt with phone number.");
+
+            // Normalize phone number (strip non-digits)
+            String normalizedPhoneInput = username.replaceAll("[^0-9]", "");
+
+            String resolvedEmail = userRepository.findByPhoneNumber(normalizedPhoneInput)
                     .map(User::getEmail)
                     .orElse(null);
-            System.out.println("Lookup result: " + resolvedEmail);
 
             if (resolvedEmail != null) {
                 username = resolvedEmail;
             } else {
-                // Fallback or error? If we can't find the email, authentication will likely
-                // fail
-                // unless the "username" in Spring Security is actually the phone number (which
-                // it isn't usually).
-                System.out.println("Could not find email for phone number: " + username);
+                // To prevent user enumeration, perform a dummy authentication attempt
+                // and always return a generic error message.
+                try {
+                    // Use a dummy username and password to simulate authentication time
+                    authenticationManager.authenticate(
+                            new UsernamePasswordAuthenticationToken("dummy_user@example.com",
+                                    loginRequest.getPassword()));
+                } catch (Exception ignored) {
+                    // Ignore the result, always return the same error
+                }
+                // Return generic error immediately to avoid further processing with invalid
+                // username
+                throw new BadCredentialsException("Bad credentials");
             }
         }
 
@@ -80,7 +96,7 @@ public class AuthController {
 
             userDetailsService.resetFailedAttempts(username);
         } catch (BadCredentialsException e) {
-            System.out.println("Bad credentials for: " + username);
+            logger.warn("Bad credentials for: {}", username);
             String finalUsername = username;
             userRepository.findByEmail(finalUsername).ifPresent(user -> {
                 userDetailsService.increaseFailedAttempts(user);

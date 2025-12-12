@@ -13,9 +13,17 @@ public class SignupRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
+    @NotBlank(message = "Name is required")
+    @jakarta.validation.constraints.Size(max = 50, message = "Name must be less than 50 characters")
     private String name;
+
+    @jakarta.validation.constraints.Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be valid")
     private String phoneNumber;
     private com.mana.openhand_backend.identity.dataaccesslayer.Gender gender;
+
+    @jakarta.validation.constraints.NotNull(message = "Age is required")
+    @jakarta.validation.constraints.Min(value = 13, message = "Age must be at least 13")
+    @jakarta.validation.constraints.Max(value = 120, message = "Age must be at most 120")
     private Integer age;
 
     private Set<String> roles;

@@ -38,6 +38,8 @@ export default function RegisterScreen() {
 
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
+    const MIN_USER_AGE = 13;
+
     const handleRegister = async () => {
         if (!name || !email || !password || !age) {
             setError(t("auth.error.fill_all_fields_register"));
@@ -53,7 +55,7 @@ export default function RegisterScreen() {
         }
 
         // Optional: Add simple age validation
-        if (isNaN(Number(age)) || Number(age) < 13) {
+        if (isNaN(Number(age)) || Number(age) < MIN_USER_AGE) {
             setError(t("auth.error.invalid_age"));
             return;
         }
@@ -90,10 +92,6 @@ export default function RegisterScreen() {
             >
                 <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
                     <View style={[styles.contentContainer, { paddingTop: 40 }]}>
-                        {/* Remove LOGO to save space or keep it if scrolling is enabled. 
-                        Let's wrap in a ScrollView if content is too long, but for now just basic View 
-                        might overflow on small screens. Better to potentially use ScrollView inside KeyboardAvoidingView.
-                     */}
                         <View style={styles.logoContainer}>
                             <Image
                                 source={require("../../assets/mana/manaLogo.png")}

@@ -7,12 +7,12 @@ import java.util.regex.Pattern;
 public class EmailOrPhoneValidator implements ConstraintValidator<EmailOrPhone, String> {
 
     // Regex for basic email validation
-    private static final String EMAIL_PATTERN = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+    private static final String EMAIL_PATTERN = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,}$";
 
     // Regex for digits-only phone number (allowing 10-15 digits)
     // We assume input might be raw digits or basic formatting,
     // but for "is valid phone" check we'll strip non-digits first.
-    private static final String PHONE_PATTERN = "^[0-9]{10,15}$";
+    private static final String PHONE_PATTERN = "^\\+?[0-9]{10,15}$";
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {

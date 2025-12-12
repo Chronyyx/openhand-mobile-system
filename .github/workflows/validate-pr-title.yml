@@ -13,8 +13,23 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo "PR title: '$PR_TITLE'"
-          if ! [[ "$PR_TITLE" =~ ^OP-[0-9]+_[A-Za-z0-9_]+$ ]]; then
-            echo "❌ Invalid PR title. Use: OP-123_Title_Related_To_Ticket"
+          # Regex matches: type(OP-123): Description
+          if ! [[ "$PR_TITLE" =~ ^(feat|fix|bug|docs|style|refactor|perf|test|build|ci|chore|revert)\(OP-[0-9]+\): .+$ ]]; then
+            echo "❌ Invalid PR title. Use format: type(OP-123): Description"
+            echo "Allowed types: feat, fix, bug, docs, style, refactor, perf, test, build, ci, chore, revert"
             exit 1
           fi
           echo "✅ PR title matches convention."
+
+      - name: Check Branch Name
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          echo "Branch name: '$BRANCH_NAME'"
+          # Regex matches: type/OP-123_Description
+          if ! [[ "$BRANCH_NAME" =~ ^(feat|bug|fix|hotfix|chore)\/OP-[0-9]+_[A-Za-z0-9_-]+$ ]]; then
+             echo "❌ Invalid Branch name. Use format: type/OP-123_Description"
+             echo "Allowed types: feat, bug, fix, hotfix, chore"
+             exit 1
+          fi
+          echo "✅ Branch name matches convention."

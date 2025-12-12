@@ -68,31 +68,19 @@ function getTranslatedDescription(
 }
 
 function formatDate(iso: string) {
+    const match = iso.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) return match[1];
     const date = new Date(iso);
-    return date.toLocaleDateString('fr-CA', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
+    if (Number.isNaN(date.getTime())) return iso;
+    return date.toISOString().slice(0, 10);
 }
 
 function formatTimeRange(startIso: string, endIso: string | null) {
-    const start = new Date(startIso);
-    const end = endIso ? new Date(endIso) : null;
+    const startMatch = startIso.match(/T(\d{2}:\d{2})/);
+    const endMatch = endIso?.match(/T(\d{2}:\d{2})/) ?? null;
 
-    const startStr = start.toLocaleTimeString('fr-CA', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    });
-
-    const endStr = end
-        ? end.toLocaleTimeString('fr-CA', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-        })
-        : '';
+    const startStr = startMatch?.[1] ?? startIso;
+    const endStr = endMatch?.[1] ?? '';
 
     return endStr ? `${startStr} - ${endStr}` : startStr;
 }

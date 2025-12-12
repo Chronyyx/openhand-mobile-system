@@ -4,19 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage.">
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+      <change afterPath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mobile-app/scripts/docker-start.sh" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/mobile-app/services/event-management.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/package-lock.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventAdminService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventAdminServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/presentationlayer/EventAdminController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/presentationlayer/payload/CreateEventRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/presentationlayer/EventAdminControllerIntegrationTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/Dockerfile" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/Dockerfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventDataLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/utils/EventDataLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/utils/EventDataLoaderTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/utils/EventDataLoaderTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/gradlew" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -236,7 +239,7 @@
       <workItem from="1764366421729" duration="10352000" />
       <workItem from="1765295628708" duration="55000" />
       <workItem from="1765552967494" duration="323000" />
-      <workItem from="1765553305280" duration="5979000" />
+      <workItem from="1765553305280" duration="7988000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -310,7 +313,15 @@
       <option name="project" value="LOCAL" />
       <updated>1764379020542</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+      <option name="closed" value="true" />
+      <created>1765559609160</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1765559609160</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -336,7 +347,8 @@
     <MESSAGE value="Home page, Whatsapp integration." />
     <MESSAGE value="Updated CI tests." />
     <MESSAGE value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
-    <option name="LAST_COMMIT_MESSAGE" value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
+    <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

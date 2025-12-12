@@ -27,6 +27,7 @@ import {
 } from '../../services/events.service';
 import { registerForEvent, cancelRegistration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
+import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
 // ---- Static image map for events ----
 const eventImages: Record<string, ImageSourcePropType> = {
@@ -67,23 +68,8 @@ function getTranslatedDescription(
     return t(`events.descriptions.${slug}`, { defaultValue: event.description });
 }
 
-function formatDate(iso: string) {
-    const match = iso.match(/^(\d{4}-\d{2}-\d{2})/);
-    if (match) return match[1];
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return iso;
-    return date.toISOString().slice(0, 10);
-}
-
-function formatTimeRange(startIso: string, endIso: string | null) {
-    const startMatch = startIso.match(/T(\d{2}:\d{2})/);
-    const endMatch = endIso?.match(/T(\d{2}:\d{2})/) ?? null;
-
-    const startStr = startMatch?.[1] ?? startIso;
-    const endStr = endMatch?.[1] ?? '';
-
-    return endStr ? `${startStr} - ${endStr}` : startStr;
-}
+const formatDate = formatIsoDate;
+const formatTimeRange = formatIsoTimeRange;
 
 function getStatusLabel(status: EventSummary['status'], t: (k: string) => string) {
     switch (status) {

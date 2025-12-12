@@ -32,12 +32,12 @@ export default function LoginScreen() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!email || !password) {
-            setError("Please fill in all fields.");
+            setError(t("auth.validation.fillAllFields"));
             return;
         }
 
         if (!emailRegex.test(email)) {
-            setError("Please enter a valid email address.");
+            setError(t("auth.validation.invalidEmail"));
             return;
         }
 
@@ -48,11 +48,11 @@ export default function LoginScreen() {
             router.replace("/");
         } catch (e: any) {
             if (e?.response?.status === 401) {
-                setError("Invalid email or password.");
+                setError(t("auth.validation.invalidCredentials"));
             } else if (e?.response) {
-                setError("Login failed. Please try again later.");
+                setError(t("auth.validation.loginFailed"));
             } else {
-                setError("Network error. Please check your connection.");
+                setError(t("auth.validation.networkError"));
             }
         } finally {
             setLoading(false);

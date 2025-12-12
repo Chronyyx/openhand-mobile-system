@@ -14,7 +14,7 @@ jobs:
         run: |
           echo "PR title: '$PR_TITLE'"
           # Regex matches: type(OP-123): Description
-          if ! [[ "$PR_TITLE" =~ ^(feat|fix|bug|docs|style|refactor|perf|test|build|ci|chore|revert)[(]OP-[0-9]+[)]: .+$ ]]; then
+          if ! echo "$PR_TITLE" | grep -qE '^(feat|fix|bug|docs|style|refactor|perf|test|build|ci|chore|revert)\(OP-[0-9]+\): .+$'; then
             echo "❌ Invalid PR title. Use format: type(OP-123): Description"
             echo "Allowed types: feat, fix, bug, docs, style, refactor, perf, test, build, ci, chore, revert"
             exit 1
@@ -27,7 +27,7 @@ jobs:
         run: |
           echo "Branch name: '$BRANCH_NAME'"
           # Regex matches: type/OP-123_Description
-          if ! [[ "$BRANCH_NAME" =~ ^(feat|bug|fix|hotfix|chore)/OP-[0-9]+_[A-Za-z0-9_-]+$ ]]; then
+          if ! echo "$BRANCH_NAME" | grep -qE '^(feat|bug|fix|hotfix|chore)/OP-[0-9]+_[A-Za-z0-9_-]+$'; then
              echo "❌ Invalid Branch name. Use format: type/OP-123_Description"
              echo "Allowed types: feat, bug, fix, hotfix, chore"
              exit 1

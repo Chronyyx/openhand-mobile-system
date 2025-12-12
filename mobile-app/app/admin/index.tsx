@@ -69,6 +69,23 @@ export default function AdminDashboardScreen() {
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={ACCENT} />
                 </Pressable>
+
+                <Pressable
+                    style={({ pressed }) => [
+                        styles.card,
+                        pressed && styles.cardPressed,
+                    ]}
+                    onPress={() => router.push('/admin/events')}
+                >
+                    <View style={styles.cardIcon}>
+                        <Ionicons name="calendar" size={24} color={ACCENT} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.cardTitle}>{t('admin.dashboard.events')}</Text>
+                        <Text style={styles.cardDescription}>{t('admin.dashboard.eventsDescription')}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                </Pressable>
             </View>
 
             <NavigationMenu

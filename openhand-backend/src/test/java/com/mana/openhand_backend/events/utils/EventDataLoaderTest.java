@@ -25,16 +25,28 @@ class EventDataLoaderTest {
     private EventDataLoader eventDataLoader;
 
     @Test
-    void run_deletesAllAndSavesInitialEvents() throws Exception {
+    void run_whenNoEvents_seedsInitialEvents() throws Exception {
+        when(eventRepository.count()).thenReturn(0L);
+
         // act
         eventDataLoader.run();
 
         // assert
-        verify(registrationRepository, times(1)).deleteAll();
-        verify(eventRepository, times(1)).deleteAll();
+        verify(eventRepository).count();
         // five events are created in the loader
         verify(eventRepository, times(5)).save(any(Event.class));
         verifyNoMoreInteractions(eventRepository);
-        verifyNoMoreInteractions(registrationRepository);
+        verifyNoInteractions(registrationRepository);
+    }
+
+    @Test
+    void run_whenEventsExist_doesNothing() throws Exception {
+        when(eventRepository.count()).thenReturn(1L);
+
+        eventDataLoader.run();
+
+        verify(eventRepository).count();
+        verifyNoMoreInteractions(eventRepository);
+        verifyNoInteractions(registrationRepository);
     }
 }

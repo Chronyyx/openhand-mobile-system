@@ -30,6 +30,16 @@ public class RegistrationResponseMapper {
                 ? registration.getEvent().getTitle()
                 : null;
 
+        String eventStartDateTime = registration.getEvent() != null
+                ? registration.getEvent().getStartDateTime().toString()
+                : null;
+
+        String eventEndDateTime = registration.getEvent() != null
+                ? (registration.getEvent().getEndDateTime() != null
+                ? registration.getEvent().getEndDateTime().toString()
+                : null)
+                : null;
+
         return new RegistrationResponseModel(
                 registration.getId(),
                 registration.getUser().getId(),
@@ -39,7 +49,9 @@ public class RegistrationResponseMapper {
                 requestedAt,
                 confirmedAt,
                 cancelledAt,
-                registration.getWaitlistedPosition()
+                registration.getWaitlistedPosition(),
+                eventStartDateTime,
+                eventEndDateTime
         );
     }
 }

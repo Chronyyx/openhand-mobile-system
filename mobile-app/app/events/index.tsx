@@ -26,7 +26,7 @@ import {
     type EventSummary,
     type RegistrationSummary,
 } from '../../services/events.service';
-import { registerForEvent, cancelRegistration } from '../../services/registration.service';
+import { registerForEvent, cancelRegistration, getMyRegistrations } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
@@ -35,6 +35,7 @@ const eventImages: Record<string, ImageSourcePropType> = {
     'gala': require('../../assets/mana/Gala_image_Mana.png'),
     'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
     'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
+    'panier_noel': require('../../assets/mana/PanierNoel_Mana.png'),
 };
 
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
@@ -192,27 +193,58 @@ export default function EventsScreen() {
 
     const handleRegister = async () => {
         if (!selectedEvent || !user?.token) return;
-        try {
-            const registration = await registerForEvent(selectedEvent.id, user.token);
-            
-            // Show different alerts based on registration status
-            if (registration.status === 'CONFIRMED') {
-                Alert.alert(
-                    t('alerts.registerSuccess'),
-                    t('alerts.registerSuccessMessage')
-                );
-            } else if (registration.status === 'WAITLISTED') {
-                Alert.alert(
-                    t('alerts.registerWaitlistSuccess'),
-                    t('alerts.registerWaitlistMessage', { position: registration.waitlistedPosition })
-                );
+        const performRegistration = async () => {
+            try {
+                const registration = await registerForEvent(selectedEvent.id, user.token);
+
+                if (registration.status === 'CONFIRMED') {
+                    Alert.alert(
+                        t('alerts.registerSuccess'),
+                        t('alerts.registerSuccessMessage')
+                    );
+                } else if (registration.status === 'WAITLISTED') {
+                    Alert.alert(
+                        t('alerts.registerWaitlistSuccess'),
+                        t('alerts.registerWaitlistMessage', { position: registration.waitlistedPosition })
+                    );
+                }
+
+                closeModal();
+                onRefresh();
+            } catch (e) {
+                console.error(e);
+                Alert.alert(t('alerts.registerError'));
             }
-            
-            closeModal();
-            onRefresh();
+        };
+
+        try {
+            const existing = await getMyRegistrations(user.token);
+            const hasOverlap = existing.some((reg) => {
+                if (!reg.eventStartDateTime || !reg.eventEndDateTime) return false;
+                if (reg.status === 'CANCELLED') return false;
+                const regStart = Date.parse(reg.eventStartDateTime);
+                const regEnd = Date.parse(reg.eventEndDateTime);
+                const eventStart = Date.parse(selectedEvent.startDateTime);
+                const eventEnd = Date.parse(selectedEvent.endDateTime);
+                if ([regStart, regEnd, eventStart, eventEnd].some(Number.isNaN)) return false;
+                return eventStart < regEnd && regStart < eventEnd;
+            });
+
+            if (hasOverlap) {
+                Alert.alert(
+                    t('registrations.overlapTitle'),
+                    t('registrations.overlapMessage'),
+                    [
+                        { text: t('registrations.overlapBack'), style: 'cancel' },
+                        { text: t('registrations.overlapProceed'), onPress: performRegistration },
+                    ],
+                );
+            } else {
+                await performRegistration();
+            }
         } catch (e) {
-            console.error(e);
-            Alert.alert(t('alerts.registerError'));
+            console.error('Overlap check failed, proceeding anyway', e);
+            await performRegistration();
         }
     };
 

@@ -16,6 +16,7 @@
     "quickAccess": "Accès rapide",
     "home": "Accueil",
     "events": "Événements",
+    "myRegistrations": "Mes inscriptions",
     "dashboard": "Tableau de bord",
     "profile": "Profil",
     "soon": "Bientôt"
@@ -171,6 +172,27 @@
       "distribution_jeudi": "Distribution alimentaire hebdomadaire pour les familles.",
       "formation_mediateur": "Séance de formation pour les médiateurs interculturels.",
       "panier_noel": "Le Panier de Noël MANA offre aux familles un panier de denrées alimentaires et de cadeaux pour célébrer les fêtes."
+    }
+  },
+  "registrations": {
+    "title": "Mes inscriptions",
+    "noRegistrations": "Aucune inscription pour le moment.",
+    "loadError": "Impossible de charger les inscriptions.",
+    "loginRequired": "Connectez-vous pour voir vos inscriptions.",
+    "conflict": "Conflit horaire",
+    "conflictHint": "Chevauche une autre inscription.",
+    "overlapTitle": "Conflit horaire détecté",
+    "overlapMessage": "Cet événement chevauche un autre auquel vous êtes inscrit. Vous pouvez continuer.",
+    "overlapProceed": "Continuer",
+    "overlapBack": "Retour",
+    "dateLabel": "Date",
+    "timeLabel": "Heure",
+    "statusLabel": "Statut",
+    "status": {
+      "CONFIRMED": "ConfirmAce",
+      "WAITLISTED": "Liste d'attente",
+      "CANCELLED": "AnnulAce",
+      "REQUESTED": "DemandAce"
     }
   },
   "alerts": {

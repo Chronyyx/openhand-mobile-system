@@ -11,13 +11,16 @@ public class RegistrationResponseModel {
     private String confirmedAt;
     private String cancelledAt;
     private Integer waitlistedPosition;
+    private String eventStartDateTime;
+    private String eventEndDateTime;
 
     public RegistrationResponseModel() {
     }
 
     public RegistrationResponseModel(Long id, Long userId, Long eventId, String eventTitle,
                                      String status, String requestedAt, String confirmedAt,
-                                     String cancelledAt, Integer waitlistedPosition) {
+                                     String cancelledAt, Integer waitlistedPosition,
+                                     String eventStartDateTime, String eventEndDateTime) {
         this.id = id;
         this.userId = userId;
         this.eventId = eventId;
@@ -27,6 +30,8 @@ public class RegistrationResponseModel {
         this.confirmedAt = confirmedAt;
         this.cancelledAt = cancelledAt;
         this.waitlistedPosition = waitlistedPosition;
+        this.eventStartDateTime = eventStartDateTime;
+        this.eventEndDateTime = eventEndDateTime;
     }
 
     // Getters and Setters
@@ -100,5 +105,21 @@ public class RegistrationResponseModel {
 
     public void setWaitlistedPosition(Integer waitlistedPosition) {
         this.waitlistedPosition = waitlistedPosition;
+    }
+
+    public String getEventStartDateTime() {
+        return eventStartDateTime;
+    }
+
+    public void setEventStartDateTime(String eventStartDateTime) {
+        this.eventStartDateTime = eventStartDateTime;
+    }
+
+    public String getEventEndDateTime() {
+        return eventEndDateTime;
+    }
+
+    public void setEventEndDateTime(String eventEndDateTime) {
+        this.eventEndDateTime = eventEndDateTime;
     }
 }

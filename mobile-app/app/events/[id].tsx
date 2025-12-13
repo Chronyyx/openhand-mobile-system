@@ -27,7 +27,7 @@ import {
     type EventDetail,
     type RegistrationSummary,
 } from '../../services/events.service';
-import { registerForEvent } from '../../services/registration.service';
+import { registerForEvent, getMyRegistrations } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
@@ -35,6 +35,7 @@ const eventImages: Record<string, ImageSourcePropType> = {
     'gala': require('../../assets/mana/Gala_image_Mana.png'),
     'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
     'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
+    'panier_noel': require('../../assets/mana/PanierNoel_Mana.png'),
 };
 
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
@@ -232,6 +233,44 @@ export default function EventsScreen() {
                     [{ text: 'OK' }]
                 );
             }
+        }
+    };
+
+    const handleRegisterWithWarning = async () => {
+        if (!user || !eventDetail) return;
+
+        const performRegistration = async () => {
+            await handleRegister();
+        };
+
+        try {
+            const existing = await getMyRegistrations(user.token);
+            const hasOverlap = existing.some((reg) => {
+                if (!reg.eventStartDateTime || !reg.eventEndDateTime) return false;
+                if (reg.status === 'CANCELLED') return false;
+                const regStart = Date.parse(reg.eventStartDateTime);
+                const regEnd = Date.parse(reg.eventEndDateTime);
+                const eventStart = Date.parse(eventDetail.startDateTime);
+                const eventEnd = Date.parse(eventDetail.endDateTime);
+                if ([regStart, regEnd, eventStart, eventEnd].some(Number.isNaN)) return false;
+                return eventStart < regEnd && regStart < eventEnd;
+            });
+
+            if (hasOverlap) {
+                Alert.alert(
+                    'Conflit horaire détecté',
+                    'Cet événement chevauche un autre auquel vous êtes inscrit. Vous pouvez continuer.',
+                    [
+                        { text: 'Retour', style: 'cancel' },
+                        { text: 'Continuer', onPress: performRegistration },
+                    ],
+                );
+            } else {
+                await performRegistration();
+            }
+        } catch (e) {
+            console.error('Overlap check failed, proceeding anyway', e);
+            await performRegistration();
         }
     };
 
@@ -449,7 +488,7 @@ export default function EventsScreen() {
                                             )}
                                             <Pressable
                                                 style={styles.registerButton}
-                                                onPress={handleRegister}
+                                            onPress={handleRegisterWithWarning}
                                             >
                                                 <ThemedText style={styles.registerButtonText}>
                                                     {eventDetail?.status === 'FULL'

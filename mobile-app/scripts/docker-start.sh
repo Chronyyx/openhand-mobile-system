@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# Ensure strict mode; fall back when pipefail is unavailable.
+set -euo pipefail 2>/dev/null || set -euo
 
 cd /app
 
@@ -44,4 +45,3 @@ ensure_deps() {
 ensure_deps
 
 exec npx expo start --tunnel --non-interactive
-

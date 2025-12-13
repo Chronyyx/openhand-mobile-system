@@ -72,6 +72,8 @@ class RegistrationResponseMapperTest {
         assertEquals(now.plusHours(1).toString(), response.getConfirmedAt());
         assertNull(response.getCancelledAt());
         assertNull(response.getWaitlistedPosition());
+        assertEquals(now.toString(), response.getEventStartDateTime());
+        assertEquals(now.plusHours(3).toString(), response.getEventEndDateTime());
     }
 
     @Test
@@ -136,6 +138,20 @@ class RegistrationResponseMapperTest {
         // Assert
         assertNotNull(response);
         assertNull(response.getCancelledAt());
+    }
+
+    @Test
+    void toResponseModel_withNullEventEnd_shouldMapToNull() {
+        // Arrange
+        testEvent.setEndDateTime(null);
+
+        // Act
+        RegistrationResponseModel response = RegistrationResponseMapper.toResponseModel(testRegistration);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(now.toString(), response.getEventStartDateTime());
+        assertNull(response.getEventEndDateTime());
     }
 
     @Test

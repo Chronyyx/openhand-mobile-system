@@ -6,23 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add support for event management: backend seeding rules, UI updates, and i18n translations">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/(tabs)/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/components/navigation-menu.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/components/navigation-menu.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/scripts/docker-start.sh" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/scripts/docker-start.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/registration.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/registration.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/registrations/domainclientlayer/RegistrationResponseModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/registrations/domainclientlayer/RegistrationResponseModel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/registrations/utils/RegistrationResponseMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/registrations/utils/RegistrationResponseMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/domainclientlayer/RegistrationResponseModelTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/domainclientlayer/RegistrationResponseModelTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/utils/RegistrationResponseMapperTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/registrations/utils/RegistrationResponseMapperTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/security/jwt/AuthTokenFilterTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/security/jwt/AuthTokenFilterTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -318,7 +303,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765559609160</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+      <option name="closed" value="true" />
+      <created>1765589934617</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1765589934617</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

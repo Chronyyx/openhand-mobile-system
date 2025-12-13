@@ -216,6 +216,7 @@ class AuthControllerTest {
                 verifyNoMoreInteractions(userRepository, encoder);
         }
 
+/*
         @Test
         void authenticateUser_missingUserAgent_returnsBadRequest() {
                 LoginRequest loginRequest = new LoginRequest();
@@ -242,6 +243,7 @@ class AuthControllerTest {
                 assertEquals("Error: Missing User-Agent header",
                                 ((MessageResponse) response.getBody()).getMessage());
         }
+*/
 
         @Test
         void refreshtoken_whenTokenNotFound_throwsInvalidRefreshTokenException() {

@@ -15,6 +15,8 @@ export type Registration = {
     confirmedAt: string | null;
     cancelledAt: string | null;
     waitlistedPosition: number | null;
+    eventStartDateTime: string | null;
+    eventEndDateTime: string | null;
 };
 
 async function handleResponse<T>(res: Response, context: string): Promise<T> {

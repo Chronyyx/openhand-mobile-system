@@ -17,8 +17,11 @@ class RegistrationResponseModelTest {
         String confirmedAt = "2025-01-15T11:00:00";
         String cancelledAt = null;
         Integer waitlistedPosition = null;
+        String eventStartDateTime = "2025-01-20T09:00:00";
+        String eventEndDateTime = "2025-01-20T11:00:00";
         RegistrationResponseModel model = new RegistrationResponseModel(
-                id, userId, eventId, eventTitle, status, requestedAt, confirmedAt, cancelledAt, waitlistedPosition
+                id, userId, eventId, eventTitle, status, requestedAt, confirmedAt,
+                cancelledAt, waitlistedPosition, eventStartDateTime, eventEndDateTime
         );
         assertNotNull(model);
         assertEquals(id, model.getId());
@@ -30,6 +33,8 @@ class RegistrationResponseModelTest {
         assertEquals(confirmedAt, model.getConfirmedAt());
         assertNull(model.getCancelledAt());
         assertNull(model.getWaitlistedPosition());
+        assertEquals(eventStartDateTime, model.getEventStartDateTime());
+        assertEquals(eventEndDateTime, model.getEventEndDateTime());
     }
 
     @Test
@@ -67,7 +72,7 @@ class RegistrationResponseModelTest {
     @Test
     void getters_withNullValues_shouldReturnNull() {
         RegistrationResponseModel model = new RegistrationResponseModel(
-                null, null, null, null, null, null, null, null, null
+                null, null, null, null, null, null, null, null, null, null, null
         );
         assertNull(model.getId());
         assertNull(model.getUserId());
@@ -78,12 +83,15 @@ class RegistrationResponseModelTest {
         assertNull(model.getConfirmedAt());
         assertNull(model.getCancelledAt());
         assertNull(model.getWaitlistedPosition());
+        assertNull(model.getEventStartDateTime());
+        assertNull(model.getEventEndDateTime());
     }
 
     @Test
     void status_CONFIRMED_shouldReturnConfirmed() {
         RegistrationResponseModel model = new RegistrationResponseModel(
-                1L, 100L, 10L, "Event", "CONFIRMED", "2025-01-15T10:00:00", "2025-01-15T11:00:00", null, null
+                1L, 100L, 10L, "Event", "CONFIRMED", "2025-01-15T10:00:00",
+                "2025-01-15T11:00:00", null, null, "2025-02-01T09:00:00", "2025-02-01T10:00:00"
         );
         assertEquals("CONFIRMED", model.getStatus());
     }
@@ -91,7 +99,8 @@ class RegistrationResponseModelTest {
     @Test
     void status_CANCELLED_shouldReturnCancelled() {
         RegistrationResponseModel model = new RegistrationResponseModel(
-                1L, 100L, 10L, "Event", "CANCELLED", "2025-01-15T10:00:00", null, "2025-01-16T12:00:00", null
+                1L, 100L, 10L, "Event", "CANCELLED", "2025-01-15T10:00:00",
+                null, "2025-01-16T12:00:00", null, "2025-02-01T09:00:00", "2025-02-01T10:00:00"
         );
         assertEquals("CANCELLED", model.getStatus());
     }
@@ -99,10 +108,12 @@ class RegistrationResponseModelTest {
     @Test
     void multipleInstances_shouldBeIndependent() {
         RegistrationResponseModel model1 = new RegistrationResponseModel(
-                1L, 100L, 10L, "Event 1", "CONFIRMED", "2025-01-15T10:00:00", "2025-01-15T11:00:00", null, null
+                1L, 100L, 10L, "Event 1", "CONFIRMED", "2025-01-15T10:00:00",
+                "2025-01-15T11:00:00", null, null, "2025-02-01T09:00:00", "2025-02-01T10:00:00"
         );
         RegistrationResponseModel model2 = new RegistrationResponseModel(
-                2L, 200L, 20L, "Event 2", "CANCELLED", "2025-02-15T10:00:00", null, "2025-02-16T12:00:00", null
+                2L, 200L, 20L, "Event 2", "CANCELLED", "2025-02-15T10:00:00",
+                null, "2025-02-16T12:00:00", null, "2025-03-01T09:00:00", "2025-03-01T10:00:00"
         );
         assertNotEquals(model1.getId(), model2.getId());
         assertNotEquals(model1.getUserId(), model2.getUserId());
@@ -163,7 +174,8 @@ class RegistrationResponseModelTest {
     void model_withAllFieldsSet_shouldPreserveAllData() {
         RegistrationResponseModel model = new RegistrationResponseModel(
                 123L, 456L, 789L, "Gala Event 2025", "CONFIRMED",
-                "2025-01-15T18:00:00", "2025-01-15T18:05:00", null, null
+                "2025-01-15T18:00:00", "2025-01-15T18:05:00", null, null,
+                "2025-01-20T09:00:00", "2025-01-20T11:00:00"
         );
         assertEquals(123L, model.getId());
         assertEquals(456L, model.getUserId());
@@ -174,12 +186,15 @@ class RegistrationResponseModelTest {
         assertEquals("2025-01-15T18:05:00", model.getConfirmedAt());
         assertNull(model.getCancelledAt());
         assertNull(model.getWaitlistedPosition());
+        assertEquals("2025-01-20T09:00:00", model.getEventStartDateTime());
+        assertEquals("2025-01-20T11:00:00", model.getEventEndDateTime());
     }
 
     @Test
     void model_withWaitlistedData_shouldPreservePosition() {
         RegistrationResponseModel model = new RegistrationResponseModel(
-                1L, 100L, 10L, "Event", "WAITLISTED", "2025-01-15T10:00:00", null, null, 3
+                1L, 100L, 10L, "Event", "WAITLISTED", "2025-01-15T10:00:00",
+                null, null, 3, "2025-02-01T09:00:00", "2025-02-01T10:00:00"
         );
         assertEquals("WAITLISTED", model.getStatus());
         assertEquals(3, model.getWaitlistedPosition());
@@ -193,5 +208,15 @@ class RegistrationResponseModelTest {
         model.setCancelledAt("2025-01-16T12:00:00");
         assertEquals("CANCELLED", model.getStatus());
         assertEquals("2025-01-16T12:00:00", model.getCancelledAt());
+    }
+
+    @Test
+    void eventDateTimes_shouldBeStoredAndReturned() {
+        RegistrationResponseModel model = new RegistrationResponseModel();
+        model.setEventStartDateTime("2025-04-01T09:00:00");
+        model.setEventEndDateTime("2025-04-01T11:00:00");
+
+        assertEquals("2025-04-01T09:00:00", model.getEventStartDateTime());
+        assertEquals("2025-04-01T11:00:00", model.getEventEndDateTime());
     }
 }

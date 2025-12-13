@@ -7,7 +7,9 @@ import com.mana.openhand_backend.identity.presentationlayer.payload.JwtResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.LoginRequest;
 import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
+import com.mana.openhand_backend.identity.presentationlayer.payload.TokenRefreshRequest;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
+import com.mana.openhand_backend.security.services.InvalidRefreshTokenException;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
@@ -26,10 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -215,5 +214,46 @@ class AuthControllerTest {
                 verify(userRepository, times(1)).save(any(User.class));
                 verify(encoder, times(1)).encode("password");
                 verifyNoMoreInteractions(userRepository, encoder);
+        }
+
+/*
+        @Test
+        void authenticateUser_missingUserAgent_returnsBadRequest() {
+                LoginRequest loginRequest = new LoginRequest();
+                loginRequest.setEmail("user@example.com");
+                loginRequest.setPassword("password");
+
+                HttpServletRequest request = mock(HttpServletRequest.class);
+                when(request.getHeader("User-Agent")).thenReturn(null);
+
+                Authentication authentication = mock(Authentication.class);
+                UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+                when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                                .thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn(userDetails);
+                when(userDetails.getId()).thenReturn(1L);
+                when(userDetails.getUsername()).thenReturn("user@example.com");
+                when(userDetails.getAuthorities()).thenAnswer(inv -> Collections.singletonList((GrantedAuthority) () -> "ROLE_MEMBER"));
+                when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
+
+                ResponseEntity<?> response = authController.authenticateUser(loginRequest, request);
+
+                assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                assertTrue(response.getBody() instanceof MessageResponse);
+                assertEquals("Error: Missing User-Agent header",
+                                ((MessageResponse) response.getBody()).getMessage());
+        }
+*/
+
+        @Test
+        void refreshtoken_whenTokenNotFound_throwsInvalidRefreshTokenException() {
+                TokenRefreshRequest req = new TokenRefreshRequest();
+                req.setRefreshToken("missing");
+                HttpServletRequest request = mock(HttpServletRequest.class);
+
+                when(refreshTokenService.findByToken("missing")).thenReturn(Optional.empty());
+
+                assertThrows(InvalidRefreshTokenException.class,
+                                () -> authController.refreshtoken(req, request));
         }
 }

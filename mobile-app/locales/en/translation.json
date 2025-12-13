@@ -16,6 +16,7 @@
     "quickAccess": "Quick access",
     "home": "Home",
     "events": "Events",
+    "myRegistrations": "My Registrations",
     "dashboard": "Dashboard",
     "profile": "Profile",
     "soon": "Soon"
@@ -171,6 +172,27 @@
       "distribution_jeudi": "Weekly food distribution for families.",
       "formation_mediateur": "Training session for intercultural mediators.",
       "panier_noel": "The MANA Christmas Basket offers families a basket of food and gifts to celebrate the holidays."
+    }
+  },
+  "registrations": {
+    "title": "My Registrations",
+    "noRegistrations": "No registrations yet.",
+    "loadError": "Unable to load registrations.",
+    "loginRequired": "Log in to view your registrations.",
+    "conflict": "Time conflict",
+    "conflictHint": "This overlaps another registration.",
+    "overlapTitle": "Time conflict detected",
+    "overlapMessage": "This event overlaps another you registered for. You can continue anyway.",
+    "overlapProceed": "Proceed",
+    "overlapBack": "Go back",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "statusLabel": "Status",
+    "status": {
+      "CONFIRMED": "Confirmed",
+      "WAITLISTED": "Waitlisted",
+      "CANCELLED": "Cancelled",
+      "REQUESTED": "Requested"
     }
   },
   "alerts": {

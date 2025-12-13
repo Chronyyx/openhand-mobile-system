@@ -56,6 +56,11 @@ export default function HomeScreen() {
     router.push("/events");
   };
 
+  const handleNavigateMyRegistrations = () => {
+    setMenuVisible(false);
+    router.push("/registrations");
+  };
+
   const handleNavigateDashboard = () => {
     setMenuVisible(false);
     router.push("/admin");
@@ -192,6 +197,8 @@ export default function HomeScreen() {
             onClose={() => setMenuVisible(false)}
             onNavigateHome={handleNavigateHome}
             onNavigateEvents={handleNavigateEvents}
+            onNavigateMyRegistrations={handleNavigateMyRegistrations}
+            showMyRegistrations={!!user}
             showDashboard={hasRole(["ROLE_ADMIN"])}
             onNavigateDashboard={handleNavigateDashboard}
             t={t}

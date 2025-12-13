@@ -5,21 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add support for event management: backend seeding rules, UI updates, and i18n translations">
-      <change afterPath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mobile-app/scripts/docker-start.sh" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/mobile-app/services/event-management.service.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventAdminService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventAdminServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/presentationlayer/EventAdminController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/presentationlayer/payload/CreateEventRequest.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/presentationlayer/EventAdminControllerIntegrationTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/[id].tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/events/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/gradlew" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -74,6 +62,9 @@
   &quot;associatedIndex&quot;: 8
 }</component>
   <component name="ProjectId" id="35iEMWTFW6kFcOARC90aMtliqe7" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -96,7 +87,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "feat/OP-33__Create__New__Event",
+    "git-widget-placeholder": "feat/OP-30__Overlapping__Event__Conflict__Detection",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/maximilian/Desktop/Final Project/openhand-mobile-system",
     "node.js.detected.package.eslint": "true",
@@ -120,7 +111,7 @@
       <recent name="D:\openhand-mobile-system\mobile-app\app\settings" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Tests in 'com.mana.openhand_backend'">
+  <component name="RunManager" selected="Gradle.Tests in 'openhand-backend'">
     <configuration name="OpenhandBackendApplicationTests.dummyTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -141,11 +132,8 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'com.mana.openhand_backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -168,11 +156,8 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'openhand-backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -193,11 +178,8 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="OpenhandBackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
@@ -321,7 +303,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765559609160</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+      <option name="closed" value="true" />
+      <created>1765589934617</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1765589934617</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

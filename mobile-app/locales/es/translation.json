@@ -16,6 +16,7 @@
     "quickAccess": "Acceso rápido",
     "home": "Inicio",
     "events": "Eventos",
+    "myRegistrations": "Mis inscripciones",
     "dashboard": "Panel de control",
     "profile": "Perfil",
     "soon": "Próximamente"
@@ -169,6 +170,27 @@
       "distribution_jeudi": "Distribución semanal de alimentos para familias.",
       "formation_mediateur": "Sesión de capacitación para mediadores interculturales.",
       "panier_noel": "La Canasta de Navidad MANA ofrece a las familias una canasta de alimentos y regalos para celebrar las fiestas."
+    }
+  },
+  "registrations": {
+    "title": "Mis inscripciones",
+    "noRegistrations": "Aun no tienes inscripciones.",
+    "loadError": "No se pueden cargar las inscripciones.",
+    "loginRequired": "Inicia sesiA3n para ver tus inscripciones.",
+    "conflict": "Conflicto de horario",
+    "conflictHint": "Se superpone con otra inscripción.",
+    "overlapTitle": "Conflicto de horario detectado",
+    "overlapMessage": "Este evento se superpone con otro al que ya estA!s inscrito. Puedes continuar de todos modos.",
+    "overlapProceed": "Continuar",
+    "overlapBack": "Regresar",
+    "dateLabel": "Fecha",
+    "timeLabel": "Hora",
+    "statusLabel": "Estado",
+    "status": {
+      "CONFIRMED": "Confirmada",
+      "WAITLISTED": "Lista de espera",
+      "CANCELLED": "Cancelada",
+      "REQUESTED": "Solicitada"
     }
   },
   "alerts": {

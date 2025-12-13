@@ -54,8 +54,8 @@ test.describe('Overlapping Event Conflict Detection', () => {
 
     await page.goto('/registrations', { waitUntil: 'domcontentloaded' });
 
-    // Wait for conflict badge to appear
-    const conflictBadge = page.getByText(/time conflict|conflit horaire|conflicto de horario/i);
-    await expect(conflictBadge).toBeVisible({ timeout: 10000 });
+    // Wait for at least one conflict badge to appear
+    const conflictBadges = page.getByText(/time conflict|conflit horaire|conflicto de horario/i);
+    await expect(conflictBadges.first()).toBeVisible({ timeout: 10000 });
   });
 });

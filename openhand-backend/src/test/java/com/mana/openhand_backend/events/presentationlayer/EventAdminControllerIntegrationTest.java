@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -170,5 +171,141 @@ class EventAdminControllerIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         assertEquals(0, eventRepository.count());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    void updateEvent_withValidPayload_updatesAndReturns200() throws Exception {
+        Event existing = new Event(
+                "Existing",
+                "Desc",
+                LocalDateTime.of(2026, 1, 1, 18, 0),
+                LocalDateTime.of(2026, 1, 1, 20, 0),
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                4,
+                "GENERAL");
+        Event saved = eventRepository.save(existing);
+
+        String payload = """
+                {
+                  "title": "Updated Title",
+                  "description": "Updated Desc",
+                  "startDateTime": "2026-02-01T18:00",
+                  "endDateTime": "2026-02-01T21:00",
+                  "locationName": "New Loc",
+                  "address": "New Addr",
+                  "maxCapacity": 5,
+                  "category": "NEW"
+                }
+                """;
+
+        mockMvc.perform(put("/api/admin/events/{id}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", equalTo("Updated Title")))
+                .andExpect(jsonPath("$.status", equalTo("NEARLY_FULL")))
+                .andExpect(jsonPath("$.maxCapacity", equalTo(5)))
+                .andExpect(jsonPath("$.category", equalTo("NEW")));
+
+        Event updated = eventRepository.findById(saved.getId()).orElseThrow();
+        assertEquals("Updated Title", updated.getTitle());
+        assertEquals(EventStatus.NEARLY_FULL, updated.getStatus());
+        assertEquals(Integer.valueOf(5), updated.getMaxCapacity());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    void updateEvent_whenNotFound_returns404() throws Exception {
+        String payload = """
+                {
+                  "title": "Updated",
+                  "description": "Updated Desc",
+                  "startDateTime": "2026-02-01T18:00",
+                  "endDateTime": "2026-02-01T21:00",
+                  "locationName": "New Loc",
+                  "address": "New Addr",
+                  "maxCapacity": 5
+                }
+                """;
+
+        mockMvc.perform(put("/api/admin/events/{id}", 999)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    void updateEvent_withMaxCapacityLessThanCurrent_returns400() throws Exception {
+        Event existing = new Event(
+                "Existing",
+                "Desc",
+                LocalDateTime.of(2026, 1, 1, 18, 0),
+                LocalDateTime.of(2026, 1, 1, 20, 0),
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                3,
+                "GENERAL");
+        Event saved = eventRepository.save(existing);
+
+        String payload = """
+                {
+                  "title": "Updated",
+                  "description": "Updated Desc",
+                  "startDateTime": "2026-02-01T18:00",
+                  "endDateTime": "2026-02-01T21:00",
+                  "locationName": "New Loc",
+                  "address": "New Addr",
+                  "maxCapacity": 2
+                }
+                """;
+
+        mockMvc.perform(put("/api/admin/events/{id}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
+
+        Event unchanged = eventRepository.findById(saved.getId()).orElseThrow();
+        assertEquals(Integer.valueOf(10), unchanged.getMaxCapacity());
+    }
+
+    @Test
+    @WithMockUser(username = "admin@example.com", roles = "ADMIN")
+    void updateEvent_withEndBeforeStart_returns400() throws Exception {
+        Event existing = new Event(
+                "Existing",
+                "Desc",
+                LocalDateTime.of(2026, 1, 1, 18, 0),
+                LocalDateTime.of(2026, 1, 1, 20, 0),
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                2,
+                "GENERAL");
+        Event saved = eventRepository.save(existing);
+
+        String payload = """
+                {
+                  "title": "Updated",
+                  "description": "Updated Desc",
+                  "startDateTime": "2026-02-01T18:00",
+                  "endDateTime": "2026-02-01T17:00",
+                  "locationName": "New Loc",
+                  "address": "New Addr",
+                  "maxCapacity": 10
+                }
+                """;
+
+        mockMvc.perform(put("/api/admin/events/{id}", saved.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isBadRequest());
     }
 }

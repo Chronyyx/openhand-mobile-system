@@ -24,7 +24,7 @@ import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
-import { createEvent, updateEvent } from '../../services/event-management.service';
+import { createEvent, updateEvent, type CreateEventPayload } from '../../services/event-management.service';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 
 const ACCENT = '#0056A8';
@@ -66,6 +66,21 @@ function parseLocalDateTime(value: string): Date {
     return parsed;
 }
 
+function isCapacityTooLowError(error: unknown): boolean {
+    const serverMessage =
+        (error as any)?.response?.data?.message ??
+        (typeof (error as any)?.response?.data === 'string'
+            ? (error as any).response.data
+            : null);
+
+    return (
+        typeof serverMessage === 'string' &&
+        serverMessage
+            .toLowerCase()
+            .includes('maxcapacity cannot be less than current registrations')
+    );
+}
+
 export default function AdminEventsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
@@ -80,6 +95,7 @@ export default function AdminEventsScreen() {
     const [editingEvent, setEditingEvent] = useState<EventSummary | null>(null);
     const [actionMenuFor, setActionMenuFor] = useState<number | null>(null);
     const [saving, setSaving] = useState(false);
+    const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
     const [title, setTitle] = useState('');
@@ -155,6 +171,17 @@ export default function AdminEventsScreen() {
         closePicker();
     };
 
+    const buildPayloadFromEvent = (event: EventSummary): CreateEventPayload => ({
+        title: event.title.trim(),
+        description: event.description.trim(),
+        startDateTime: formatLocalDateTimeForApi(parseLocalDateTime(event.startDateTime)),
+        endDateTime: event.endDateTime ? formatLocalDateTimeForApi(parseLocalDateTime(event.endDateTime)) : null,
+        locationName: event.locationName.trim(),
+        address: (event.address ?? '').trim(),
+        maxCapacity: event.maxCapacity ?? null,
+        category: event.category?.trim() ?? null,
+    });
+
     const validate = (): boolean => {
         const nextErrors: FieldErrors = {};
 
@@ -215,14 +242,7 @@ export default function AdminEventsScreen() {
             await loadEvents();
         } catch (e) {
             console.error('Failed to save event', e);
-            const serverMessage =
-                (e as any)?.response?.data?.message ??
-                (typeof (e as any)?.response?.data === 'string' ? (e as any).response.data : null);
-            const capacityTooLow =
-                typeof serverMessage === 'string' &&
-                serverMessage.toLowerCase().includes('maxcapacity cannot be less than current registrations');
-
-            if (capacityTooLow) {
+            if (isCapacityTooLowError(e)) {
                 setError(t('admin.events.capacityTooLow'));
             } else {
                 setError(
@@ -231,6 +251,33 @@ export default function AdminEventsScreen() {
             }
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDuplicate = async (event: EventSummary) => {
+        if (duplicatingId) return;
+
+        setDuplicatingId(event.id);
+        setError(null);
+
+        try {
+            const payload = buildPayloadFromEvent(event);
+            await createEvent(payload);
+            Alert.alert(
+                t('admin.events.duplicateSuccessTitle'),
+                t('admin.events.duplicateSuccessMessage'),
+            );
+            await loadEvents();
+        } catch (e) {
+            console.error('Failed to duplicate event', e);
+            if (isCapacityTooLowError(e)) {
+                setError(t('admin.events.capacityTooLow'));
+            } else {
+                setError(t('admin.events.duplicateError'));
+            }
+        } finally {
+            setDuplicatingId(null);
+            setActionMenuFor(null);
         }
     };
 
@@ -313,7 +360,7 @@ export default function AdminEventsScreen() {
                                 pressed && styles.menuTriggerPressed,
                             ]}
                             hitSlop={8}
-                            accessibilityLabel={t('admin.events.editAction')}
+                            accessibilityLabel={t('admin.events.actionsMenuLabel')}
                         >
                             <Ionicons name="ellipsis-vertical" size={18} color="#5C6A80" />
                         </Pressable>
@@ -399,6 +446,25 @@ export default function AdminEventsScreen() {
                                     : t('admin.events.title')}
                             </Text>
                         </View>
+                        {selectedActionEvent ? (
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuItem,
+                                    styles.contextItem,
+                                    pressed && styles.menuItemPressed,
+                                ]}
+                                onPress={() => handleDuplicate(selectedActionEvent)}
+                                disabled={duplicatingId !== null}
+                            >
+                                <Ionicons name="copy-outline" size={16} color={ACCENT} />
+                                <Text style={styles.menuItemText}>
+                                    {t('admin.events.duplicateAction')}
+                                </Text>
+                                {duplicatingId === selectedActionEvent.id ? (
+                                    <ActivityIndicator size="small" color={ACCENT} />
+                                ) : null}
+                            </Pressable>
+                        ) : null}
                         <Pressable
                             style={({ pressed }) => [
                                 styles.menuItem,

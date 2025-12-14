@@ -1,7 +1,6 @@
 import axios from 'axios';
 import AuthService from './auth.service';
-
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.0.16:8080/api';
+import { API_BASE } from '../utils/api';
 
 export type CreateEventPayload = {
     title: string;
@@ -46,3 +45,11 @@ export const createEvent = async (payload: CreateEventPayload): Promise<ManagedE
     return response.data;
 };
 
+export const updateEvent = async (
+    id: number,
+    payload: CreateEventPayload,
+): Promise<ManagedEventResponse> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_BASE}/admin/events/${id}`, payload, { headers });
+    return response.data;
+};

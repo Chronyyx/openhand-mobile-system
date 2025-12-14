@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Edit events through admin dashboard">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,7 +13,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="152" />
+    <option name="cachedIndexableFilesCount" value="2012" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -26,6 +24,9 @@
   <component name="ExternalProjectsManager">
     <system id="GRADLE">
       <state>
+        <task path="$PROJECT_DIR$/openhand-backend">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand />
@@ -69,40 +70,40 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Build openhand-backend.executor": "Run",
-    "Gradle.OpenhandBackendApplicationTests.dummyTest.executor": "Run",
-    "Gradle.Tests in 'com.mana.openhand_backend'.executor": "Run",
-    "Gradle.Tests in 'openhand-backend'.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "feat/OP-30__Overlapping__Event__Conflict__Detection",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/maximilian/Desktop/Final Project/openhand-mobile-system",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "ts.external.directory.path": "D:\\openhand-mobile-system\\mobile-app\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Build openhand-backend.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.OpenhandBackendApplicationTests.dummyTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'com.mana.openhand_backend'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'openhand-backend'.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.OpenhandBackendApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feat/OP-34__Edit__and__Update__Event__Admins&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/maximilian/Desktop/Final Project/openhand-mobile-system&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/maximilian/Applications/IntelliJ IDEA.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\openhand-mobile-system\mobile-app\assets\images" />
@@ -111,7 +112,7 @@
       <recent name="D:\openhand-mobile-system\mobile-app\app\settings" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Tests in 'openhand-backend'">
+  <component name="RunManager" selected="Gradle.Tests in 'com.mana.openhand_backend'">
     <configuration name="OpenhandBackendApplicationTests.dummyTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -132,8 +133,11 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'com.mana.openhand_backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -156,8 +160,11 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'openhand-backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -178,8 +185,11 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="OpenhandBackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
@@ -221,7 +231,7 @@
       <workItem from="1764366421729" duration="10352000" />
       <workItem from="1765295628708" duration="55000" />
       <workItem from="1765552967494" duration="323000" />
-      <workItem from="1765553305280" duration="7988000" />
+      <workItem from="1765553305280" duration="20796000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -303,15 +313,63 @@
       <option name="project" value="LOCAL" />
       <updated>1765559609160</updated>
     </task>
-    <task id="LOCAL-00011" summary="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+    <task id="LOCAL-00011" summary="Add admin event management feature: service, UI, and create event functionality">
       <option name="closed" value="true" />
-      <created>1765589934617</created>
+      <created>1765561701209</created>
       <option name="number" value="00011" />
       <option name="presentableId" value="LOCAL-00011" />
       <option name="project" value="LOCAL" />
-      <updated>1765589934617</updated>
+      <updated>1765561701210</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Add date and time picker modal with calendar">
+      <option name="closed" value="true" />
+      <created>1765561728669</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1765561728669</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them">
+      <option name="closed" value="true" />
+      <created>1765562645374</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1765562645374</updated>
+    </task>
+    <task id="LOCAL-00014" summary="Improve titles and create event button display in the admin dashboard events page">
+      <option name="closed" value="true" />
+      <created>1765741805342</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1765741805342</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Add files">
+      <option name="closed" value="true" />
+      <created>1765741815537</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1765741815537</updated>
+    </task>
+    <task id="LOCAL-00016" summary="Improve admin event scheduling and backend event handling">
+      <option name="closed" value="true" />
+      <created>1765744691010</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1765744691010</updated>
+    </task>
+    <task id="LOCAL-00017" summary="Edit events through admin dashboard">
+      <option name="closed" value="true" />
+      <created>1765746382587</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1765746382588</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -338,7 +396,14 @@
     <MESSAGE value="Updated CI tests." />
     <MESSAGE value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
     <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
+    <MESSAGE value="Add admin event management feature: service, UI, and create event functionality" />
+    <MESSAGE value="Add date and time picker modal with calendar" />
+    <MESSAGE value="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them" />
+    <MESSAGE value="Improve titles and create event button display in the admin dashboard events page" />
+    <MESSAGE value="Add files" />
+    <MESSAGE value="Improve admin event scheduling and backend event handling" />
+    <MESSAGE value="Edit events through admin dashboard" />
+    <option name="LAST_COMMIT_MESSAGE" value="Edit events through admin dashboard" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

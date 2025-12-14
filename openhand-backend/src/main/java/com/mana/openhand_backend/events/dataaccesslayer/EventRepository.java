@@ -8,4 +8,6 @@ import java.util.List;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findByStartDateTimeAfterOrderByStartDateTimeAsc(LocalDateTime dateTime);
+
+    List<Event> findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(LocalDateTime dateTime);
 }

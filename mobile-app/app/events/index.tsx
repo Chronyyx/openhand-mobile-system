@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import i18n from '../../i18n/config';
+import { getTranslatedEventDescription, getTranslatedEventTitle } from '../../utils/event-translations';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -41,28 +41,6 @@ const eventImages: Record<string, ImageSourcePropType> = {
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
     if (!event) return undefined;
     return eventImages[event.title];
-}
-
-// ---- Map backend title ➜ translation key slug ----
-// Backend now sends translation key identifiers directly (e.g., "gala", "distribution_mardi")
-// so we can use them directly to look up translations
-function getTranslatedTitle(
-    event: EventSummary,
-    t: (key: string, options?: any) => string,
-) {
-    // Backend now sends translation keys directly, so use them to get translated title
-    const translationKey = `events.names.${event.title}`;
-    return t(translationKey, { defaultValue: event.title });
-}
-
-function getTranslatedDescription(
-    event: EventSummary,
-    t: (key: string, options?: any) => string,
-) {
-    // Backend sends translation keys like "gala_description", convert to actual translation key
-    const descriptionKey = event.description.replace('_description', '');
-    const translationKey = `events.descriptions.${descriptionKey}`;
-    return t(translationKey, { defaultValue: event.description });
 }
 
 const formatDate = formatIsoDate;
@@ -142,8 +120,8 @@ export default function EventsScreen() {
             const lowerQuery = searchQuery.toLowerCase().trim();
             const filtered = events.filter(event => {
                 // Search against TRANSLATED title/description
-                const translatedTitle = getTranslatedTitle(event, t).toLowerCase();
-                const translatedDesc = getTranslatedDescription(event, t).toLowerCase();
+                const translatedTitle = getTranslatedEventTitle(event, t).toLowerCase();
+                const translatedDesc = getTranslatedEventDescription(event, t).toLowerCase();
                 const category = (event.category || '').toLowerCase();
 
                 return translatedTitle.includes(lowerQuery) ||
@@ -305,7 +283,7 @@ export default function EventsScreen() {
                     data={filteredEvents}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
-                        const translatedTitle = getTranslatedTitle(item, t);
+                        const translatedTitle = getTranslatedEventTitle(item, t);
 
                         return (
                             <Pressable
@@ -409,7 +387,7 @@ export default function EventsScreen() {
                             )}
                             <ThemedText type="title" style={styles.modalTitle}>
                                 {selectedEvent &&
-                                    getTranslatedTitle(selectedEvent, t)}
+                                    getTranslatedEventTitle(selectedEvent, t)}
                             </ThemedText>
                         </View>
 
@@ -419,7 +397,7 @@ export default function EventsScreen() {
                             </ThemedText>
                             <ThemedText>
                                 {selectedEvent &&
-                                    getTranslatedDescription(selectedEvent, t)}
+                                    getTranslatedEventDescription(selectedEvent, t)}
                             </ThemedText>
 
                             <View style={styles.modalRow}>

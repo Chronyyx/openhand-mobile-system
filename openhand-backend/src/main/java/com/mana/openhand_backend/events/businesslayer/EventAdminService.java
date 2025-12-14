@@ -5,5 +5,6 @@ import com.mana.openhand_backend.events.presentationlayer.payload.CreateEventReq
 
 public interface EventAdminService {
     Event createEvent(CreateEventRequest request);
-}
 
+    Event updateEvent(Long id, CreateEventRequest request);
+}

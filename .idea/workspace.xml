@@ -4,10 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them">
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerValidationTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminControllerValidationTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/auth.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/event-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/event-management.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/events.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/events.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/registration.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/registration.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +32,9 @@
   <component name="ExternalProjectsManager">
     <system id="GRADLE">
       <state>
+        <task path="$PROJECT_DIR$/openhand-backend">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand />
@@ -62,9 +71,6 @@
   &quot;associatedIndex&quot;: 8
 }</component>
   <component name="ProjectId" id="35iEMWTFW6kFcOARC90aMtliqe7" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="2" id="Add" />
-  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -87,7 +93,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "feat/OP-30__Overlapping__Event__Conflict__Detection",
+    "git-widget-placeholder": "feat/OP-34__Edit__and__Update__Event__Admins",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/maximilian/Desktop/Final Project/openhand-mobile-system",
     "node.js.detected.package.eslint": "true",
@@ -99,7 +105,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
     "settings.editor.selected.configurable": "preferences.lookFeel",
-    "ts.external.directory.path": "D:\\openhand-mobile-system\\mobile-app\\node_modules\\typescript\\lib",
+    "ts.external.directory.path": "/Users/maximilian/Applications/IntelliJ IDEA.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -111,7 +117,7 @@
       <recent name="D:\openhand-mobile-system\mobile-app\app\settings" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Tests in 'openhand-backend'">
+  <component name="RunManager" selected="Gradle.Tests in 'com.mana.openhand_backend'">
     <configuration name="OpenhandBackendApplicationTests.dummyTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -132,8 +138,11 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'com.mana.openhand_backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -156,8 +165,11 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'openhand-backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -178,8 +190,11 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="OpenhandBackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
@@ -221,7 +236,7 @@
       <workItem from="1764366421729" duration="10352000" />
       <workItem from="1765295628708" duration="55000" />
       <workItem from="1765552967494" duration="323000" />
-      <workItem from="1765553305280" duration="7988000" />
+      <workItem from="1765553305280" duration="15349000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -303,15 +318,31 @@
       <option name="project" value="LOCAL" />
       <updated>1765559609160</updated>
     </task>
-    <task id="LOCAL-00011" summary="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+    <task id="LOCAL-00011" summary="Add admin event management feature: service, UI, and create event functionality">
       <option name="closed" value="true" />
-      <created>1765589934617</created>
+      <created>1765561701209</created>
       <option name="number" value="00011" />
       <option name="presentableId" value="LOCAL-00011" />
       <option name="project" value="LOCAL" />
-      <updated>1765589934617</updated>
+      <updated>1765561701210</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Add date and time picker modal with calendar">
+      <option name="closed" value="true" />
+      <created>1765561728669</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1765561728669</updated>
+    </task>
+    <task id="LOCAL-00013" summary="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them">
+      <option name="closed" value="true" />
+      <created>1765562645374</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1765562645374</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -338,7 +369,10 @@
     <MESSAGE value="Updated CI tests." />
     <MESSAGE value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
     <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
+    <MESSAGE value="Add admin event management feature: service, UI, and create event functionality" />
+    <MESSAGE value="Add date and time picker modal with calendar" />
+    <MESSAGE value="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

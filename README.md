@@ -33,3 +33,11 @@ This project is part of the Champlain College Systems Development Final Project.
 ```sh
 docker compose up --build
 ```
+
+## Connecting from a phone (Expo Go)
+
+1. Put your phone and laptop on the same Wi‑Fi.
+2. Find your laptop's LAN IP (Mac: `ipconfig getifaddr en0`, Linux: `hostname -I | awk '{print $1}'`, Windows: `ipconfig`).
+3. Set `EXPO_PUBLIC_API_URL=http://<your-ip>:8080/api` in your `.env` file (used by `docker compose`).
+4. Restart the mobile container so Expo picks up the new URL: `docker compose up -d --build mobile-app`.
+5. Watch the Metro logs for `[API] Using base URL:` to confirm the app is talking to the right backend.

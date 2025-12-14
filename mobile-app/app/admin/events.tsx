@@ -25,6 +25,7 @@ import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
 import { createEvent } from '../../services/event-management.service';
+import { getTranslatedEventTitle } from '../../utils/event-translations';
 
 const ACCENT = '#0056A8';
 const SURFACE = '#F5F7FB';
@@ -224,24 +225,28 @@ export default function AdminEventsScreen() {
         router.push('/admin');
     };
 
-    const renderEventItem = ({ item }: { item: EventSummary }) => (
-        <View style={styles.eventCard}>
-            <View style={styles.eventHeader}>
-                <View style={styles.eventIcon}>
-                    <Ionicons name="calendar-outline" size={18} color={ACCENT} />
-                </View>
-                <View style={{ flex: 1 }}>
-                    <Text style={styles.eventTitle}>{item.title}</Text>
-                    <Text style={styles.eventMeta}>
-                        {item.startDateTime.replace('T', ' ').slice(0, 16)} • {item.address}
-                    </Text>
-                </View>
-                <View style={styles.statusPill}>
-                    <Text style={styles.statusPillText}>{item.status}</Text>
+    const renderEventItem = ({ item }: { item: EventSummary }) => {
+        const translatedTitle = getTranslatedEventTitle(item, t);
+
+        return (
+            <View style={styles.eventCard}>
+                <View style={styles.eventHeader}>
+                    <View style={styles.eventIcon}>
+                        <Ionicons name="calendar-outline" size={18} color={ACCENT} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.eventTitle}>{translatedTitle}</Text>
+                        <Text style={styles.eventMeta}>
+                            {item.startDateTime.replace('T', ' ').slice(0, 16)} • {item.address}
+                        </Text>
+                    </View>
+                    <View style={styles.statusPill}>
+                        <Text style={styles.statusPillText}>{item.status}</Text>
+                    </View>
                 </View>
             </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -249,12 +254,14 @@ export default function AdminEventsScreen() {
 
             <View style={styles.content}>
                 <View style={styles.hero}>
-                    <View style={styles.heroIcon}>
-                        <Ionicons name="calendar" size={22} color={ACCENT} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.title}>{t('admin.events.title')}</Text>
-                        <Text style={styles.subtitle}>{t('admin.events.subtitle')}</Text>
+                    <View style={styles.heroHeader}>
+                        <View style={styles.heroIcon}>
+                            <Ionicons name="calendar" size={22} color={ACCENT} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.title}>{t('admin.events.title')}</Text>
+                            <Text style={styles.subtitle}>{t('admin.events.subtitle')}</Text>
+                        </View>
                     </View>
                     <Pressable
                         style={({ pressed }) => [
@@ -535,17 +542,22 @@ const styles = StyleSheet.create({
         paddingVertical: 18,
     },
     hero: {
-        flexDirection: 'row',
         backgroundColor: '#FFFFFF',
         padding: 16,
         borderRadius: 14,
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: 12,
         shadowColor: '#000',
         shadowOpacity: 0.06,
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
         elevation: 4,
+    },
+    heroHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        width: '100%',
     },
     heroIcon: {
         width: 46,
@@ -564,7 +576,7 @@ const styles = StyleSheet.create({
         color: '#5C6A80',
         marginTop: 4,
         fontSize: 14,
-        maxWidth: 220,
+        flexShrink: 1,
     },
     createButton: {
         flexDirection: 'row',

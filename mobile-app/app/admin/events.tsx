@@ -215,9 +215,20 @@ export default function AdminEventsScreen() {
             await loadEvents();
         } catch (e) {
             console.error('Failed to save event', e);
-            setError(
-                t(editingEvent ? 'admin.events.updateError' : 'admin.events.createError'),
-            );
+            const serverMessage =
+                (e as any)?.response?.data?.message ??
+                (typeof (e as any)?.response?.data === 'string' ? (e as any).response.data : null);
+            const capacityTooLow =
+                typeof serverMessage === 'string' &&
+                serverMessage.toLowerCase().includes('maxcapacity cannot be less than current registrations');
+
+            if (capacityTooLow) {
+                setError(t('admin.events.capacityTooLow'));
+            } else {
+                setError(
+                    t(editingEvent ? 'admin.events.updateError' : 'admin.events.createError'),
+                );
+            }
         } finally {
             setSaving(false);
         }

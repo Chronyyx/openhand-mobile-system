@@ -228,6 +228,7 @@
       "updateSuccessTitle": "Evento actualizado",
       "updateSuccessMessage": "Los cambios se guardaron y ya son visibles en la app.",
       "updateError": "No se pudo actualizar el evento.",
+      "capacityTooLow": "La capacidad no puede ser menor que las inscripciones actuales.",
       "loadError": "No se pudieron cargar los eventos.",
       "empty": "No se encontraron próximos eventos.",
       "fields": {

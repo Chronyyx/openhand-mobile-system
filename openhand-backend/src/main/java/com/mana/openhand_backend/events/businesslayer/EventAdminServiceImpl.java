@@ -68,12 +68,12 @@ public class EventAdminServiceImpl implements EventAdminService {
         }
 
         Integer maxCapacity = request.getMaxCapacity();
+        int currentCount = existing.getCurrentRegistrations() != null ? existing.getCurrentRegistrations() : 0;
         if (maxCapacity != null) {
             if (maxCapacity <= 0) {
                 throw new IllegalArgumentException("maxCapacity must be greater than 0");
             }
-            if (existing.getCurrentRegistrations() != null
-                    && existing.getCurrentRegistrations() > maxCapacity) {
+            if (currentCount > maxCapacity) {
                 throw new IllegalArgumentException("maxCapacity cannot be less than current registrations");
             }
         }
@@ -90,7 +90,22 @@ public class EventAdminServiceImpl implements EventAdminService {
                         : null
         );
         existing.setMaxCapacity(maxCapacity);
+        existing.setStatus(determineStatus(maxCapacity, currentCount));
 
         return eventRepository.save(existing);
+    }
+
+    private EventStatus determineStatus(Integer maxCapacity, Integer currentRegistrations) {
+        int current = currentRegistrations != null ? currentRegistrations : 0;
+        if (maxCapacity == null) {
+            return EventStatus.OPEN;
+        }
+        if (current >= maxCapacity) {
+            return EventStatus.FULL;
+        }
+        if (current >= Math.ceil(maxCapacity * 0.8)) {
+            return EventStatus.NEARLY_FULL;
+        }
+        return EventStatus.OPEN;
     }
 }

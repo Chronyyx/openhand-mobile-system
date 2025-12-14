@@ -230,6 +230,7 @@
       "updateSuccessTitle": "Event updated",
       "updateSuccessMessage": "Changes saved and visible across the app.",
       "updateError": "Unable to update the event.",
+      "capacityTooLow": "Capacity cannot be lower than current registrations.",
       "loadError": "Unable to load events.",
       "empty": "No upcoming events found.",
       "fields": {

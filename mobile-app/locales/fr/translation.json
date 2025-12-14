@@ -230,6 +230,7 @@
       "updateSuccessTitle": "Événement mis à jour",
       "updateSuccessMessage": "Les changements sont enregistrés et visibles dans l'application.",
       "updateError": "Impossible de mettre à jour l’événement.",
+      "capacityTooLow": "La capacité ne peut pas être inférieure aux inscriptions actuelles.",
       "loadError": "Impossible de charger les événements.",
       "empty": "Aucun événement à venir trouvé.",
       "fields": {

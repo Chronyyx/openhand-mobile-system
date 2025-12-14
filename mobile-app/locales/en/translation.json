@@ -224,6 +224,12 @@
       "createSuccessTitle": "Event created",
       "createSuccessMessage": "The event is now visible in the Events page.",
       "createError": "Unable to create the event.",
+      "editAction": "Edit event",
+      "editTitle": "Edit event",
+      "updateSubmit": "Update",
+      "updateSuccessTitle": "Event updated",
+      "updateSuccessMessage": "Changes saved and visible across the app.",
+      "updateError": "Unable to update the event.",
       "loadError": "Unable to load events.",
       "empty": "No upcoming events found.",
       "fields": {

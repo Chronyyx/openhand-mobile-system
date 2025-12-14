@@ -44,3 +44,12 @@ export const createEvent = async (payload: CreateEventPayload): Promise<ManagedE
     const response = await axios.post(`${API_BASE}/admin/events`, payload, { headers });
     return response.data;
 };
+
+export const updateEvent = async (
+    id: number,
+    payload: CreateEventPayload,
+): Promise<ManagedEventResponse> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_BASE}/admin/events/${id}`, payload, { headers });
+    return response.data;
+};

@@ -24,7 +24,7 @@ import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
-import { createEvent } from '../../services/event-management.service';
+import { createEvent, updateEvent } from '../../services/event-management.service';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 
 const ACCENT = '#0056A8';
@@ -57,6 +57,15 @@ function formatLocalDateTimeForApi(date: Date) {
     )}:${pad2(date.getMinutes())}`;
 }
 
+function parseLocalDateTime(value: string): Date {
+    const normalized = value.includes('T') ? value : value.replace(' ', 'T');
+    const parsed = new Date(normalized);
+    if (Number.isNaN(parsed.getTime())) {
+        return new Date();
+    }
+    return parsed;
+}
+
 export default function AdminEventsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
@@ -67,7 +76,9 @@ export default function AdminEventsScreen() {
     const [events, setEvents] = useState<EventSummary[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const [createOpen, setCreateOpen] = useState(false);
+    const [formOpen, setFormOpen] = useState(false);
+    const [editingEvent, setEditingEvent] = useState<EventSummary | null>(null);
+    const [actionMenuFor, setActionMenuFor] = useState<number | null>(null);
     const [saving, setSaving] = useState(false);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
@@ -116,13 +127,31 @@ export default function AdminEventsScreen() {
 
     const openCreate = () => {
         resetForm();
-        setCreateOpen(true);
+        setEditingEvent(null);
+        setActionMenuFor(null);
+        setFormOpen(true);
     };
 
-    const closeCreate = () => {
-        setCreateOpen(false);
+    const openEdit = (event: EventSummary) => {
+        setEditingEvent(event);
+        setActionMenuFor(null);
+        setFieldErrors({});
+        setTitle(event.title);
+        setDescription(event.description);
+        setCategory(event.category ?? '');
+        setStartDateTime(parseLocalDateTime(event.startDateTime));
+        setEndDateTime(event.endDateTime ? parseLocalDateTime(event.endDateTime) : null);
+        setLocationName(event.locationName);
+        setAddress(event.address ?? '');
+        setMaxCapacity(event.maxCapacity != null ? String(event.maxCapacity) : '');
+        setFormOpen(true);
+    };
+
+    const closeForm = () => {
+        setFormOpen(false);
         setSaving(false);
         setFieldErrors({});
+        setEditingEvent(null);
         closePicker();
     };
 
@@ -157,13 +186,13 @@ export default function AdminEventsScreen() {
         return Object.keys(nextErrors).length === 0;
     };
 
-    const handleCreate = async () => {
+    const handleSubmit = async () => {
         if (!validate()) return;
 
         setSaving(true);
         setError(null);
         try {
-            await createEvent({
+            const payload = {
                 title: title.trim(),
                 description: description.trim(),
                 startDateTime: formatLocalDateTimeForApi(startDateTime!),
@@ -172,14 +201,23 @@ export default function AdminEventsScreen() {
                 address: address.trim(),
                 maxCapacity: maxCapacity.trim() ? Number(maxCapacity) : null,
                 category: category.trim() ? category.trim() : null,
-            });
+            };
 
-            closeCreate();
+            if (editingEvent) {
+                await updateEvent(editingEvent.id, payload);
+                Alert.alert(t('admin.events.updateSuccessTitle'), t('admin.events.updateSuccessMessage'));
+            } else {
+                await createEvent(payload);
+                Alert.alert(t('admin.events.createSuccessTitle'), t('admin.events.createSuccessMessage'));
+            }
+
+            closeForm();
             await loadEvents();
-            Alert.alert(t('admin.events.createSuccessTitle'), t('admin.events.createSuccessMessage'));
         } catch (e) {
-            console.error('Failed to create event', e);
-            setError(t('admin.events.createError'));
+            console.error('Failed to save event', e);
+            setError(
+                t(editingEvent ? 'admin.events.updateError' : 'admin.events.createError'),
+            );
         } finally {
             setSaving(false);
         }
@@ -232,6 +270,10 @@ export default function AdminEventsScreen() {
         router.push('/admin');
     };
 
+    const selectedActionEvent = actionMenuFor
+        ? events.find((evt) => evt.id === actionMenuFor) ?? null
+        : null;
+
     const renderEventItem = ({ item }: { item: EventSummary }) => {
         const translatedTitle = getTranslatedEventTitle(item, t);
 
@@ -247,8 +289,23 @@ export default function AdminEventsScreen() {
                             {item.startDateTime.replace('T', ' ').slice(0, 16)} • {item.address}
                         </Text>
                     </View>
-                    <View style={styles.statusPill}>
-                        <Text style={styles.statusPillText}>{item.status}</Text>
+                    <View style={styles.eventActions}>
+                        <View style={styles.statusPill}>
+                            <Text style={styles.statusPillText}>{item.status}</Text>
+                        </View>
+                        <Pressable
+                            onPress={() =>
+                                setActionMenuFor((current) => (current === item.id ? null : item.id))
+                            }
+                            style={({ pressed }) => [
+                                styles.menuTrigger,
+                                pressed && styles.menuTriggerPressed,
+                            ]}
+                            hitSlop={8}
+                            accessibilityLabel={t('admin.events.editAction')}
+                        >
+                            <Ionicons name="ellipsis-vertical" size={18} color="#5C6A80" />
+                        </Pressable>
                     </View>
                 </View>
             </View>
@@ -299,6 +356,7 @@ export default function AdminEventsScreen() {
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={renderEventItem}
                         contentContainerStyle={styles.listContent}
+                        onScrollBeginDrag={() => setActionMenuFor(null)}
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <Ionicons name="calendar-outline" size={26} color="#9BA5B7" />
@@ -307,13 +365,52 @@ export default function AdminEventsScreen() {
                         }
                     />
                 )}
+
             </View>
 
             <Modal
                 transparent
-                visible={createOpen}
+                visible={actionMenuFor !== null}
+                animationType="fade"
+                onRequestClose={() => setActionMenuFor(null)}
+            >
+                <View style={styles.contextOverlay}>
+                    <Pressable
+                        style={StyleSheet.absoluteFill}
+                        onPress={() => setActionMenuFor(null)}
+                    />
+                    <View style={styles.contextCard}>
+                        <View style={styles.contextHeader}>
+                            <Ionicons name="calendar-outline" size={16} color={ACCENT} />
+                            <Text style={styles.contextTitle} numberOfLines={1}>
+                                {selectedActionEvent
+                                    ? getTranslatedEventTitle(selectedActionEvent, t)
+                                    : t('admin.events.title')}
+                            </Text>
+                        </View>
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.menuItem,
+                                styles.contextItem,
+                                pressed && styles.menuItemPressed,
+                            ]}
+                            onPress={() => {
+                                if (selectedActionEvent) openEdit(selectedActionEvent);
+                                else setActionMenuFor(null);
+                            }}
+                        >
+                            <Ionicons name="create-outline" size={16} color={ACCENT} />
+                            <Text style={styles.menuItemText}>{t('admin.events.editAction')}</Text>
+                        </Pressable>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                transparent
+                visible={formOpen}
                 animationType="slide"
-                onRequestClose={closeCreate}
+                onRequestClose={closeForm}
             >
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
                     <View style={styles.modalOverlay}>
@@ -323,186 +420,200 @@ export default function AdminEventsScreen() {
                         >
                             <TouchableWithoutFeedback accessible={false}>
                                 <View style={styles.modalCard}>
-                        <View style={styles.modalHeader}>
-                            <Ionicons name="add-circle-outline" size={18} color={ACCENT} />
-                            <Text style={styles.modalTitle}>{t('admin.events.createTitle')}</Text>
-                            <Pressable onPress={Keyboard.dismiss} hitSlop={10}>
-                                <Ionicons name="chevron-down" size={20} color="#5C6A80" />
-                            </Pressable>
-                            <Pressable onPress={closeCreate} hitSlop={10}>
-                                <Ionicons name="close" size={20} color="#5C6A80" />
-                            </Pressable>
-                        </View>
-
-                        <ScrollView
-                            style={{ marginTop: 12 }}
-                            contentContainerStyle={styles.form}
-                            keyboardDismissMode="on-drag"
-                            keyboardShouldPersistTaps="handled"
-                            onScrollBeginDrag={Keyboard.dismiss}
-                        >
-                            <Text style={styles.fieldLabel}>{t('admin.events.fields.title')}</Text>
-                            <TextInput
-                                style={[styles.input, fieldErrors.title && styles.inputError]}
-                                value={title}
-                                onChangeText={setTitle}
-                                placeholder={t('admin.events.fields.titlePlaceholder')}
-                                placeholderTextColor="#9BA5B7"
-                            />
-                            {fieldErrors.title ? <Text style={styles.fieldError}>{fieldErrors.title}</Text> : null}
-
-                            <Text style={styles.fieldLabel}>{t('admin.events.fields.description')}</Text>
-                            <TextInput
-                                style={[styles.textarea, fieldErrors.description && styles.inputError]}
-                                value={description}
-                                onChangeText={setDescription}
-                                placeholder={t('admin.events.fields.descriptionPlaceholder')}
-                                placeholderTextColor="#9BA5B7"
-                                multiline
-                            />
-                            {fieldErrors.description ? (
-                                <Text style={styles.fieldError}>{fieldErrors.description}</Text>
-                            ) : null}
-
-                            <View style={styles.row}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.category')}</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        value={category}
-                                        onChangeText={setCategory}
-                                        placeholder={t('admin.events.fields.categoryPlaceholder')}
-                                        placeholderTextColor="#9BA5B7"
-                                    />
-                                </View>
-                                <View style={{ width: 12 }} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.maxCapacity')}</Text>
-                                    <TextInput
-                                        style={[styles.input, fieldErrors.maxCapacity && styles.inputError]}
-                                        value={maxCapacity}
-                                        onChangeText={setMaxCapacity}
-                                        placeholder={t('admin.events.fields.maxCapacityPlaceholder')}
-                                        placeholderTextColor="#9BA5B7"
-                                        keyboardType="numeric"
-                                    />
-                                    {fieldErrors.maxCapacity ? (
-                                        <Text style={styles.fieldError}>{fieldErrors.maxCapacity}</Text>
-                                    ) : null}
-                                </View>
-                            </View>
-
-                            <Text style={styles.fieldLabel}>{t('admin.events.fields.locationName')}</Text>
-                            <TextInput
-                                style={[styles.input, fieldErrors.locationName && styles.inputError]}
-                                value={locationName}
-                                onChangeText={setLocationName}
-                                placeholder={t('admin.events.fields.locationNamePlaceholder')}
-                                placeholderTextColor="#9BA5B7"
-                            />
-                            {fieldErrors.locationName ? (
-                                <Text style={styles.fieldError}>{fieldErrors.locationName}</Text>
-                            ) : null}
-
-                            <Text style={styles.fieldLabel}>{t('admin.events.fields.address')}</Text>
-                            <TextInput
-                                style={[styles.input, fieldErrors.address && styles.inputError]}
-                                value={address}
-                                onChangeText={setAddress}
-                                placeholder={t('admin.events.fields.addressPlaceholder')}
-                                placeholderTextColor="#9BA5B7"
-                            />
-                            {fieldErrors.address ? (
-                                <Text style={styles.fieldError}>{fieldErrors.address}</Text>
-                            ) : null}
-
-                            <View style={styles.row}>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.startDateTime')}</Text>
-                                    <Pressable
-                                        style={({ pressed }) => [
-                                            styles.pickerField,
-                                            fieldErrors.startDateTime && styles.inputError,
-                                            pressed && styles.pickerFieldPressed,
-                                        ]}
-                                        onPress={() => openDateTimePicker('start')}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.pickerFieldText,
-                                                !startDateTime && styles.pickerFieldPlaceholder,
-                                            ]}
-                                        >
-                                            {startDateTime
-                                                ? formatLocalDateTimeForDisplay(startDateTime)
-                                                : t('admin.events.fields.dateTimePlaceholder')}
+                                    <View style={styles.modalHeader}>
+                                        <Ionicons
+                                            name={editingEvent ? 'create-outline' : 'add-circle-outline'}
+                                            size={18}
+                                            color={ACCENT}
+                                        />
+                                        <Text style={styles.modalTitle}>
+                                            {editingEvent
+                                                ? t('admin.events.editTitle')
+                                                : t('admin.events.createTitle')}
                                         </Text>
-                                        <Ionicons name="calendar-outline" size={18} color={ACCENT} />
-                                    </Pressable>
-                                    {fieldErrors.startDateTime ? (
-                                        <Text style={styles.fieldError}>{fieldErrors.startDateTime}</Text>
-                                    ) : null}
-                                </View>
-                                <View style={{ width: 12 }} />
-                                <View style={{ flex: 1 }}>
-                                    <Text style={styles.fieldLabel}>{t('admin.events.fields.endDateTime')}</Text>
-                                    <Pressable
-                                        style={({ pressed }) => [
-                                            styles.pickerField,
-                                            fieldErrors.endDateTime && styles.inputError,
-                                            pressed && styles.pickerFieldPressed,
-                                        ]}
-                                        onPress={() => openDateTimePicker('end')}
+                                        <Pressable onPress={Keyboard.dismiss} hitSlop={10}>
+                                            <Ionicons name="chevron-down" size={20} color="#5C6A80" />
+                                        </Pressable>
+                                        <Pressable onPress={closeForm} hitSlop={10}>
+                                            <Ionicons name="close" size={20} color="#5C6A80" />
+                                        </Pressable>
+                                    </View>
+
+                                    <ScrollView
+                                        style={{ marginTop: 12 }}
+                                        contentContainerStyle={styles.form}
+                                        keyboardDismissMode="on-drag"
+                                        keyboardShouldPersistTaps="handled"
+                                        onScrollBeginDrag={Keyboard.dismiss}
                                     >
-                                        <Text
-                                            style={[
-                                                styles.pickerFieldText,
-                                                !endDateTime && styles.pickerFieldPlaceholder,
-                                            ]}
-                                        >
-                                            {endDateTime
-                                                ? formatLocalDateTimeForDisplay(endDateTime)
-                                                : t('admin.events.fields.endDateTimePlaceholder')}
-                                        </Text>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                                            {endDateTime ? (
-                                                <Pressable
-                                                    onPress={() => setEndDateTime(null)}
-                                                    hitSlop={10}
-                                                >
-                                                    <Ionicons name="close-circle" size={18} color="#9BA5B7" />
-                                                </Pressable>
-                                            ) : null}
-                                            <Ionicons name="time-outline" size={18} color={ACCENT} />
+                                        <Text style={styles.fieldLabel}>{t('admin.events.fields.title')}</Text>
+                                        <TextInput
+                                            style={[styles.input, fieldErrors.title && styles.inputError]}
+                                            value={title}
+                                            onChangeText={setTitle}
+                                            placeholder={t('admin.events.fields.titlePlaceholder')}
+                                            placeholderTextColor="#9BA5B7"
+                                        />
+                                        {fieldErrors.title ? (
+                                            <Text style={styles.fieldError}>{fieldErrors.title}</Text>
+                                        ) : null}
+
+                                        <Text style={styles.fieldLabel}>{t('admin.events.fields.description')}</Text>
+                                        <TextInput
+                                            style={[styles.textarea, fieldErrors.description && styles.inputError]}
+                                            value={description}
+                                            onChangeText={setDescription}
+                                            placeholder={t('admin.events.fields.descriptionPlaceholder')}
+                                            placeholderTextColor="#9BA5B7"
+                                            multiline
+                                        />
+                                        {fieldErrors.description ? (
+                                            <Text style={styles.fieldError}>{fieldErrors.description}</Text>
+                                        ) : null}
+
+                                        <View style={styles.row}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.fieldLabel}>{t('admin.events.fields.category')}</Text>
+                                                <TextInput
+                                                    style={styles.input}
+                                                    value={category}
+                                                    onChangeText={setCategory}
+                                                    placeholder={t('admin.events.fields.categoryPlaceholder')}
+                                                    placeholderTextColor="#9BA5B7"
+                                                />
+                                            </View>
+                                            <View style={{ width: 12 }} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.fieldLabel}>{t('admin.events.fields.maxCapacity')}</Text>
+                                                <TextInput
+                                                    style={[styles.input, fieldErrors.maxCapacity && styles.inputError]}
+                                                    value={maxCapacity}
+                                                    onChangeText={setMaxCapacity}
+                                                    placeholder={t('admin.events.fields.maxCapacityPlaceholder')}
+                                                    placeholderTextColor="#9BA5B7"
+                                                    keyboardType="numeric"
+                                                />
+                                                {fieldErrors.maxCapacity ? (
+                                                    <Text style={styles.fieldError}>{fieldErrors.maxCapacity}</Text>
+                                                ) : null}
+                                            </View>
                                         </View>
-                                    </Pressable>
-                                    {fieldErrors.endDateTime ? (
-                                        <Text style={styles.fieldError}>{fieldErrors.endDateTime}</Text>
-                                    ) : null}
-                                </View>
-                            </View>
-                        </ScrollView>
 
-                        <View style={styles.modalActions}>
-                            <Pressable style={styles.secondaryButton} onPress={closeCreate} disabled={saving}>
-                                <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
-                            </Pressable>
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.primaryButton,
-                                    pressed && styles.primaryButtonPressed,
-                                    saving && styles.primaryButtonDisabled,
-                                ]}
-                                onPress={handleCreate}
-                                disabled={saving}
-                            >
-                                {saving ? (
-                                    <ActivityIndicator color="#FFFFFF" />
-                                ) : (
-                                    <Text style={styles.primaryButtonText}>{t('admin.events.createSubmit')}</Text>
-                                )}
-                            </Pressable>
-                        </View>
+                                        <Text style={styles.fieldLabel}>{t('admin.events.fields.locationName')}</Text>
+                                        <TextInput
+                                            style={[styles.input, fieldErrors.locationName && styles.inputError]}
+                                            value={locationName}
+                                            onChangeText={setLocationName}
+                                            placeholder={t('admin.events.fields.locationNamePlaceholder')}
+                                            placeholderTextColor="#9BA5B7"
+                                        />
+                                        {fieldErrors.locationName ? (
+                                            <Text style={styles.fieldError}>{fieldErrors.locationName}</Text>
+                                        ) : null}
+
+                                        <Text style={styles.fieldLabel}>{t('admin.events.fields.address')}</Text>
+                                        <TextInput
+                                            style={[styles.input, fieldErrors.address && styles.inputError]}
+                                            value={address}
+                                            onChangeText={setAddress}
+                                            placeholder={t('admin.events.fields.addressPlaceholder')}
+                                            placeholderTextColor="#9BA5B7"
+                                        />
+                                        {fieldErrors.address ? (
+                                            <Text style={styles.fieldError}>{fieldErrors.address}</Text>
+                                        ) : null}
+
+                                        <View style={styles.row}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.fieldLabel}>{t('admin.events.fields.startDateTime')}</Text>
+                                                <Pressable
+                                                    style={({ pressed }) => [
+                                                        styles.pickerField,
+                                                        fieldErrors.startDateTime && styles.inputError,
+                                                        pressed && styles.pickerFieldPressed,
+                                                    ]}
+                                                    onPress={() => openDateTimePicker('start')}
+                                                >
+                                                    <Text
+                                                        style={[
+                                                            styles.pickerFieldText,
+                                                            !startDateTime && styles.pickerFieldPlaceholder,
+                                                        ]}
+                                                    >
+                                                        {startDateTime
+                                                            ? formatLocalDateTimeForDisplay(startDateTime)
+                                                            : t('admin.events.fields.dateTimePlaceholder')}
+                                                    </Text>
+                                                    <Ionicons name="calendar-outline" size={18} color={ACCENT} />
+                                                </Pressable>
+                                                {fieldErrors.startDateTime ? (
+                                                    <Text style={styles.fieldError}>{fieldErrors.startDateTime}</Text>
+                                                ) : null}
+                                            </View>
+                                            <View style={{ width: 12 }} />
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.fieldLabel}>{t('admin.events.fields.endDateTime')}</Text>
+                                                <Pressable
+                                                    style={({ pressed }) => [
+                                                        styles.pickerField,
+                                                        fieldErrors.endDateTime && styles.inputError,
+                                                        pressed && styles.pickerFieldPressed,
+                                                    ]}
+                                                    onPress={() => openDateTimePicker('end')}
+                                                >
+                                                    <Text
+                                                        style={[
+                                                            styles.pickerFieldText,
+                                                            !endDateTime && styles.pickerFieldPlaceholder,
+                                                        ]}
+                                                    >
+                                                        {endDateTime
+                                                            ? formatLocalDateTimeForDisplay(endDateTime)
+                                                            : t('admin.events.fields.endDateTimePlaceholder')}
+                                                    </Text>
+                                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                                        {endDateTime ? (
+                                                            <Pressable
+                                                                onPress={() => setEndDateTime(null)}
+                                                                hitSlop={10}
+                                                            >
+                                                                <Ionicons name="close-circle" size={18} color="#9BA5B7" />
+                                                            </Pressable>
+                                                        ) : null}
+                                                        <Ionicons name="time-outline" size={18} color={ACCENT} />
+                                                    </View>
+                                                </Pressable>
+                                                {fieldErrors.endDateTime ? (
+                                                    <Text style={styles.fieldError}>{fieldErrors.endDateTime}</Text>
+                                                ) : null}
+                                            </View>
+                                        </View>
+                                    </ScrollView>
+
+                                    <View style={styles.modalActions}>
+                                        <Pressable style={styles.secondaryButton} onPress={closeForm} disabled={saving}>
+                                            <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
+                                        </Pressable>
+                                        <Pressable
+                                            style={({ pressed }) => [
+                                                styles.primaryButton,
+                                                pressed && styles.primaryButtonPressed,
+                                                saving && styles.primaryButtonDisabled,
+                                            ]}
+                                            onPress={handleSubmit}
+                                            disabled={saving}
+                                        >
+                                            {saving ? (
+                                                <ActivityIndicator color="#FFFFFF" />
+                                            ) : (
+                                                <Text style={styles.primaryButtonText}>
+                                                    {editingEvent
+                                                        ? t('admin.events.updateSubmit')
+                                                        : t('admin.events.createSubmit')}
+                                                </Text>
+                                            )}
+                                        </Pressable>
+                                    </View>
                                 </View>
                             </TouchableWithoutFeedback>
                         </KeyboardAvoidingView>
@@ -643,6 +754,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         borderRadius: 14,
         padding: 14,
+        position: 'relative',
         shadowColor: '#000',
         shadowOpacity: 0.05,
         shadowRadius: 8,
@@ -674,6 +786,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#5C6A80',
     },
+    eventActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
     statusPill: {
         paddingHorizontal: 10,
         paddingVertical: 6,
@@ -684,6 +801,65 @@ const styles = StyleSheet.create({
         color: ACCENT,
         fontSize: 12,
         fontWeight: '800',
+    },
+    menuTrigger: {
+        padding: 6,
+        borderRadius: 10,
+    },
+    menuTriggerPressed: {
+        backgroundColor: '#EEF3FF',
+    },
+    menuItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+    },
+    menuItemPressed: {
+        backgroundColor: '#F2F6FF',
+    },
+    menuItemText: {
+        color: '#0F2848',
+        fontSize: 14,
+        fontWeight: '700',
+        flex: 1,
+    },
+    contextOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(15, 28, 48, 0.2)',
+        justifyContent: 'flex-end',
+        padding: 12,
+    },
+    contextCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 14,
+        paddingVertical: 10,
+        paddingHorizontal: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: '#E0E7F3',
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 5 },
+        elevation: 8,
+        gap: 6,
+    },
+    contextHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        paddingHorizontal: 4,
+        paddingBottom: 4,
+    },
+    contextTitle: {
+        flex: 1,
+        fontSize: 13,
+        fontWeight: '700',
+        color: '#0F2848',
+    },
+    contextItem: {
+        borderRadius: 10,
     },
     modalOverlay: {
         flex: 1,

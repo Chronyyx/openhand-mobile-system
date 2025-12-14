@@ -222,6 +222,12 @@
       "createSuccessTitle": "Evento creado",
       "createSuccessMessage": "El evento ahora es visible en la página de Eventos.",
       "createError": "No se pudo crear el evento.",
+      "editAction": "Editar evento",
+      "editTitle": "Editar evento",
+      "updateSubmit": "Actualizar",
+      "updateSuccessTitle": "Evento actualizado",
+      "updateSuccessMessage": "Los cambios se guardaron y ya son visibles en la app.",
+      "updateError": "No se pudo actualizar el evento.",
       "loadError": "No se pudieron cargar los eventos.",
       "empty": "No se encontraron próximos eventos.",
       "fields": {

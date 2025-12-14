@@ -4,16 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add files">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/components/date-time-picker-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/components/date-time-picker-modal.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/EventRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/EventRepository.java" afterDir="false" />
-    </list>
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Improve admin event scheduling and backend event handling" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -235,7 +226,7 @@
       <workItem from="1764366421729" duration="10352000" />
       <workItem from="1765295628708" duration="55000" />
       <workItem from="1765552967494" duration="323000" />
-      <workItem from="1765553305280" duration="18198000" />
+      <workItem from="1765553305280" duration="18829000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -357,7 +348,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765741815537</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Improve admin event scheduling and backend event handling">
+      <option name="closed" value="true" />
+      <created>1765744691010</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1765744691010</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -389,7 +388,8 @@
     <MESSAGE value="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them" />
     <MESSAGE value="Improve titles and create event button display in the admin dashboard events page" />
     <MESSAGE value="Add files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add files" />
+    <MESSAGE value="Improve admin event scheduling and backend event handling" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improve admin event scheduling and backend event handling" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

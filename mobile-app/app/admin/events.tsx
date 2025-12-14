@@ -134,7 +134,14 @@ export default function AdminEventsScreen() {
         if (!locationName.trim()) nextErrors.locationName = t('admin.events.fields.locationNameRequired');
         if (!address.trim()) nextErrors.address = t('admin.events.fields.addressRequired');
 
-        if (!startDateTime) nextErrors.startDateTime = t('admin.events.fields.startDateTimeInvalid');
+        if (!startDateTime) {
+            nextErrors.startDateTime = t('admin.events.fields.startDateTimeInvalid');
+        } else {
+            const now = new Date();
+            if (startDateTime.getTime() <= now.getTime()) {
+                nextErrors.startDateTime = t('admin.events.fields.startDateTimeFuture');
+            }
+        }
         if (startDateTime && endDateTime && endDateTime.getTime() <= startDateTime.getTime()) {
             nextErrors.endDateTime = t('admin.events.fields.endDateTimeInvalid');
         }

@@ -243,6 +243,7 @@
         "addressRequired": "Address is required.",
         "startDateTime": "Start date & time",
         "startDateTimeInvalid": "Please select a start date & time.",
+        "startDateTimeFuture": "Start time must be in the future.",
         "endDateTime": "End date & time (optional)",
         "endDateTimePlaceholder": "Tap to select (optional)",
         "endDateTimeInvalid": "End time must be after start time.",

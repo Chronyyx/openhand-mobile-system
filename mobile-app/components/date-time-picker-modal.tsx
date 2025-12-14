@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    FlatList,
     Pressable,
     StyleSheet,
     Text,
@@ -28,6 +27,8 @@ type DayCell = {
 
 const SURFACE = '#F5F7FB';
 const DEFAULT_ACCENT = '#0056A8';
+const MINUTE_STEP = 5;
+const QUICK_MINUTES = [0, 15, 30, 45];
 
 function pad2(value: number) {
     return value.toString().padStart(2, '0');
@@ -55,6 +56,18 @@ function clampSeconds(value: Date) {
     return next;
 }
 
+function roundUpToMinuteStep(value: Date, stepMinutes: number) {
+    const next = clampSeconds(value);
+    const minutes = next.getMinutes();
+    const remainder = minutes % stepMinutes;
+
+    if (remainder === 0) return next;
+
+    const delta = stepMinutes - remainder;
+    next.setMinutes(minutes + delta, 0, 0);
+    return next;
+}
+
 function buildCalendarGrid(month: Date): DayCell[] {
     const first = startOfMonth(month);
     const firstDowSunday0 = first.getDay(); // 0..6, Sunday=0
@@ -76,26 +89,9 @@ function buildCalendarGrid(month: Date): DayCell[] {
     return cells;
 }
 
-function buildTimes(stepMinutes: number) {
-    const times: { key: string; label: string; hours: number; minutes: number }[] = [];
-    for (let hours = 0; hours < 24; hours += 1) {
-        for (let minutes = 0; minutes < 60; minutes += stepMinutes) {
-            const label = `${pad2(hours)}:${pad2(minutes)}`;
-            times.push({ key: label, label, hours, minutes });
-        }
-    }
-    return times;
-}
-
 function applyDay(base: Date, day: Date) {
     const next = new Date(base);
     next.setFullYear(day.getFullYear(), day.getMonth(), day.getDate());
-    return next;
-}
-
-function applyTime(base: Date, hours: number, minutes: number) {
-    const next = new Date(base);
-    next.setHours(hours, minutes, 0, 0);
     return next;
 }
 
@@ -114,21 +110,49 @@ export function DateTimePickerModal({
     onCancel,
     onConfirm,
 }: Props) {
-    const [selected, setSelected] = useState<Date>(() => clampSeconds(initialValue));
+    const [selected, setSelected] = useState<Date>(() => roundUpToMinuteStep(initialValue, MINUTE_STEP));
     const [activeMonth, setActiveMonth] = useState<Date>(() => startOfMonth(initialValue));
 
     useEffect(() => {
         if (!visible) return;
-        setSelected(clampSeconds(initialValue));
-        setActiveMonth(startOfMonth(initialValue));
+        const normalized = roundUpToMinuteStep(initialValue, MINUTE_STEP);
+        setSelected(normalized);
+        setActiveMonth(startOfMonth(normalized));
     }, [visible, initialValue]);
 
     const dayCells = useMemo(() => buildCalendarGrid(activeMonth), [activeMonth]);
-    const timeOptions = useMemo(() => buildTimes(5), []);
 
-    const selectedTimeKey = `${pad2(selected.getHours())}:${pad2(selected.getMinutes())}`;
+    const adjustHours = (delta: number) => {
+        setSelected((current) => {
+            const next = new Date(current);
+            const hour = (current.getHours() + delta + 24) % 24;
+            next.setHours(hour, current.getMinutes(), 0, 0);
+            return next;
+        });
+    };
+
+    const adjustMinutes = (delta: number) => {
+        setSelected((current) => {
+            const totalMinutes = current.getHours() * 60 + current.getMinutes() + delta;
+            const normalized = ((totalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+            const nextHour = Math.floor(normalized / 60);
+            const nextMinute = normalized % 60;
+            const next = new Date(current);
+            next.setHours(nextHour, nextMinute, 0, 0);
+            return next;
+        });
+    };
+
+    const setMinutes = (minute: number) => {
+        setSelected((current) => {
+            const next = new Date(current);
+            next.setMinutes(minute, 0, 0);
+            return next;
+        });
+    };
 
     const handleConfirm = () => onConfirm(clampSeconds(selected));
+    const formattedTime = `${pad2(selected.getHours())}:${pad2(selected.getMinutes())}`;
 
     if (!visible) return null;
 
@@ -202,33 +226,81 @@ export function DateTimePickerModal({
                 </View>
 
                 <Text style={styles.sectionTitle}>{timeLabel}</Text>
-                <FlatList
-                    data={timeOptions}
-                    keyExtractor={(item) => item.key}
-                    numColumns={4}
-                    contentContainerStyle={styles.times}
-                    renderItem={({ item }) => {
-                        const selectedChip = item.key === selectedTimeKey;
+                <View style={styles.timeSummary}>
+                    <Text style={styles.timeSummaryLabel}>HH:MM</Text>
+                    <Text style={[styles.timeSummaryValue, { color: accentColor }]}>
+                        {formattedTime}
+                    </Text>
+                </View>
+
+                <View style={styles.timeRow}>
+                    <View style={styles.timeColumn}>
+                        <Text style={styles.timeLabel}>Hours</Text>
+                        <View style={styles.stepper}>
+                            <Pressable
+                                style={styles.stepperButton}
+                                onPress={() => adjustHours(-1)}
+                                hitSlop={8}
+                            >
+                                <Ionicons name="remove" size={16} color="#0F2848" />
+                            </Pressable>
+                            <Text style={styles.stepperValue}>{pad2(selected.getHours())}</Text>
+                            <Pressable
+                                style={styles.stepperButton}
+                                onPress={() => adjustHours(1)}
+                                hitSlop={8}
+                            >
+                                <Ionicons name="add" size={16} color="#0F2848" />
+                            </Pressable>
+                        </View>
+                    </View>
+                    <View style={styles.timeColumn}>
+                        <Text style={styles.timeLabel}>Minutes</Text>
+                        <View style={styles.stepper}>
+                            <Pressable
+                                style={styles.stepperButton}
+                                onPress={() => adjustMinutes(-MINUTE_STEP)}
+                                hitSlop={8}
+                            >
+                                <Ionicons name="remove" size={16} color="#0F2848" />
+                            </Pressable>
+                            <Text style={styles.stepperValue}>{pad2(selected.getMinutes())}</Text>
+                            <Pressable
+                                style={styles.stepperButton}
+                                onPress={() => adjustMinutes(MINUTE_STEP)}
+                                hitSlop={8}
+                            >
+                                <Ionicons name="add" size={16} color="#0F2848" />
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+
+                <Text style={styles.quickLabel}>Quick minutes</Text>
+                <View style={styles.quickRow}>
+                    {QUICK_MINUTES.map((minute) => {
+                        const selectedChip = selected.getMinutes() === minute;
                         return (
                             <Pressable
+                                key={minute}
                                 style={[
-                                    styles.timeChip,
+                                    styles.quickChip,
                                     selectedChip && { backgroundColor: accentColor, borderColor: accentColor },
                                 ]}
-                                onPress={() => setSelected((d) => applyTime(d, item.hours, item.minutes))}
+                                onPress={() => setMinutes(minute)}
                             >
                                 <Text
                                     style={[
-                                        styles.timeChipText,
-                                        selectedChip && styles.timeChipTextSelected,
+                                        styles.quickChipText,
+                                        selectedChip && styles.quickChipTextSelected,
                                     ]}
                                 >
-                                    {item.label}
+                                    {pad2(minute)}
                                 </Text>
                             </Pressable>
                         );
-                    }}
-                />
+                    })}
+                </View>
 
                 <View style={styles.actions}>
                     <Pressable style={styles.secondaryButton} onPress={onCancel}>
@@ -352,13 +424,87 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         color: '#1B2F4A',
     },
-    times: {
+    timeSummary: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: SURFACE,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 12,
         marginTop: 8,
-        gap: 8,
     },
-    timeChip: {
+    timeSummaryLabel: {
+        color: '#5C6A80',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    timeSummaryValue: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0F2848',
+    },
+    timeRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+    },
+    timeColumn: {
         flex: 1,
-        margin: 4,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#DCE4F2',
+        padding: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.03,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    timeLabel: {
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#1B2F4A',
+        marginBottom: 8,
+    },
+    stepper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: SURFACE,
+        borderRadius: 10,
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+    },
+    stepperButton: {
+        width: 34,
+        height: 34,
+        borderRadius: 10,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#DCE4F2',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    stepperValue: {
+        fontSize: 16,
+        fontWeight: '800',
+        color: '#0F2848',
+    },
+    quickLabel: {
+        marginTop: 12,
+        fontSize: 12,
+        fontWeight: '800',
+        color: '#1B2F4A',
+    },
+    quickRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 8,
+    },
+    quickChip: {
+        flex: 1,
         paddingVertical: 10,
         borderRadius: 12,
         alignItems: 'center',
@@ -367,12 +513,12 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#DCE4F2',
     },
-    timeChipText: {
-        fontSize: 12,
+    quickChipText: {
+        fontSize: 13,
         fontWeight: '800',
         color: '#0F2848',
     },
-    timeChipTextSelected: {
+    quickChipTextSelected: {
         color: '#FFFFFF',
     },
     actions: {

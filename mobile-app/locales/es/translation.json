@@ -241,6 +241,7 @@
         "addressRequired": "La dirección es obligatoria.",
         "startDateTime": "Fecha y hora de inicio",
         "startDateTimeInvalid": "Selecciona una fecha y hora de inicio.",
+        "startDateTimeFuture": "La hora de inicio debe estar en el futuro.",
         "endDateTime": "Fecha y hora de fin (opcional)",
         "endDateTimePlaceholder": "Toca para seleccionar (opcional)",
         "endDateTimeInvalid": "La hora de fin debe ser posterior a la de inicio.",

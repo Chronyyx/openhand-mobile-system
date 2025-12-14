@@ -8,6 +8,7 @@ import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepos
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,8 +25,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<Event> getUpcomingEvents() {
-        LocalDateTime now = LocalDateTime.now();
-        return eventRepository.findByStartDateTimeAfterOrderByStartDateTimeAsc(now);
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        return eventRepository.findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(startOfToday);
     }
 
     @Override

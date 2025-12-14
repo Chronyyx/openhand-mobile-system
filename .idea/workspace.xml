@@ -4,16 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them">
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add files">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/auth.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/event-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/event-management.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/events.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/events.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/registration.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/registration.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/components/date-time-picker-modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/components/date-time-picker-modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/EventRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/dataaccesslayer/EventRepository.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,7 +20,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="152" />
+    <option name="cachedIndexableFilesCount" value="2012" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
@@ -236,7 +235,7 @@
       <workItem from="1764366421729" duration="10352000" />
       <workItem from="1765295628708" duration="55000" />
       <workItem from="1765552967494" duration="323000" />
-      <workItem from="1765553305280" duration="15349000" />
+      <workItem from="1765553305280" duration="18198000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -342,7 +341,23 @@
       <option name="project" value="LOCAL" />
       <updated>1765562645374</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Improve titles and create event button display in the admin dashboard events page">
+      <option name="closed" value="true" />
+      <created>1765741805342</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1765741805342</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Add files">
+      <option name="closed" value="true" />
+      <created>1765741815537</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1765741815537</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -372,7 +387,9 @@
     <MESSAGE value="Add admin event management feature: service, UI, and create event functionality" />
     <MESSAGE value="Add date and time picker modal with calendar" />
     <MESSAGE value="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them" />
-    <option name="LAST_COMMIT_MESSAGE" value="Refactor: Centralize date and time formatting into reusable utility functions and update event pages to use them" />
+    <MESSAGE value="Improve titles and create event button display in the admin dashboard events page" />
+    <MESSAGE value="Add files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add files" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

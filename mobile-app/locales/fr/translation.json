@@ -243,6 +243,7 @@
         "addressRequired": "L’adresse est requise.",
         "startDateTime": "Date et heure de début",
         "startDateTimeInvalid": "Veuillez sélectionner une date et une heure de début.",
+        "startDateTimeFuture": "L'heure de début doit être dans le futur.",
         "endDateTime": "Date et heure de fin (optionnel)",
         "endDateTimePlaceholder": "Appuyez pour sélectionner (optionnel)",
         "endDateTimeInvalid": "L’heure de fin doit être après l’heure de début.",

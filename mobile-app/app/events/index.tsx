@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
     ActivityIndicator,
-    Animated,
     FlatList,
     ListRenderItemInfo,
     RefreshControl,
@@ -13,10 +12,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
-import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
+import { ThemedText } from '../../components/themed-text';
 import { EventCard } from '../../components/EventCard';
 import { EventDetailModal } from '../../components/EventDetailModal';
+import { getTranslatedEventTitle, getTranslatedEventDescription } from '../../utils/event-translations';
+import { useCountdownTimer } from '../../hooks/useCountdownTimer';
 
 import {
     getUpcomingEvents,
@@ -61,9 +62,20 @@ export default function EventsScreen() {
 
     // Success View State
     const [showSuccessView, setShowSuccessView] = useState(false);
-    // Explicitly type ref to Animated.Value
-    const countdown = useRef(new Animated.Value(0)).current;
-    const [countdownSeconds, setCountdownSeconds] = useState(10);
+
+    // Countdown Hook
+    const {
+        countdownSeconds,
+        countdownAnimation: countdown,
+        startCountdown,
+        resetCountdown
+    } = useCountdownTimer({
+        onComplete: () => {
+            setModalVisible(false);
+            setSelectedEvent(null);
+        }
+    });
+
 
     const loadEvents = useCallback(async () => {
         try {
@@ -76,7 +88,7 @@ export default function EventsScreen() {
             setError(t('events.loadError'));
         } finally {
             setLoading(false);
-            setRefreshing(false);
+            // setRefreshing(false); // Removed redundant call
         }
     }, [t]);
 
@@ -91,14 +103,14 @@ export default function EventsScreen() {
         } else {
             const lowerQuery = searchQuery.toLowerCase().trim();
             const filtered = events.filter((event: EventSummary) => {
-                const title = event.title.toLowerCase();
-                const desc = (event.description || '').toLowerCase();
+                const title = getTranslatedEventTitle(event, t).toLowerCase();
+                const desc = (getTranslatedEventDescription(event, t) || '').toLowerCase();
                 const addr = (event.address || '').toLowerCase();
                 return title.includes(lowerQuery) || desc.includes(lowerQuery) || addr.includes(lowerQuery);
             });
             setFilteredEvents(filtered);
         }
-    }, [searchQuery, events]);
+    }, [searchQuery, events, t]);
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -114,7 +126,7 @@ export default function EventsScreen() {
             setRegistrationSummary(summary);
         } catch (e) {
             console.error('Failed to load registration summary', e);
-            setSummaryError(t('events.registrationSummary.loadingError'));
+            setSummaryError(t('events.errors.summaryFailed'));
         } finally {
             setSummaryLoading(false);
         }
@@ -124,11 +136,18 @@ export default function EventsScreen() {
         if (!user) return;
         try {
             const myRegs = await getMyRegistrations(user.token);
-            const reg = myRegs.find(r => r.eventId === eventId && r.status !== 'CANCELLED');
+            const reg = myRegs.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
             setUserRegistration(reg || null);
         } catch (e) {
             console.error('Failed to check user registration', e);
         }
+    };
+
+    // We need to define closeEventModal first or hoist it, or use it in openEventModal safely.
+    // openEventModal uses checkUserRegistration and loadRegistrationSummary
+
+    const resetCountdownState = () => {
+        resetCountdown();
     };
 
     const openEventModal = async (event: EventSummary) => {
@@ -137,7 +156,7 @@ export default function EventsScreen() {
         setDetailsLoading(true);
         setDetailsError(null);
         setShowSuccessView(false);
-        resetCountdown();
+        resetCountdownState();
 
         // Initial check
         checkUserRegistration(event.id);
@@ -167,34 +186,6 @@ export default function EventsScreen() {
         setRegistrationSummary(null);
         setUserRegistration(null);
         setShowSuccessView(false);
-    };
-
-    // --- Action Handlers ---
-    const startCountdown = () => {
-        setCountdownSeconds(10);
-        countdown.setValue(0);
-        Animated.timing(countdown, {
-            toValue: 1,
-            duration: 10000,
-            useNativeDriver: false,
-        }).start();
-
-        const interval = setInterval(() => {
-            setCountdownSeconds((prev: number) => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    closeEventModal();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return interval; // Logic handled in modal/effect usually, but basic impl here
-    };
-
-    const resetCountdown = () => {
-        countdown.setValue(0);
-        setCountdownSeconds(10);
     };
 
     const handleRegister = async () => {
@@ -245,12 +236,21 @@ export default function EventsScreen() {
                 currentRegistrations: (selectedEvent.currentRegistrations || 0) - 1
             };
 
-            // Simple client-side status update
+            // Client-side status update
             if (updatedEvent.maxCapacity) {
                 if (updatedEvent.currentRegistrations < updatedEvent.maxCapacity) {
+                    // Check if it should be NEARLY_FULL or OPEN
+                    // Logic: If >= 80%, NEARLY_FULL, else OPEN
+                    // Also handle if it WAS Full, now it might be NEARLY_FULL or OPEN
                     updatedEvent.status = updatedEvent.currentRegistrations >= updatedEvent.maxCapacity * 0.8
                         ? 'NEARLY_FULL'
                         : 'OPEN';
+                }
+                // Implicitly, if it's still >= maxCapacity (impossible if we just decremented), it stays FULL?
+                // But we decremented, so it MUST be < maxCapacity if it was FULL (unless capacity was 0?)
+                // Just to be safe, if for some reason current >= max, it should be FULL
+                if (updatedEvent.currentRegistrations >= updatedEvent.maxCapacity) {
+                    updatedEvent.status = 'FULL';
                 }
             }
             setSelectedEvent(updatedEvent);
@@ -266,6 +266,8 @@ export default function EventsScreen() {
                         updatedDetail.status = updatedDetail.currentRegistrations >= updatedDetail.maxCapacity * 0.8
                             ? 'NEARLY_FULL'
                             : 'OPEN';
+                    } else {
+                        updatedDetail.status = 'FULL';
                     }
                 }
                 setEventDetail(updatedDetail as any);
@@ -283,7 +285,7 @@ export default function EventsScreen() {
             }
         } catch (e) {
             console.error(e);
-            Alert.alert(t('events.errors.unregisterFailed'));
+            Alert.alert(t('alerts.unregisterFailed'));
         }
     };
 

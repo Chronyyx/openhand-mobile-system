@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
-    Animated,
     FlatList,
     ListRenderItemInfo,
     RefreshControl,
@@ -25,6 +24,7 @@ import {
 import { registerForEvent, getMyRegistrations, cancelRegistration, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 import { styles } from './events.styles';
+import { useCountdownTimer } from '../../hooks/useCountdownTimer';
 
 export default function EventsDetailScreen() {
     const { id } = useLocalSearchParams();
@@ -55,33 +55,18 @@ export default function EventsDetailScreen() {
 
     // Success View State
     const [showSuccessView, setShowSuccessView] = useState(false);
-    const [countdownSeconds, setCountdownSeconds] = useState(10);
-    const countdown = useRef(new Animated.Value(0)).current;
 
-    useEffect(() => {
-        loadEvents();
-        if (user) {
-            loadMyRegistrations();
+    const {
+        countdownSeconds,
+        countdownAnimation: countdown,
+        startCountdown,
+        resetCountdown
+    } = useCountdownTimer({
+        onComplete: () => {
+            setModalVisible(false);
+            setSelectedEvent(null);
         }
-    }, [user]);
-
-    // Handle Deep Link or Initial ID
-    useEffect(() => {
-        if (id && events.length > 0) {
-            const eventId = typeof id === 'string' ? parseInt(id, 10) : parseInt(id[0], 10);
-            const found = events.find((e: EventSummary) => e.id === eventId);
-            if (found) {
-                openEventModal(found);
-            }
-        }
-    }, [id, events]);
-
-    // Check overlaps when selectedEvent changes
-    useEffect(() => {
-        if (selectedEvent && myRegistrations.length > 0) {
-            checkUserRegistration(selectedEvent.id);
-        }
-    }, [selectedEvent, myRegistrations]);
+    });
 
     const loadEvents = async () => {
         try {
@@ -108,13 +93,18 @@ export default function EventsDetailScreen() {
         }
     };
 
-    const onRefresh = () => {
+    function onRefresh() {
         setRefreshing(true);
         loadEvents();
         if (user) loadMyRegistrations();
-    };
+    }
 
-    const openEventModal = async (event: EventSummary) => {
+    function checkUserRegistration(eventId: number) {
+        const reg = myRegistrations.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
+        setUserRegistration(reg || null);
+    }
+
+    async function openEventModal(event: EventSummary) {
         setSelectedEvent(event);
         setModalVisible(true);
         setDetailsLoading(true);
@@ -138,7 +128,42 @@ export default function EventsDetailScreen() {
         } finally {
             setDetailsLoading(false);
         }
-    };
+    }
+
+    function closeEventModal() {
+        setModalVisible(false);
+        setSelectedEvent(null);
+        setEventDetail(null);
+        setRegistrationSummary(null);
+        setUserRegistration(null);
+        setShowSuccessView(false);
+    }
+
+    useEffect(() => {
+        loadEvents();
+        if (user) {
+            loadMyRegistrations();
+        }
+    }, [user]);
+
+    // Handle Deep Link or Initial ID
+    useEffect(() => {
+        if (id && events.length > 0) {
+            const eventId = typeof id === 'string' ? parseInt(id, 10) : parseInt(id[0], 10);
+            const found = events.find((e: EventSummary) => e.id === eventId);
+            if (found) {
+                openEventModal(found);
+            }
+        }
+    }, [id, events]);
+
+    // Check overlaps when selectedEvent changes
+    useEffect(() => {
+        if (selectedEvent && myRegistrations.length > 0) {
+            checkUserRegistration(selectedEvent.id);
+        }
+    }, [selectedEvent, myRegistrations]);
+
 
     const loadRegistrationSummary = async (eventId: number) => {
         setSummaryLoading(true);
@@ -147,52 +172,14 @@ export default function EventsDetailScreen() {
             const summary = await getRegistrationSummary(eventId);
             setRegistrationSummary(summary);
         } catch (err) {
-            setSummaryError(t('events.errors.summaryFailed'));
+            setSummaryError(t('events.errors.summaryFailed')); // Use correct key or generic
         } finally {
             setSummaryLoading(false);
         }
     };
 
-    const checkUserRegistration = (eventId: number) => {
-        const reg = myRegistrations.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
-        setUserRegistration(reg || null);
-    };
 
-    const closeEventModal = () => {
-        setModalVisible(false);
-        setSelectedEvent(null);
-        setEventDetail(null);
-        setRegistrationSummary(null);
-        setUserRegistration(null);
-        setShowSuccessView(false);
-    };
 
-    // --- Action Handlers (Duplicated from Index for now) ---
-    const startCountdown = () => {
-        setCountdownSeconds(10);
-        countdown.setValue(0);
-        Animated.timing(countdown, {
-            toValue: 1,
-            duration: 10000,
-            useNativeDriver: false,
-        }).start();
-        const interval = setInterval(() => {
-            setCountdownSeconds((prev: number) => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    closeEventModal();
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return interval;
-    };
-
-    const resetCountdown = () => {
-        countdown.setValue(0);
-        setCountdownSeconds(10);
-    };
 
     const handleRegister = async () => {
         if (!selectedEvent || !user) return;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, type ImageSourcePropType, ActivityIndicator } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
@@ -8,47 +8,8 @@ import { type EventSummary, type EventDetail, type RegistrationSummary } from '.
 import { type Registration } from '../services/registration.service';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
-
-// --- Static image map (duplicated from index, should be shared constant) ---
-const eventImages: Record<string, ImageSourcePropType> = {
-    'gala': require('../assets/mana/Gala_image_Mana.png'),
-    'distribution_mardi': require('../assets/mana/boutiqueSolidaire_Mana.png'),
-    'formation_mediateur': require('../assets/mana/Interculturelle_Mana.png'),
-    'panier_noel': require('../assets/mana/PanierNoel_Mana.png'),
-};
-
-function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
-    if (!event) return undefined;
-    return eventImages[event.title];
-}
-
-// Helpers
-function getStatusLabel(status: string | undefined, t: (k: string) => string) {
-    if (!status) return '';
-    switch (status) {
-        case 'OPEN': return t('events.status.OPEN');
-        case 'NEARLY_FULL': return t('events.status.NEARLY_FULL');
-        case 'FULL': return t('events.status.FULL');
-        default: return status;
-    }
-}
-function getStatusColor(status: string | undefined): string {
-    switch (status) {
-        case 'OPEN': return '#E3F2FD'; // Light Blue
-        case 'NEARLY_FULL': return '#F6B800'; // Yellow
-        case 'FULL': return '#E0E0E0'; // Light Gray
-        default: return '#E3F2FD';
-    }
-}
-
-function getStatusTextColor(status: string | undefined): string {
-    switch (status) {
-        case 'OPEN': return '#0056A8'; // Blue Text
-        case 'NEARLY_FULL': return '#333333'; // Dark Gray Text
-        case 'FULL': return '#757575'; // Dark Gray Text
-        default: return '#0056A8';
-    }
-}
+import { getEventImage } from '../constants/event-images';
+import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
 
 // Props Definition
 type EventDetailModalProps = {
@@ -181,7 +142,7 @@ export function EventDetailModal({
                                         />
                                     )}
                                     <ThemedText style={styles.timerText}>
-                                        {t('events.registrationSuccess.closingIn', { seconds: countdownSeconds })}
+                                        {t('events.registrationSuccess.closingIn', { count: countdownSeconds })}
                                     </ThemedText>
                                 </View>
                             </View>

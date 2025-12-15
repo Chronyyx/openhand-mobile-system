@@ -5,52 +5,13 @@ import { styles } from '../app/events/events.styles';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle } from '../utils/event-translations';
 import { type EventSummary } from '../services/events.service';
+import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
 
 type EventCardProps = {
     event: EventSummary;
     onPress: (event: EventSummary) => void;
     t: (key: string, options?: any) => string;
 };
-
-// --- Helper Functions duplicated from index (could be moved to a util) ---
-function getStatusLabel(status: EventSummary['status'], t: (k: string) => string) {
-    switch (status) {
-        case 'OPEN':
-            return t('events.status.OPEN');
-        case 'NEARLY_FULL':
-            return t('events.status.NEARLY_FULL');
-        case 'FULL':
-            return t('events.status.FULL');
-        default:
-            return status;
-    }
-}
-
-function getStatusColor(status: EventSummary['status']): string {
-    switch (status) {
-        case 'OPEN':
-            return '#E3F2FD'; // Light Blue
-        case 'NEARLY_FULL':
-            return '#F6B800'; // Yellow
-        case 'FULL':
-            return '#E0E0E0'; // Light Gray (Grayed out)
-        default:
-            return '#E3F2FD';
-    }
-}
-
-function getStatusTextColor(status: EventSummary['status']): string {
-    switch (status) {
-        case 'OPEN':
-            return '#0056A8'; // Blue Text
-        case 'NEARLY_FULL':
-            return '#333333'; // Dark Gray Text (Readable on Yellow)
-        case 'FULL':
-            return '#757575'; // Dark Gray Text (Disabled look)
-        default:
-            return '#0056A8';
-    }
-}
 
 export function EventCard({ event, onPress, t }: EventCardProps) {
     const translatedTitle = getTranslatedEventTitle(event, t);

@@ -131,9 +131,11 @@
     "title": "Modal"
   },
   "events": {
+    "title": "Événements",
     "screenTitle": "ÉVÉNEMENTS DISPONIBLES",
     "loading": "Chargement des événements...",
     "empty": "Aucun événement à venir pour le moment.",
+    "noEvents": "Aucun événement trouvé.",
     "loadError": "Impossible de charger les événements.",
     "searchPlaceholder": "Rechercher des événements...",
     "noResults": "Aucun résultat ne correspond à votre recherche.",
@@ -145,11 +147,15 @@
       "description": "Description",
       "status": "Statut"
     },
+    "success": {
+      "unregistered": "Désinscription réussie."
+    },
     "actions": {
       "viewDetails": "Voir détails",
       "close": "Fermer",
       "register": "📝 S'inscrire à cet événement",
-      "joinWaitlist": "📝 Rejoindre la liste d'attente"
+      "joinWaitlist": "📝 Rejoindre la liste d'attente",
+      "undo": "Annuler l'inscription"
     },
     "status": {
       "OPEN": "OUVERT",
@@ -173,8 +179,13 @@
       "loadingError": "Impossible de charger le résumé des inscriptions.",
       "retry": "Réessayer"
     },
+    "registrationSuccess": {
+      "closingIn": "Fermeture dans {{count}}s"
+    },
     "names": {
       "gala": "Gala de reconnaissance MANA",
+      "panier_noel": "Panier de Noël",
+      "distribution_jeudi": "Distribution alimentaire – Jeudi",
       "distribution_mardi": "Distribution Alimentaire - Mardi",
       "formation_mediateur": "Formation MANA – Médiateur interculturel"
     },
@@ -211,8 +222,10 @@
     "registerWaitlistSuccess": "Ajouté à la liste d'attente",
     "registerWaitlistMessage": "L'événement est complet. Vous êtes en position {{position}} sur la liste d'attente.",
     "registerError": "L'inscription a échoué. Veuillez réessayer.",
+    "alreadyRegistered": "Vous êtes déjà inscrit à cet événement.",
     "cancelSuccess": "Inscription annulée",
-    "cancelError": "L'annulation a échoué. Veuillez réessayer."
+    "cancelError": "L'annulation a échoué. Veuillez réessayer.",
+    "unregisterFailed": "Impossible d'annuler l'inscription. Veuillez réessayer."
   },
   "admin": {
     "dashboard": {

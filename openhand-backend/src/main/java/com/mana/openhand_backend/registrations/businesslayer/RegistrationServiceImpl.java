@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RegistrationServiceImpl implements RegistrationService {
@@ -25,8 +26,8 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
 
     public RegistrationServiceImpl(RegistrationRepository registrationRepository,
-                                   EventRepository eventRepository,
-                                   UserRepository userRepository) {
+            EventRepository eventRepository,
+            UserRepository userRepository) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
@@ -43,12 +44,27 @@ public class RegistrationServiceImpl implements RegistrationService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new EventNotFoundException(eventId));
 
-        // Check if already registered
-        if (registrationRepository.existsByUserIdAndEventId(userId, eventId)) {
-            throw new AlreadyRegisteredException(userId, eventId);
+        // Check for existing registration
+        Optional<Registration> existingRegistrationOpt = registrationRepository.findByUserIdAndEventId(userId, eventId);
+        Registration registration;
+
+        if (existingRegistrationOpt.isPresent()) {
+            Registration existing = existingRegistrationOpt.get();
+            if (existing.getStatus() != RegistrationStatus.CANCELLED) {
+                throw new AlreadyRegisteredException(userId, eventId);
+            }
+            // Reactivate cancelled registration
+            registration = existing;
+            registration.setCancelledAt(null);
+            registration.setConfirmedAt(null);
+            registration.setWaitlistedPosition(null);
+            registration.setRequestedAt(LocalDateTime.now());
+        } else {
+            registration = new Registration(user, event);
         }
 
-        // Determine registration status based on event capacity (using multiple signals)
+        // Determine registration status based on event capacity (using multiple
+        // signals)
         long confirmedCount = registrationRepository.countByEventIdAndStatus(eventId, RegistrationStatus.CONFIRMED);
         Integer currentRegs = event.getCurrentRegistrations();
         boolean atCapacity = false;
@@ -58,8 +74,6 @@ public class RegistrationServiceImpl implements RegistrationService {
                     || (currentRegs != null && currentRegs >= event.getMaxCapacity())
                     || event.getStatus() == EventStatus.FULL;
         }
-
-        Registration registration = new Registration(user, event);
 
         if (atCapacity) {
             // Event is at capacity - add to waitlist
@@ -106,9 +120,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Transactional
     public Registration cancelRegistration(Long userId, Long eventId) {
         Registration registration = registrationRepository.findByUserIdAndEventId(userId, eventId)
-                .orElseThrow(() -> new RuntimeException("Registration not found for user " + userId + " and event " + eventId));
+                .orElseThrow(() -> new RuntimeException(
+                        "Registration not found for user " + userId + " and event " + eventId));
 
-        // If this was a confirmed registration, update event capacity BEFORE changing status
+        // If this was a confirmed registration, update event capacity BEFORE changing
+        // status
         if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
             Event event = registration.getEvent();
             if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {

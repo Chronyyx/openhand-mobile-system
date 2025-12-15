@@ -131,9 +131,11 @@
     "title": "Modal"
   },
   "events": {
+    "title": "Eventos",
     "screenTitle": "EVENTOS DISPONIBLES",
     "loading": "Cargando eventos...",
     "empty": "No hay eventos próximos por el momento.",
+    "noEvents": "No se encontraron eventos.",
     "loadError": "No se pudieron cargar los eventos.",
     "fields": {
       "date": "Fecha",
@@ -143,11 +145,15 @@
       "description": "Descripción",
       "status": "Estado"
     },
+    "success": {
+      "unregistered": "Desinscripción exitosa."
+    },
     "actions": {
       "viewDetails": "Ver detalles",
       "close": "Cerrar",
       "register": "📝 Registrarse para este evento",
-      "joinWaitlist": "📝 Unirse a la lista de espera"
+      "joinWaitlist": "📝 Unirse a la lista de espera",
+      "undo": "Deshacer registro"
     },
     "status": {
       "OPEN": "ABIERTO",
@@ -171,8 +177,13 @@
       "loadingError": "No se pudo cargar el resumen de inscripciones.",
       "retry": "Reintentar"
     },
+    "registrationSuccess": {
+      "closingIn": "Cerrando en {{count}}s"
+    },
     "names": {
       "gala": "Gala de reconocimiento MANA",
+      "panier_noel": "Cesta de Navidad",
+      "distribution_jeudi": "Distribución de alimentos – Jueves",
       "distribution_mardi": "Distribución de alimentos – Martes",
       "formation_mediateur": "Capacitación MANA – Mediador intercultural"
     },
@@ -209,8 +220,10 @@
     "registerWaitlistSuccess": "Agregado a la lista de espera",
     "registerWaitlistMessage": "Este evento está lleno. Estás en la posición {{position}} en la lista de espera.",
     "registerError": "El registro falló. Por favor, intente de nuevo.",
+    "alreadyRegistered": "Ya estás registrado para este evento.",
     "cancelSuccess": "Registro cancelado",
-    "cancelError": "La cancelación falló. Por favor, intente de nuevo."
+    "cancelError": "La cancelación falló. Por favor, intente de nuevo.",
+    "unregisterFailed": "No se pudo cancelar la inscripción. Por favor, intente de nuevo."
   },
   "admin": {
     "dashboard": {

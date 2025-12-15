@@ -30,9 +30,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.mana.openhand_backend.identity.presentationlayer.payload.TokenRefreshResponse;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -216,9 +218,129 @@ class AuthControllerTest {
                 verifyNoMoreInteractions(userRepository, encoder);
         }
 
-/*
+        /*
+         * @Test
+         * void authenticateUser_missingUserAgent_returnsBadRequest() {
+         * LoginRequest loginRequest = new LoginRequest();
+         * loginRequest.setEmail("user@example.com");
+         * loginRequest.setPassword("password");
+         * 
+         * HttpServletRequest request = mock(HttpServletRequest.class);
+         * when(request.getHeader("User-Agent")).thenReturn(null);
+         * 
+         * Authentication authentication = mock(Authentication.class);
+         * UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+         * when(authenticationManager.authenticate(any(
+         * UsernamePasswordAuthenticationToken.class)))
+         * .thenReturn(authentication);
+         * when(authentication.getPrincipal()).thenReturn(userDetails);
+         * when(userDetails.getId()).thenReturn(1L);
+         * when(userDetails.getUsername()).thenReturn("user@example.com");
+         * when(userDetails.getAuthorities()).thenAnswer(inv ->
+         * Collections.singletonList((GrantedAuthority) () -> "ROLE_MEMBER"));
+         * when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
+         * 
+         * ResponseEntity<?> response = authController.authenticateUser(loginRequest,
+         * request);
+         * 
+         * assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+         * assertTrue(response.getBody() instanceof MessageResponse);
+         * assertEquals("Error: Missing User-Agent header",
+         * ((MessageResponse) response.getBody()).getMessage());
+         * }
+         */
+
+        @Test
+        void refreshtoken_whenTokenNotFound_throwsInvalidRefreshTokenException() {
+                TokenRefreshRequest req = new TokenRefreshRequest();
+                req.setRefreshToken("missing");
+                HttpServletRequest request = mock(HttpServletRequest.class);
+
+                when(refreshTokenService.findByToken("missing")).thenReturn(Optional.empty());
+
+                assertThrows(InvalidRefreshTokenException.class,
+                                () -> authController.refreshtoken(req, request));
+        }
+
+        @Test
+        void logoutUser_shouldDeleteRefreshTokenAndReturnOk() {
+                // arrange
+                Authentication authentication = mock(Authentication.class);
+                UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+                when(userDetails.getId()).thenReturn(1L);
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                when(authentication.getPrincipal()).thenReturn(userDetails);
+
+                // act
+                ResponseEntity<?> response = authController.logoutUser();
+
+                // assert
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                assertEquals("Log out successful!", ((MessageResponse) response.getBody()).getMessage());
+
+                verify(refreshTokenService, times(1)).deleteByUserId(1L);
+        }
+
+        @Test
+        void authenticateUser_withValidPhoneNumber_shouldResolveEmailAndAuthenticate() {
+                // arrange
+                LoginRequest loginRequest = new LoginRequest();
+                loginRequest.setEmail("+1234567890"); // Phone number
+                loginRequest.setPassword("password");
+
+                HttpServletRequest request = mock(HttpServletRequest.class);
+                when(request.getHeader("User-Agent")).thenReturn("TestAgent");
+
+                User user = new User();
+                user.setEmail("user@example.com");
+                when(userRepository.findByPhoneNumber("+1234567890")).thenReturn(Optional.of(user));
+
+                Authentication authentication = mock(Authentication.class);
+                UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+                when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                                .thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn(userDetails);
+                when(userDetails.getId()).thenReturn(1L);
+                when(userDetails.getUsername()).thenReturn("user@example.com");
+
+                RefreshToken refreshToken = new RefreshToken();
+                refreshToken.setToken("refresh");
+                when(refreshTokenService.createRefreshToken(1L, "TestAgent")).thenReturn(refreshToken);
+
+                when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt");
+
+                Collection<? extends GrantedAuthority> authorities = Collections
+                                .singletonList((GrantedAuthority) () -> "ROLE_MEMBER");
+                doReturn(authorities).when(userDetails).getAuthorities();
+
+                // act
+                authController.authenticateUser(loginRequest, request);
+
+                // assert
+                // Verify we tried to authenticate with the RESOLVED email, not the phone number
+                verify(authenticationManager)
+                                .authenticate(argThat(auth -> "user@example.com".equals(auth.getPrincipal())));
+        }
+
+        @Test
+        void authenticateUser_withInvalidPhoneNumber_shouldThrowBadCredentialsException() {
+                // arrange
+                LoginRequest loginRequest = new LoginRequest();
+                loginRequest.setEmail("+1234567890");
+                loginRequest.setPassword("password");
+                HttpServletRequest request = mock(HttpServletRequest.class);
+
+                when(userRepository.findByPhoneNumber("+1234567890")).thenReturn(Optional.empty());
+
+                // act & assert
+                assertThrows(BadCredentialsException.class,
+                                () -> authController.authenticateUser(loginRequest, request));
+        }
+
         @Test
         void authenticateUser_missingUserAgent_returnsBadRequest() {
+                // arrange
                 LoginRequest loginRequest = new LoginRequest();
                 loginRequest.setEmail("user@example.com");
                 loginRequest.setPassword("password");
@@ -231,29 +353,71 @@ class AuthControllerTest {
                 when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                                 .thenReturn(authentication);
                 when(authentication.getPrincipal()).thenReturn(userDetails);
-                when(userDetails.getId()).thenReturn(1L);
-                when(userDetails.getUsername()).thenReturn("user@example.com");
-                when(userDetails.getAuthorities()).thenAnswer(inv -> Collections.singletonList((GrantedAuthority) () -> "ROLE_MEMBER"));
                 when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
+                // return a non-null collection
+                Collection<? extends GrantedAuthority> authorities = Collections
+                                .singletonList((GrantedAuthority) () -> "ROLE_MEMBER");
+                doReturn(authorities).when(userDetails).getAuthorities();
 
+                // act
                 ResponseEntity<?> response = authController.authenticateUser(loginRequest, request);
 
+                // assert
                 assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
                 assertTrue(response.getBody() instanceof MessageResponse);
-                assertEquals("Error: Missing User-Agent header",
-                                ((MessageResponse) response.getBody()).getMessage());
+                assertEquals("Error: Missing User-Agent header", ((MessageResponse) response.getBody()).getMessage());
         }
-*/
 
         @Test
-        void refreshtoken_whenTokenNotFound_throwsInvalidRefreshTokenException() {
+        void registerUser_whenPhoneNumberAlreadyExists_returnsBadRequest() {
+                // arrange
+                SignupRequest signupRequest = new SignupRequest();
+                signupRequest.setEmail("new@example.com");
+                signupRequest.setPassword("password");
+                signupRequest.setPhoneNumber("+1234567890");
+
+                when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+                when(userRepository.existsByPhoneNumber("+1234567890")).thenReturn(true);
+
+                // act
+                ResponseEntity<?> response = authController.registerUser(signupRequest);
+
+                // assert
+                assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+                assertEquals("Error: Phone number is already in use!",
+                                ((MessageResponse) response.getBody()).getMessage());
+        }
+
+        @Test
+        void refreshtoken_success_shouldReturnNewTokens() {
+                // arrange
                 TokenRefreshRequest req = new TokenRefreshRequest();
-                req.setRefreshToken("missing");
+                req.setRefreshToken("old-refresh");
                 HttpServletRequest request = mock(HttpServletRequest.class);
+                when(request.getHeader("User-Agent")).thenReturn("TestAgent");
 
-                when(refreshTokenService.findByToken("missing")).thenReturn(Optional.empty());
+                RefreshToken oldToken = new RefreshToken();
+                oldToken.setToken("old-refresh");
+                User user = new User();
+                user.setEmail("test@test.com");
+                oldToken.setUser(user);
 
-                assertThrows(InvalidRefreshTokenException.class,
-                                () -> authController.refreshtoken(req, request));
+                RefreshToken newToken = new RefreshToken();
+                newToken.setToken("new-refresh");
+                newToken.setUser(user);
+
+                when(refreshTokenService.findByToken("old-refresh")).thenReturn(Optional.of(oldToken));
+                when(refreshTokenService.verifyExpiration(oldToken)).thenReturn(oldToken);
+                when(refreshTokenService.rotateRefreshToken(oldToken)).thenReturn(newToken);
+                when(jwtUtils.generateJwtToken(any(Authentication.class))).thenReturn("new-access");
+
+                // act
+                ResponseEntity<?> response = authController.refreshtoken(req, request);
+
+                // assert
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                TokenRefreshResponse body = (TokenRefreshResponse) response.getBody();
+                assertEquals("new-access", body.getAccessToken());
+                assertEquals("new-refresh", body.getRefreshToken());
         }
 }

@@ -131,9 +131,11 @@
     "title": "Modal"
   },
   "events": {
+    "title": "Events",
     "screenTitle": "AVAILABLE EVENTS",
     "loading": "Loading events...",
     "empty": "No upcoming events at the moment.",
+    "noEvents": "No events found.",
     "loadError": "Unable to load events.",
     "searchPlaceholder": "Search events...",
     "noResults": "No results found matching your search.",
@@ -145,11 +147,15 @@
       "description": "Description",
       "status": "Status"
     },
+    "success": {
+      "unregistered": "Successfully unregistered."
+    },
     "actions": {
       "viewDetails": "View details",
       "close": "Close",
       "register": "📝 Register for this event",
-      "joinWaitlist": "📝 Join waitlist"
+      "joinWaitlist": "📝 Join waitlist",
+      "undo": "Undo registration"
     },
     "status": {
       "OPEN": "OPEN",
@@ -173,8 +179,13 @@
       "loadingError": "Unable to load registration summary.",
       "retry": "Retry"
     },
+    "registrationSuccess": {
+      "closingIn": "Closing in {{count}}s"
+    },
     "names": {
       "gala": "MANA Recognition Gala",
+      "panier_noel": "Christmas Basket",
+      "distribution_jeudi": "Food Distribution – Thursday",
       "distribution_mardi": "Food Distribution – Tuesday",
       "formation_mediateur": "MANA Training – Intercultural Mediator"
     },
@@ -211,8 +222,10 @@
     "registerWaitlistSuccess": "Added to Waitlist",
     "registerWaitlistMessage": "This event is full. You are in position {{position}} on the waitlist.",
     "registerError": "Registration failed. Please try again.",
+    "alreadyRegistered": "You are already registered for this event.",
     "cancelSuccess": "Registration Cancelled",
-    "cancelError": "Cancellation failed. Please try again."
+    "cancelError": "Cancellation failed. Please try again.",
+    "unregisterFailed": "Failed to cancel registration. Please try again."
   },
   "admin": {
     "dashboard": {

@@ -15,7 +15,7 @@ interface AuthContextProps {
     isLoading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
-    signUp: (email: string, password: string, roles: string[]) => Promise<void>;
+    signUp: (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => Promise<void>;
     hasRole: (roles: string[]) => boolean;
 }
 
@@ -62,8 +62,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
     };
 
-    const signUp = async (email: string, password: string, roles: string[]) => {
-        await AuthService.register(email, password, roles);
+    const signUp = async (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => {
+        const numericAge = parseInt(age, 10);
+        await AuthService.register(email, password, roles, name, phoneNumber, gender, numericAge);
     };
 
     const hasRole = (allowedRoles: string[]) => {
@@ -76,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const normalize = (role: string) => role.trim().toUpperCase().replace(/^ROLE_/, '');
         const allowed = allowedRoles.map(normalize);
 
-        const result = user.roles.some((role) => {
+        const result = user.roles.some((role: string) => {
             const normalized = normalize(role);
             return allowed.includes(normalized);
         });

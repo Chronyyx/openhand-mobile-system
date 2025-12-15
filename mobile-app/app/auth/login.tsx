@@ -28,19 +28,15 @@ export default function LoginScreen() {
     const [error, setError] = useState<string | null>(null);
 
     const handleLogin = async () => {
-        // Basic email format validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Basic email format validation (optional, skipped if input might be phone)
+        // We will just check if not empty for now, or ensure at least simple length
 
         if (!email || !password) {
-            setError(t("auth.validation.fillAllFields"));
+            setError(t("auth.error.fill_all_fields_login"));
             return;
         }
 
-        if (!emailRegex.test(email)) {
-            setError(t("auth.validation.invalidEmail"));
-            return;
-        }
-
+        // Removed strict email regex check to allow phone numbers
         setLoading(true);
         setError(null);
         try {
@@ -48,11 +44,11 @@ export default function LoginScreen() {
             router.replace("/");
         } catch (e: any) {
             if (e?.response?.status === 401) {
-                setError(t("auth.validation.invalidCredentials"));
+                setError(t("auth.error.invalid_credentials"));
             } else if (e?.response) {
-                setError(t("auth.validation.loginFailed"));
+                setError(t("auth.error.login_failed"));
             } else {
-                setError(t("auth.validation.networkError"));
+                setError(t("auth.error.network_error"));
             }
         } finally {
             setLoading(false);
@@ -105,7 +101,7 @@ export default function LoginScreen() {
                                 onChangeText={setPassword}
                                 secureTextEntry={!isPasswordVisible}
                             />
-                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility", "Toggle password visibility")}>
+                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility")}>
                                 <Ionicons
                                     name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                     size={20}

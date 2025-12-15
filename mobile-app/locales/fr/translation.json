@@ -28,8 +28,8 @@
     "liveEmotion": "VIVEZ L'ÉMOTION",
     "celebrateDiversity": "CÉLÉBREZ LA DIVERSITÉ",
     "reserve": "RÉSERVER",
-    "logout": "Déconnexion",
     "latestNews": "Dernières actualités",
+    "logout": "Se déconnecter",
     "ourServices": "Nos Services",
     "ourServicesSubtitle": "Découvrez comment nous pouvons vous aider",
     "services": {
@@ -81,23 +81,37 @@
   "auth": {
     "title": "Se connecter / S'inscrire",
     "create_account": "Créer un compte",
-    "email_placeholder": "Adresse e-mail",
+    "email_placeholder": "Email ou Numéro de téléphone",
     "password_placeholder": "Mot de passe",
-    "confirm_password_placeholder": "Confirmer le mot de passe",
     "login_button": "Se connecter",
     "register_button": "S'inscrire",
-    "register_prompt": "Vous n'avez pas de compte?",
+    "register_prompt": "Vous n'avez pas de compte ?",
     "register_link": "S'inscrire",
-    "login_prompt": "Vous avez déjà un compte?",
+    "login_prompt": "Vous avez déjà un compte ?",
     "login_link": "Se connecter",
-    "validation": {
-      "fillAllFields": "Veuillez remplir tous les champs.",
-      "invalidEmail": "Veuillez entrer une adresse e-mail valide.",
-      "invalidCredentials": "E-mail ou mot de passe invalide.",
-      "loginFailed": "La connexion a échoué. Veuillez réessayer plus tard.",
-      "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
-      "passwordsMismatch": "Les mots de passe ne correspondent pas.",
-      "registrationFailed": "L'inscription a échoué. Veuillez réessayer."
+    "name_placeholder": "Nom complet",
+    "phone_placeholder": "Numéro de téléphone (Optionnel)",
+    "age_placeholder": "Âge",
+    "gender_label": "Genre",
+    "confirm_password_placeholder": "Confirmer le mot de passe",
+    "toggle_password_visibility": "Basculer la visibilité du mot de passe",
+    "gender_options": {
+      "male": "Homme",
+      "female": "Femme",
+      "other": "Autre",
+      "prefer_not_to_say": "Préfère ne pas répondre"
+    },
+    "error": {
+      "fill_all_fields_register": "Veuillez remplir tous les champs requis (Nom, Email, Mot de passe, Âge).",
+      "fill_all_fields_login": "Veuillez remplir tous les champs.",
+      "invalid_email": "Veuillez entrer une adresse email valide.",
+      "invalid_phone_number": "Veuillez entrer un numéro de téléphone valide.",
+      "passwords_do_not_match": "Les mots de passe ne correspondent pas.",
+      "invalid_age": "Veuillez entrer un âge valide.",
+      "registration_failed": "L'inscription a échoué. Veuillez réessayer.",
+      "invalid_credentials": "Email ou mot de passe invalide.",
+      "login_failed": "La connexion a échoué. Veuillez réessayer plus tard.",
+      "network_error": "Erreur réseau. Veuillez vérifier votre connexion."
     }
   },
   "settings": {
@@ -162,16 +176,12 @@
     "names": {
       "gala": "Gala de reconnaissance MANA",
       "distribution_mardi": "Distribution Alimentaire - Mardi",
-      "distribution_jeudi": "Distribution Alimentaire - Jeudi",
-      "formation_mediateur": "Formation MANA – Médiateur interculturel",
-      "panier_noel": "Panier Noël MANA 2025"
+      "formation_mediateur": "Formation MANA – Médiateur interculturel"
     },
     "descriptions": {
       "gala": "Soirée de reconnaissance du patrimoine interculturel MANA.",
       "distribution_mardi": "Distribution alimentaire solidaire pour la communauté.",
-      "distribution_jeudi": "Distribution alimentaire hebdomadaire pour les familles.",
-      "formation_mediateur": "Séance de formation pour les médiateurs interculturels.",
-      "panier_noel": "Le Panier de Noël MANA offre aux familles un panier de denrées alimentaires et de cadeaux pour célébrer les fêtes."
+      "formation_mediateur": "Séance de formation pour les médiateurs interculturels."
     }
   },
   "registrations": {

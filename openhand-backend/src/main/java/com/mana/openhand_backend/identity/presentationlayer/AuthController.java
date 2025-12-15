@@ -5,6 +5,8 @@ import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.presentationlayer.payload.*;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
 import com.mana.openhand_backend.security.services.InvalidRefreshTokenException;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -53,14 +57,52 @@ public class AuthController {
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
 
+        String username = loginRequest.getEmail();
+        logger.info("Login attempt received.");
+        if (username != null && !username.contains("@")) {
+            // Standardized log message to avoid leaking user existence
+            logger.info("Login attempt with phone number.");
+
+            // Normalize phone number (strip non-digits, preserve +)
+            String normalizedPhoneInput = username.replaceAll("[^0-9+]", "");
+
+            String resolvedEmail = userRepository.findByPhoneNumber(normalizedPhoneInput)
+                    .map(User::getEmail)
+                    .orElse(null);
+
+            if (resolvedEmail != null) {
+                username = resolvedEmail;
+            } else {
+                // To prevent user enumeration, perform a dummy authentication attempt
+                // and always return a generic error message.
+                try {
+                    // Use a dummy password check to simulate authentication time (bcrypt check)
+                    // This mitigates timing attacks by ensuring "user not found" takes similar time
+                    // to "bad password"
+                    String dummyHash = "$2a$10$wS2a.9.2./.9.3.5.1.4.1.2.3.5.1.2.3.5.1.2.3.5.1.2.3.5."; // Invalid, but
+                                                                                                       // structurally
+                                                                                                       // correct-ish
+                                                                                                       // length
+                    encoder.matches(loginRequest.getPassword(), dummyHash);
+                } catch (Exception ignored) {
+                    // Ignore the result, always return the same error
+                }
+                // Return generic error immediately to avoid further processing with invalid
+                // username
+                throw new BadCredentialsException("Bad credentials");
+            }
+        }
+
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
 
-            userDetailsService.resetFailedAttempts(loginRequest.getEmail());
+            userDetailsService.resetFailedAttempts(username);
         } catch (BadCredentialsException e) {
-            userRepository.findByEmail(loginRequest.getEmail()).ifPresent(user -> {
+            logger.warn("Bad credentials for: {}", username);
+            String finalUsername = username;
+            userRepository.findByEmail(finalUsername).ifPresent(user -> {
                 userDetailsService.increaseFailedAttempts(user);
             });
             throw e;
@@ -138,6 +180,15 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
+        if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().trim().isEmpty()) {
+            String normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", "");
+            if (userRepository.existsByPhoneNumber(normalizedPhone)) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("Error: Phone number is already in use!"));
+            }
+        }
+
         Set<String> roles;
         try {
             roles = RoleUtils.normalizeRolesWithDefault(signUpRequest.getRoles());
@@ -150,6 +201,15 @@ public class AuthController {
         user.setEmail(signUpRequest.getEmail());
         user.setPasswordHash(encoder.encode(signUpRequest.getPassword()));
         user.setRoles(roles);
+        user.setName(signUpRequest.getName());
+
+        // Normalize phone number before saving
+        if (signUpRequest.getPhoneNumber() != null) {
+            user.setPhoneNumber(signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", ""));
+        }
+
+        user.setGender(signUpRequest.getGender());
+        user.setAge(signUpRequest.getAge());
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));

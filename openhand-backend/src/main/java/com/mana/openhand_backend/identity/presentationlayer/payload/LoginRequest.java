@@ -1,11 +1,11 @@
 package com.mana.openhand_backend.identity.presentationlayer.payload;
 
-import jakarta.validation.constraints.Email;
+import com.mana.openhand_backend.identity.validation.EmailOrPhone;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
     @NotBlank
-    @Email
+    @EmailOrPhone
     private String email;
 
     @NotBlank

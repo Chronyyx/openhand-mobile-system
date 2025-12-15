@@ -23,6 +23,16 @@ public class User {
     @Column(name = "role")
     private Set<String> roles = new HashSet<>();
 
+    private String name;
+
+    @Column(unique = true)
+    private String phoneNumber;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
+    private Integer age;
+
     public User() {
     }
 
@@ -30,6 +40,38 @@ public class User {
         this.email = email;
         this.passwordHash = passwordHash;
         this.roles = roles;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public Gender getGender() {
+        return gender;
+    }
+
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
     }
 
     public Long getId() {

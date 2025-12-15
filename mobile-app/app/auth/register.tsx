@@ -120,6 +120,7 @@ export default function RegisterScreen() {
                                     placeholderTextColor="#999"
                                     value={name}
                                     onChangeText={setName}
+                                    accessibilityLabel={t("auth.name_placeholder")}
                                 />
                             </View>
 
@@ -134,6 +135,7 @@ export default function RegisterScreen() {
                                     onChangeText={setEmail}
                                     autoCapitalize="none"
                                     keyboardType="email-address"
+                                    accessibilityLabel={t("auth.email_placeholder")}
                                 />
                             </View>
 
@@ -147,6 +149,7 @@ export default function RegisterScreen() {
                                     value={phoneNumber}
                                     onChangeText={setPhoneNumber}
                                     keyboardType="phone-pad"
+                                    accessibilityLabel={t("auth.phone_placeholder")}
                                 />
                             </View>
 
@@ -160,6 +163,7 @@ export default function RegisterScreen() {
                                     value={age}
                                     onChangeText={setAge}
                                     keyboardType="number-pad"
+                                    accessibilityLabel={t("auth.age_placeholder")}
                                 />
                             </View>
 
@@ -175,6 +179,8 @@ export default function RegisterScreen() {
                                                 gender === option.value && styles.genderButtonSelected,
                                             ]}
                                             onPress={() => setGender(option.value)}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={`${option.label}${gender === option.value ? ", selected" : ""}`}
                                         >
                                             <Text
                                                 style={[

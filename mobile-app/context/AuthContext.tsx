@@ -63,7 +63,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const signUp = async (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => {
-        await AuthService.register(email, password, roles, name, phoneNumber, gender, age);
+        const numericAge = parseInt(age, 10);
+        await AuthService.register(email, password, roles, name, phoneNumber, gender, numericAge);
     };
 
     const hasRole = (allowedRoles: string[]) => {
@@ -76,7 +77,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const normalize = (role: string) => role.trim().toUpperCase().replace(/^ROLE_/, '');
         const allowed = allowedRoles.map(normalize);
 
-        const result = user.roles.some((role) => {
+        const result = user.roles.some((role: string) => {
             const normalized = normalize(role);
             return allowed.includes(normalized);
         });

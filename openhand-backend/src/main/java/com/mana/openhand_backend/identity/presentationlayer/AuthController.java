@@ -180,7 +180,7 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-        if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().isEmpty()) {
+        if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().trim().isEmpty()) {
             String normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", "");
             if (userRepository.existsByPhoneNumber(normalizedPhone)) {
                 return ResponseEntity

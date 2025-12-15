@@ -43,7 +43,7 @@ class EventServiceImplTest {
         List<Event> events = Arrays.asList(event1, event2);
 
 
-        when(eventRepository.findByStartDateTimeAfterOrderByStartDateTimeAsc(any(LocalDateTime.class)))
+        when(eventRepository.findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(any(LocalDateTime.class)))
                 .thenReturn(events);
 
         // act
@@ -52,7 +52,7 @@ class EventServiceImplTest {
         // assert
         assertEquals(events, result);
         verify(eventRepository, times(1))
-                .findByStartDateTimeAfterOrderByStartDateTimeAsc(any(LocalDateTime.class));
+                .findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(any(LocalDateTime.class));
         verifyNoMoreInteractions(eventRepository);
     }
 

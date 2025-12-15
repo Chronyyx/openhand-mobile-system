@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import i18n from '../../i18n/config';
+import { getTranslatedEventDescription, getTranslatedEventTitle } from '../../utils/event-translations';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
@@ -26,14 +26,16 @@ import {
     type EventSummary,
     type RegistrationSummary,
 } from '../../services/events.service';
-import { registerForEvent, cancelRegistration } from '../../services/registration.service';
+import { registerForEvent, cancelRegistration, getMyRegistrations } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
+import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 
 // ---- Static image map for events ----
 const eventImages: Record<string, ImageSourcePropType> = {
     'gala': require('../../assets/mana/Gala_image_Mana.png'),
     'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
     'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
+    'panier_noel': require('../../assets/mana/PanierNoel_Mana.png'),
 };
 
 function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
@@ -41,59 +43,8 @@ function getEventImage(event: EventSummary | null): ImageSourcePropType | undefi
     return eventImages[event.title];
 }
 
-// ---- Map backend title ➜ translation key slug ----
-// Backend now sends translation key identifiers directly (e.g., "gala", "distribution_mardi")
-// so we can use them directly to look up translations
-function getTranslatedTitle(
-    event: EventSummary,
-    t: (key: string, options?: any) => string,
-) {
-    // Backend now sends translation keys directly, so use them to get translated title
-    const translationKey = `events.names.${event.title}`;
-    return t(translationKey, { defaultValue: event.title });
-}
-
-function getTranslatedDescription(
-    event: EventSummary,
-    t: (key: string, options?: any) => string,
-) {
-    // Backend sends translation keys like "gala_description", convert to actual translation key
-    const descriptionKey = event.description.replace('_description', '');
-    const translationKey = `events.descriptions.${descriptionKey}`;
-    return t(translationKey, { defaultValue: event.description });
-}
-
-function formatDate(iso: string) {
-    const date = new Date(iso);
-    const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
-    return date.toLocaleDateString(locale, {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    });
-}
-
-function formatTimeRange(startIso: string, endIso: string | null) {
-    const start = new Date(startIso);
-    const end = endIso ? new Date(endIso) : null;
-
-    const locale = (i18n?.language === 'fr') ? 'fr-CA' : (i18n?.language === 'es') ? 'es-ES' : 'en-CA';
-    const startStr = start.toLocaleTimeString(locale, {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-    });
-
-    const endStr = end
-        ? end.toLocaleTimeString(locale, {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-        })
-        : '';
-
-    return endStr ? `${startStr} - ${endStr}` : startStr;
-}
+const formatDate = formatIsoDate;
+const formatTimeRange = formatIsoTimeRange;
 
 function getStatusLabel(status: EventSummary['status'], t: (k: string) => string) {
     switch (status) {
@@ -169,8 +120,8 @@ export default function EventsScreen() {
             const lowerQuery = searchQuery.toLowerCase().trim();
             const filtered = events.filter(event => {
                 // Search against TRANSLATED title/description
-                const translatedTitle = getTranslatedTitle(event, t).toLowerCase();
-                const translatedDesc = getTranslatedDescription(event, t).toLowerCase();
+                const translatedTitle = getTranslatedEventTitle(event, t).toLowerCase();
+                const translatedDesc = getTranslatedEventDescription(event, t).toLowerCase();
                 const category = (event.category || '').toLowerCase();
 
                 return translatedTitle.includes(lowerQuery) ||
@@ -220,27 +171,58 @@ export default function EventsScreen() {
 
     const handleRegister = async () => {
         if (!selectedEvent || !user?.token) return;
-        try {
-            const registration = await registerForEvent(selectedEvent.id, user.token);
-            
-            // Show different alerts based on registration status
-            if (registration.status === 'CONFIRMED') {
-                Alert.alert(
-                    t('alerts.registerSuccess'),
-                    t('alerts.registerSuccessMessage')
-                );
-            } else if (registration.status === 'WAITLISTED') {
-                Alert.alert(
-                    t('alerts.registerWaitlistSuccess'),
-                    t('alerts.registerWaitlistMessage', { position: registration.waitlistedPosition })
-                );
+        const performRegistration = async () => {
+            try {
+                const registration = await registerForEvent(selectedEvent.id, user.token);
+
+                if (registration.status === 'CONFIRMED') {
+                    Alert.alert(
+                        t('alerts.registerSuccess'),
+                        t('alerts.registerSuccessMessage')
+                    );
+                } else if (registration.status === 'WAITLISTED') {
+                    Alert.alert(
+                        t('alerts.registerWaitlistSuccess'),
+                        t('alerts.registerWaitlistMessage', { position: registration.waitlistedPosition })
+                    );
+                }
+
+                closeModal();
+                onRefresh();
+            } catch (e) {
+                console.error(e);
+                Alert.alert(t('alerts.registerError'));
             }
-            
-            closeModal();
-            onRefresh();
+        };
+
+        try {
+            const existing = await getMyRegistrations(user.token);
+            const hasOverlap = existing.some((reg) => {
+                if (!reg.eventStartDateTime || !reg.eventEndDateTime) return false;
+                if (reg.status === 'CANCELLED') return false;
+                const regStart = Date.parse(reg.eventStartDateTime);
+                const regEnd = Date.parse(reg.eventEndDateTime);
+                const eventStart = Date.parse(selectedEvent.startDateTime);
+                const eventEnd = Date.parse(selectedEvent.endDateTime);
+                if ([regStart, regEnd, eventStart, eventEnd].some(Number.isNaN)) return false;
+                return eventStart < regEnd && regStart < eventEnd;
+            });
+
+            if (hasOverlap) {
+                Alert.alert(
+                    t('registrations.overlapTitle'),
+                    t('registrations.overlapMessage'),
+                    [
+                        { text: t('registrations.overlapBack'), style: 'cancel' },
+                        { text: t('registrations.overlapProceed'), onPress: performRegistration },
+                    ],
+                );
+            } else {
+                await performRegistration();
+            }
         } catch (e) {
-            console.error(e);
-            Alert.alert(t('alerts.registerError'));
+            console.error('Overlap check failed, proceeding anyway', e);
+            await performRegistration();
         }
     };
 
@@ -301,7 +283,7 @@ export default function EventsScreen() {
                     data={filteredEvents}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => {
-                        const translatedTitle = getTranslatedTitle(item, t);
+                        const translatedTitle = getTranslatedEventTitle(item, t);
 
                         return (
                             <Pressable
@@ -405,7 +387,7 @@ export default function EventsScreen() {
                             )}
                             <ThemedText type="title" style={styles.modalTitle}>
                                 {selectedEvent &&
-                                    getTranslatedTitle(selectedEvent, t)}
+                                    getTranslatedEventTitle(selectedEvent, t)}
                             </ThemedText>
                         </View>
 
@@ -415,7 +397,7 @@ export default function EventsScreen() {
                             </ThemedText>
                             <ThemedText>
                                 {selectedEvent &&
-                                    getTranslatedDescription(selectedEvent, t)}
+                                    getTranslatedEventDescription(selectedEvent, t)}
                             </ThemedText>
 
                             <View style={styles.modalRow}>

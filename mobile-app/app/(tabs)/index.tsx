@@ -56,6 +56,11 @@ export default function HomeScreen() {
     router.push("/events");
   };
 
+  const handleNavigateMyRegistrations = () => {
+    setMenuVisible(false);
+    router.push("/registrations");
+  };
+
   const handleNavigateDashboard = () => {
     setMenuVisible(false);
     router.push("/admin");
@@ -186,17 +191,19 @@ export default function HomeScreen() {
         <Ionicons name="logo-whatsapp" size={26} color="#FFFFFF" />
       </Pressable>
 
-      {/* HAMBURGER MENU */}
-      <NavigationMenu
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        onNavigateHome={handleNavigateHome}
-        onNavigateEvents={handleNavigateEvents}
-        showDashboard={hasRole(["ROLE_ADMIN"])}
-        onNavigateDashboard={handleNavigateDashboard}
-        t={t}
-      />
-    </View>
+        {/* HAMBURGER MENU */}
+        <NavigationMenu
+            visible={menuVisible}
+            onClose={() => setMenuVisible(false)}
+            onNavigateHome={handleNavigateHome}
+            onNavigateEvents={handleNavigateEvents}
+            onNavigateMyRegistrations={handleNavigateMyRegistrations}
+            showMyRegistrations={!!user}
+            showDashboard={hasRole(["ROLE_ADMIN"])}
+            onNavigateDashboard={handleNavigateDashboard}
+            t={t}
+        />
+      </View>
   );
 }
 

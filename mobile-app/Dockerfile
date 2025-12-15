@@ -26,5 +26,5 @@ ENV CHOKIDAR_USEPOLLING=true \
 # 7. Ports used by Expo (Metro + devtools)
 EXPOSE 19000 19001 19002 8081
 
-# 8. Start Expo in tunnel mode, non-interactive
-CMD ["npx", "expo", "start", "--tunnel", "--non-interactive"]
+# 8. Start Expo (and auto-install deps when package.json changes)
+CMD ["bash", "./scripts/docker-start.sh"]

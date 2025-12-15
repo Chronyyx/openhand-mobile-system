@@ -1,7 +1,5 @@
 // mobile-app/services/registration.service.ts
-
-const API_BASE =
-    process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.0.16:8080/api';
+import { API_BASE } from '../utils/api';
 
 export type RegistrationStatus = 'REQUESTED' | 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
 
@@ -15,6 +13,8 @@ export type Registration = {
     confirmedAt: string | null;
     cancelledAt: string | null;
     waitlistedPosition: number | null;
+    eventStartDateTime: string | null;
+    eventEndDateTime: string | null;
 };
 
 async function handleResponse<T>(res: Response, context: string): Promise<T> {

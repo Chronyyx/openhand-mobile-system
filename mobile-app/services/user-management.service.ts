@@ -1,7 +1,8 @@
 import axios from 'axios';
 import AuthService from './auth.service';
+import { API_BASE } from '../utils/api';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.2.12:8080/api';
+// Centralized API_BASE keeps auth and admin calls pointed at the same backend.
 
 export type ManagedUser = {
     id: number;

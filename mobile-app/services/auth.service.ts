@@ -1,9 +1,9 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { API_BASE } from '../utils/api';
 
-// This is required for physical devices to reach the backend on your computer.
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.0.16:8080/api';
+const API_URL = API_BASE;
 
 const setItem = async (key: string, value: string) => {
     if (Platform.OS === 'web') {

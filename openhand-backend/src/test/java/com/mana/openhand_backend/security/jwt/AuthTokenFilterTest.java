@@ -108,4 +108,37 @@ class AuthTokenFilterTest {
         verify(filterChain, times(1))
                 .doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class));
     }
+
+    @Test
+    void doFilterInternal_withNonBearerHeader_doesNothing() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Token abc");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+
+        authTokenFilter.doFilterInternal(request, response, filterChain);
+
+        verifyNoInteractions(jwtUtils, userDetailsService);
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(filterChain, times(1))
+                .doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class));
+    }
+
+    @Test
+    void doFilterInternal_whenJwtUtilsThrows_logsAndContinues() throws ServletException, IOException {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer boom");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        FilterChain filterChain = mock(FilterChain.class);
+
+        when(jwtUtils.validateJwtToken("boom")).thenThrow(new RuntimeException("failure"));
+
+        authTokenFilter.doFilterInternal(request, response, filterChain);
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(jwtUtils, times(1)).validateJwtToken("boom");
+        verifyNoInteractions(userDetailsService);
+        verify(filterChain, times(1))
+                .doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class));
+    }
 }

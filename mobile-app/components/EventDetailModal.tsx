@@ -1,0 +1,313 @@
+import React from 'react';
+import { View, Modal, Image, ScrollView, Animated, Pressable, type ImageSourcePropType, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ThemedText } from './themed-text';
+import { RegistrationSummaryComponent } from './registration-summary';
+import { styles } from '../app/events/events.styles';
+import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
+import { type Registration } from '../services/registration.service';
+import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
+import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
+
+// --- Static image map (duplicated from index, should be shared constant) ---
+const eventImages: Record<string, ImageSourcePropType> = {
+    'gala': require('../assets/mana/Gala_image_Mana.png'),
+    'distribution_mardi': require('../assets/mana/boutiqueSolidaire_Mana.png'),
+    'formation_mediateur': require('../assets/mana/Interculturelle_Mana.png'),
+    'panier_noel': require('../assets/mana/PanierNoel_Mana.png'),
+};
+
+function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
+    if (!event) return undefined;
+    return eventImages[event.title];
+}
+
+// Helpers
+function getStatusLabel(status: string | undefined, t: (k: string) => string) {
+    if (!status) return '';
+    switch (status) {
+        case 'OPEN': return t('events.status.OPEN');
+        case 'NEARLY_FULL': return t('events.status.NEARLY_FULL');
+        case 'FULL': return t('events.status.FULL');
+        default: return status;
+    }
+}
+function getStatusColor(status: string | undefined): string {
+    switch (status) {
+        case 'OPEN': return '#E3F2FD'; // Light Blue
+        case 'NEARLY_FULL': return '#F6B800'; // Yellow
+        case 'FULL': return '#E0E0E0'; // Light Gray
+        default: return '#E3F2FD';
+    }
+}
+
+function getStatusTextColor(status: string | undefined): string {
+    switch (status) {
+        case 'OPEN': return '#0056A8'; // Blue Text
+        case 'NEARLY_FULL': return '#333333'; // Dark Gray Text
+        case 'FULL': return '#757575'; // Dark Gray Text
+        default: return '#0056A8';
+    }
+}
+
+// Props Definition
+type EventDetailModalProps = {
+    visible: boolean;
+    onClose: () => void;
+    selectedEvent: EventSummary | null;
+    eventDetail: EventDetail | null;
+    loading: boolean;
+    error: string | null;
+    user: any; // Auth User
+    hasRole: (roles: string[]) => boolean;
+    t: (key: string, options?: any) => string;
+
+    // Registration Props
+    userRegistration: Registration | null;
+    onRegister: () => void;
+    onUnregister: () => void;
+
+    // Success State
+    showSuccessView: boolean;
+    countdownValue: any; // Animated.Value or number
+    countdownSeconds: number; // For text display
+
+    // Admin/Employee Summary Props
+    registrationSummary: RegistrationSummary | null;
+    summaryLoading: boolean;
+    summaryError: string | null;
+    onRetrySummary: () => void;
+};
+
+// Use explicit class for Animated View created in index if passed, but here we can just use View or re-create it.
+// Since we are in a separate component, let's just make sure we handle the refactor correctly.
+// The user previously had 'AnimatedView' created via 'createAnimatedComponent'.
+// We can do the same here.
+const AnimatedView = Animated.createAnimatedComponent(View) as any;
+
+export function EventDetailModal({
+    visible,
+    onClose,
+    selectedEvent,
+    eventDetail,
+    loading,
+    error,
+    user,
+    hasRole,
+    t,
+    userRegistration,
+    onRegister,
+    onUnregister,
+    showSuccessView,
+    countdownValue, // Expecting Animated.Value for smooth bar, or number if simplistic
+    countdownSeconds,
+    registrationSummary,
+    summaryLoading,
+    summaryError,
+    onRetrySummary
+}: EventDetailModalProps) {
+
+    // Fallback if no details yet
+    const displayEvent = eventDetail || selectedEvent;
+
+    return (
+        <Modal
+            visible={visible && !!selectedEvent}
+            animationType="slide"
+            transparent
+            onRequestClose={onClose}
+        >
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalCard}>
+                    {/* Header */}
+                    <View style={styles.modalHeader}>
+                        {selectedEvent && getEventImage(selectedEvent) && (
+                            <Image
+                                source={getEventImage(selectedEvent)!}
+                                style={styles.modalImage}
+                                resizeMode="cover"
+                            />
+                        )}
+                        <ThemedText type="title" style={styles.modalTitle}>
+                            {selectedEvent && getTranslatedEventTitle(selectedEvent, t)}
+                        </ThemedText>
+                    </View>
+
+                    <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
+                        {loading ? (
+                            <View style={styles.modalLoadingContainer}>
+                                <ActivityIndicator size="large" color="#0056A8" />
+                                <ThemedText style={styles.modalLoadingText}>
+                                    {t('events.loading')}
+                                </ThemedText>
+                            </View>
+                        ) : error ? (
+                            <View style={styles.modalErrorContainer}>
+                                <ThemedText style={styles.modalErrorText}>{error}</ThemedText>
+                            </View>
+                        ) : showSuccessView && selectedEvent ? (
+                            /* Success View */
+                            <View style={styles.successContainer}>
+                                <Ionicons name="checkbox" size={64} color="#0056A8" style={{ marginBottom: 16 }} />
+                                <ThemedText type="subtitle" style={styles.successTitle}>
+                                    {t('alerts.registerSuccess', 'Inscription confirmée !')}
+                                </ThemedText>
+                                <ThemedText style={styles.successMessage}>
+                                    {t('alerts.registerSuccessMessage', "Vous êtes inscrit(e) à l'événement.")}
+                                </ThemedText>
+                                <Pressable
+                                    style={styles.undoButton}
+                                    onPress={onUnregister}
+                                >
+                                    <ThemedText style={styles.undoButtonText}>
+                                        {t('events.actions.undo', "Annuler l'inscription")}
+                                    </ThemedText>
+                                </Pressable>
+                                <View style={styles.timerContainer}>
+                                    {/* Handle both Animated.Value and simple numbers for portability */}
+                                    {typeof countdownValue === 'number' ? (
+                                        <View style={[styles.timerBar, { width: `${(countdownValue / 10) * 100}%` }]} />
+                                    ) : (
+                                        <AnimatedView
+                                            style={[
+                                                styles.timerBar,
+                                                {
+                                                    width: countdownValue.interpolate({
+                                                        inputRange: [0, 1],
+                                                        outputRange: ['0%', '100%']
+                                                    })
+                                                }
+                                            ]}
+                                        />
+                                    )}
+                                    <ThemedText style={styles.timerText}>
+                                        {t('events.registrationSuccess.closingIn', { seconds: countdownSeconds })}
+                                    </ThemedText>
+                                </View>
+                            </View>
+                        ) : (
+                            /* Detail View */
+                            <>
+                                <ThemedText style={styles.sectionTitle}>
+                                    {t('events.fields.description')}
+                                </ThemedText>
+                                <ThemedText>
+                                    {displayEvent && getTranslatedEventDescription(displayEvent, t)}
+                                </ThemedText>
+
+                                <View style={styles.modalRow}>
+                                    <ThemedText style={styles.sectionTitle}>
+                                        {t('events.fields.date')}
+                                    </ThemedText>
+                                    <ThemedText>
+                                        {displayEvent && formatIsoDate(displayEvent.startDateTime)}
+                                    </ThemedText>
+                                </View>
+
+                                <View style={styles.modalRow}>
+                                    <ThemedText style={styles.sectionTitle}>
+                                        {t('events.fields.time')}
+                                    </ThemedText>
+                                    <ThemedText>
+                                        {displayEvent &&
+                                            formatIsoTimeRange(
+                                                displayEvent.startDateTime,
+                                                displayEvent.endDateTime,
+                                            )}
+                                    </ThemedText>
+                                </View>
+
+                                <View style={styles.modalRow}>
+                                    <ThemedText style={styles.sectionTitle}>
+                                        {t('events.fields.place')}
+                                    </ThemedText>
+                                    <ThemedText>{displayEvent?.address}</ThemedText>
+                                </View>
+
+                                <View style={styles.modalRow}>
+                                    <ThemedText style={styles.sectionTitle}>{t('events.fields.status')}</ThemedText>
+                                    <View style={[styles.inlineStatusBadge, { backgroundColor: getStatusColor(displayEvent?.status) }]}>
+                                        <ThemedText style={[styles.statusText, { color: getStatusTextColor(displayEvent?.status) }]}>
+                                            {getStatusLabel(displayEvent?.status, t)}
+                                        </ThemedText>
+                                    </View>
+                                </View>
+
+                                {displayEvent?.maxCapacity != null &&
+                                    displayEvent?.currentRegistrations != null && (
+                                        <View style={styles.modalRow}>
+                                            <ThemedText style={styles.sectionTitle}>
+                                                {t('events.fields.capacity')}
+                                            </ThemedText>
+                                            <ThemedText>
+                                                {displayEvent.currentRegistrations}/
+                                                {displayEvent.maxCapacity}
+                                            </ThemedText>
+                                        </View>
+                                    )}
+
+                                {/* Registration Summary (Admin) */}
+                                {selectedEvent && user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && (
+                                    <RegistrationSummaryComponent
+                                        loading={summaryLoading}
+                                        error={summaryError}
+                                        summary={registrationSummary}
+                                        onRetry={onRetrySummary}
+                                    />
+                                )}
+
+                                {/* Buttons */}
+                                {user ? (
+                                    hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) ? (
+                                        <View style={{ marginTop: 24, gap: 12 }}>
+                                            {userRegistration ? (
+                                                <Pressable
+                                                    style={styles.unregisterButton}
+                                                    onPress={onUnregister}
+                                                >
+                                                    <ThemedText style={styles.unregisterButtonText}>
+                                                        {t('events.actions.unregister', 'Se désinscrire')}
+                                                    </ThemedText>
+                                                </Pressable>
+                                            ) : (
+                                                <Pressable
+                                                    style={styles.registerButton}
+                                                    onPress={onRegister}
+                                                >
+                                                    <ThemedText style={styles.registerButtonText}>
+                                                        {displayEvent?.status === 'FULL'
+                                                            ? t('events.actions.joinWaitlist')
+                                                            : t('events.actions.register')}
+                                                    </ThemedText>
+                                                </Pressable>
+                                            )}
+                                        </View>
+                                    ) : (
+                                        /* Logged in but not Member/Employee? Use case unclear but safe fallback */
+                                        null
+                                    )
+                                ) : (
+                                    /* Not Logged In */
+                                    <View style={styles.infoBox}>
+                                        <ThemedText style={styles.infoText}>
+                                            {t('events.loginToRegister', 'Connectez-vous pour vous inscrire')}
+                                        </ThemedText>
+                                    </View>
+                                )}
+                            </>
+                        )}
+                    </ScrollView>
+
+                    <Pressable
+                        style={styles.modalCloseButton}
+                        onPress={onClose}
+                    >
+                        <ThemedText style={styles.modalCloseButtonText}>
+                            {t('events.actions.close')}
+                        </ThemedText>
+                    </Pressable>
+                </View>
+            </View>
+        </Modal>
+    );
+}

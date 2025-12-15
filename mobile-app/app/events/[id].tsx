@@ -1,24 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
     ActivityIndicator,
+    Animated,
     FlatList,
     ListRenderItemInfo,
     RefreshControl,
-    StyleSheet,
-    View,
-    Pressable,
-    Modal,
-    Image,
-    Alert,
-    ScrollView,
-    type ImageSourcePropType,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n/config';
+import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
-import { RegistrationSummaryComponent } from '../../components/registration-summary';
+import { EventCard } from '../../components/EventCard';
+import { EventDetailModal } from '../../components/EventDetailModal';
+
 import {
     getUpcomingEvents,
     getEventById,
@@ -27,730 +22,293 @@ import {
     type EventDetail,
     type RegistrationSummary,
 } from '../../services/events.service';
-import { registerForEvent, getMyRegistrations } from '../../services/registration.service';
+import { registerForEvent, getMyRegistrations, cancelRegistration, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
+import { styles } from './events.styles';
 
-const eventImages: Record<string, ImageSourcePropType> = {
-    'gala': require('../../assets/mana/Gala_image_Mana.png'),
-    'distribution_mardi': require('../../assets/mana/boutiqueSolidaire_Mana.png'),
-    'formation_mediateur': require('../../assets/mana/Interculturelle_Mana.png'),
-    'panier_noel': require('../../assets/mana/PanierNoel_Mana.png'),
-};
-
-function getEventImage(event: EventSummary | null): ImageSourcePropType | undefined {
-    if (!event) return undefined;
-    return eventImages[event.title];
-}
-
-const formatDate = formatIsoDate;
-const formatTimeRange = formatIsoTimeRange;
-
-function getStatusLabel(status: EventSummary['status'], t: (key: string, defaultValue: string) => string) {
-    return t(`events.status.${status}`, status);
-}
-
-function getStatusColor(status: EventSummary['status']): string {
-    switch (status) {
-        case 'OPEN':
-            return '#4CAF50'; // Green
-        case 'NEARLY_FULL':
-            return '#F57C00'; // Orange
-        case 'FULL':
-            return '#D32F2F'; // Red
-        default:
-            return '#0057B8'; // Default blue
-    }
-}
-
-export default function EventsScreen() {
+export default function EventsDetailScreen() {
+    const { id } = useLocalSearchParams();
     const { t } = useTranslation();
+    const { user, hasRole } = useAuth();
+
+    // Data State
     const [events, setEvents] = useState<EventSummary[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // modal state
+    // Modal State
     const [selectedEvent, setSelectedEvent] = useState<EventSummary | null>(null);
-    const [modalVisible, setModalVisible] = useState(false);
     const [eventDetail, setEventDetail] = useState<EventDetail | null>(null);
-    const [modalLoading, setModalLoading] = useState(false);
-    const [modalError, setModalError] = useState<string | null>(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [detailsLoading, setDetailsLoading] = useState(false);
+    const [detailsError, setDetailsError] = useState<string | null>(null);
 
-    // Registration summary state
+    // Registration User State
+    const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
+    const [userRegistration, setUserRegistration] = useState<Registration | null>(null);
+
+    // Admin/Employee Stats
     const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState<string | null>(null);
 
-    // Auth context for checking if user can register
-    const { user, hasRole } = useAuth();
+    // Success View State
+    const [showSuccessView, setShowSuccessView] = useState(false);
+    const [countdownSeconds, setCountdownSeconds] = useState(10);
+    const countdown = useRef(new Animated.Value(0)).current;
 
-    // Debug: Log user info when component loads
     useEffect(() => {
-        console.log('[EventDetail] User:', user);
-        console.log('[EventDetail] Has ROLE_MEMBER:', hasRole(['ROLE_MEMBER']));
-        console.log('[EventDetail] eventDetail:', eventDetail);
-        console.log('[EventDetail] eventDetail.status:', eventDetail?.status);
-        console.log('[EventDetail] Show register button?', user && hasRole(['ROLE_MEMBER']) && eventDetail?.status !== 'FULL');
-    }, [user, hasRole, eventDetail]);
+        loadEvents();
+        if (user) {
+            loadMyRegistrations();
+        }
+    }, [user]);
+
+    // Handle Deep Link or Initial ID
+    useEffect(() => {
+        if (id && events.length > 0) {
+            const eventId = typeof id === 'string' ? parseInt(id, 10) : parseInt(id[0], 10);
+            const found = events.find((e: EventSummary) => e.id === eventId);
+            if (found) {
+                openEventModal(found);
+            }
+        }
+    }, [id, events]);
+
+    // Check overlaps when selectedEvent changes
+    useEffect(() => {
+        if (selectedEvent && myRegistrations.length > 0) {
+            checkUserRegistration(selectedEvent.id);
+        }
+    }, [selectedEvent, myRegistrations]);
 
     const loadEvents = async () => {
         try {
             setError(null);
+            if (!refreshing) setLoading(true);
             const data = await getUpcomingEvents();
             setEvents(data);
-        } catch (e) {
-            console.error('Failed to load events', e);
-            setError(
-                e instanceof Error
-                    ? e.message
-                    : 'Impossible de charger les événements.',
-            );
+        } catch (err) {
+            console.error('Failed to load events', err);
+            setError(t('events.errors.loadFailed'));
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
     };
 
-    useEffect(() => {
-        loadEvents();
-    }, []);
+    const loadMyRegistrations = async () => {
+        if (!user) return;
+        try {
+            const regs = await getMyRegistrations(user.token);
+            setMyRegistrations(regs);
+        } catch (err) {
+            console.error('Failed to load registrations', err);
+        }
+    };
 
     const onRefresh = () => {
         setRefreshing(true);
         loadEvents();
+        if (user) loadMyRegistrations();
+    };
+
+    const openEventModal = async (event: EventSummary) => {
+        setSelectedEvent(event);
+        setModalVisible(true);
+        setDetailsLoading(true);
+        setDetailsError(null);
+        setShowSuccessView(false);
+        resetCountdown();
+        checkUserRegistration(event.id);
+
+        try {
+            // 1. Get Details
+            const detail = await getEventById(event.id);
+            setEventDetail(detail);
+
+            // 2. Get Summary (Admin only)
+            if (user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
+                loadRegistrationSummary(event.id);
+            }
+        } catch (err) {
+            console.error('Failed to load event details', err);
+            setDetailsError(t('events.errors.detailsFailed'));
+        } finally {
+            setDetailsLoading(false);
+        }
     };
 
     const loadRegistrationSummary = async (eventId: number) => {
+        setSummaryLoading(true);
+        setSummaryError(null);
         try {
-            setSummaryError(null);
-            setSummaryLoading(true);
             const summary = await getRegistrationSummary(eventId);
             setRegistrationSummary(summary);
-        } catch (e) {
-            console.error('Failed to load registration summary', e);
-            setSummaryError(
-                e instanceof Error
-                    ? e.message
-                    : 'Impossible de charger le résumé des inscriptions',
-            );
+        } catch (err) {
+            setSummaryError(t('events.errors.summaryFailed'));
         } finally {
             setSummaryLoading(false);
         }
     };
 
-    const openEventModal = async (event: EventSummary) => {
-        console.log('[EventDetail] Opening modal for event:', event);
-        setSelectedEvent(event);
-        setModalVisible(true);
-        setModalLoading(true);
-        setModalError(null);
-        setEventDetail(null);
-
-        // Reset registration summary state
-        setRegistrationSummary(null);
-        setSummaryLoading(false);
-        setSummaryError(null);
-
-        try {
-            // Fetch full event details from backend instead of using list data
-            const detail = await getEventById(event.id);
-            console.log('[EventDetail] Loaded event details:', detail);
-            setEventDetail(detail);
-        } catch (e) {
-            console.error('Failed to load event details', e);
-            setModalError(
-                e instanceof Error
-                    ? e.message
-                    : "Impossible de charger les détails de l'événement",
-            );
-        } finally {
-            setModalLoading(false);
-        }
-
-        // Load registration summary in parallel
-        loadRegistrationSummary(event.id);
+    const checkUserRegistration = (eventId: number) => {
+        const reg = myRegistrations.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
+        setUserRegistration(reg || null);
     };
 
     const closeEventModal = () => {
         setModalVisible(false);
         setSelectedEvent(null);
         setEventDetail(null);
-        setModalError(null);
         setRegistrationSummary(null);
-        setSummaryError(null);
+        setUserRegistration(null);
+        setShowSuccessView(false);
+    };
+
+    // --- Action Handlers (Duplicated from Index for now) ---
+    const startCountdown = () => {
+        setCountdownSeconds(10);
+        countdown.setValue(0);
+        Animated.timing(countdown, {
+            toValue: 1,
+            duration: 10000,
+            useNativeDriver: false,
+        }).start();
+        const interval = setInterval(() => {
+            setCountdownSeconds((prev: number) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    closeEventModal();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return interval;
+    };
+
+    const resetCountdown = () => {
+        countdown.setValue(0);
+        setCountdownSeconds(10);
     };
 
     const handleRegister = async () => {
-        if (!user || !eventDetail) return;
-
+        if (!selectedEvent || !user) return;
         try {
-            const registration = await registerForEvent(eventDetail.id, user.token);
+            const newReg = await registerForEvent(selectedEvent.id, user.token);
+            const updatedRegs = await getMyRegistrations(user.token);
+            setMyRegistrations(updatedRegs);
+            setUserRegistration(newReg);
+            setShowSuccessView(true);
+            startCountdown();
 
-            // Show success message based on status
-            if (registration.status === 'CONFIRMED') {
-                Alert.alert(
-                    'Inscription confirmée! ✅',
-                    `Vous êtes inscrit(e) à l'événement "${eventDetail.title}".`,
-                    [{ text: 'OK' }]
-                );
-            } else if (registration.status === 'WAITLISTED') {
-                Alert.alert(
-                    'Ajouté à la liste d\'attente',
-                    `L'événement est complet. Vous êtes en position ${registration.waitlistedPosition} sur la liste d'attente.`,
-                    [{ text: 'OK' }]
-                );
+            if (hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
+                loadRegistrationSummary(selectedEvent.id);
             }
-
-            // Refresh event details to update capacity
-            const updatedEvent = await getEventById(eventDetail.id);
-            setEventDetail(updatedEvent);
-
-            // Refresh registration summary
-            loadRegistrationSummary(eventDetail.id);
-
-        } catch (error) {
-            console.error('Registration failed', error);
-            const errorMessage = error instanceof Error ? error.message : 'Inscription échouée';
-
-            // Handle specific error cases
-            if (errorMessage.includes('409')) {
-                Alert.alert(
-                    'Déjà inscrit',
-                    'Vous êtes déjà inscrit(e) à cet événement.',
-                    [{ text: 'OK' }]
-                );
-            } else if (errorMessage.includes('400')) {
-                Alert.alert(
-                    'Événement complet',
-                    'Cet événement est complet et n\'accepte plus d\'inscriptions.',
-                    [{ text: 'OK' }]
-                );
+        } catch (err: any) {
+            if (err.response?.status === 409) {
+                alert(t('events.errors.conflict'));
             } else {
-                Alert.alert(
-                    'Erreur',
-                    'Impossible de compléter l\'inscription. Veuillez réessayer.',
-                    [{ text: 'OK' }]
-                );
+                alert(t('events.errors.registrationFailed'));
             }
         }
     };
 
-    const handleRegisterWithWarning = async () => {
-        if (!user || !eventDetail) return;
-
-        const performRegistration = async () => {
-            await handleRegister();
-        };
-
+    const handleUnregister = async () => {
+        if (!selectedEvent || !userRegistration || !user) return;
         try {
-            const existing = await getMyRegistrations(user.token);
-            const hasOverlap = existing.some((reg) => {
-                if (!reg.eventStartDateTime || !reg.eventEndDateTime) return false;
-                if (reg.status === 'CANCELLED') return false;
-                const regStart = Date.parse(reg.eventStartDateTime);
-                const regEnd = Date.parse(reg.eventEndDateTime);
-                const eventStart = Date.parse(eventDetail.startDateTime);
-                const eventEnd = Date.parse(eventDetail.endDateTime);
-                if ([regStart, regEnd, eventStart, eventEnd].some(Number.isNaN)) return false;
-                return eventStart < regEnd && regStart < eventEnd;
-            });
+            await cancelRegistration(selectedEvent.id, user.token);
 
-            if (hasOverlap) {
-                Alert.alert(
-                    'Conflit horaire détecté',
-                    'Cet événement chevauche un autre auquel vous êtes inscrit. Vous pouvez continuer.',
-                    [
-                        { text: 'Retour', style: 'cancel' },
-                        { text: 'Continuer', onPress: performRegistration },
-                    ],
-                );
-            } else {
-                await performRegistration();
+            // Manually update selectedEvent state locally
+            const updatedEvent = {
+                ...selectedEvent,
+                currentRegistrations: (selectedEvent.currentRegistrations || 0) - 1
+            };
+            // Simple client-side status update
+            if (updatedEvent.maxCapacity) {
+                if (updatedEvent.currentRegistrations < updatedEvent.maxCapacity) {
+                    updatedEvent.status = updatedEvent.currentRegistrations >= updatedEvent.maxCapacity * 0.8
+                        ? 'NEARLY_FULL'
+                        : 'OPEN';
+                }
             }
-        } catch (e) {
-            console.error('Overlap check failed, proceeding anyway', e);
-            await performRegistration();
+            setSelectedEvent(updatedEvent);
+
+            const updatedRegs = await getMyRegistrations(user.token);
+            setMyRegistrations(updatedRegs);
+            setUserRegistration(null);
+            setShowSuccessView(false);
+            resetCountdown();
+
+            if (hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
+                loadRegistrationSummary(selectedEvent.id);
+            }
+            alert(t('events.success.unregistered'));
+        } catch (err) {
+            console.error(err);
+            alert(t('events.errors.unregisterFailed'));
         }
     };
 
-    // ---- Loading / error / empty states ----
+    const renderEventItem = ({ item }: ListRenderItemInfo<EventSummary>) => {
+        return (
+            <EventCard
+                event={item}
+                onPress={openEventModal}
+                t={t}
+            />
+        );
+    };
+
     if (loading) {
         return (
             <ThemedView style={styles.centered}>
-                <ActivityIndicator />
-                <ThemedText style={styles.loadingText}>
-                    Chargement des événements...
-                </ThemedText>
+                <ActivityIndicator size="large" color="#0056A8" />
+                <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
             </ThemedView>
         );
     }
 
-    if (error) {
-        return (
-            <ThemedView style={styles.centered}>
-                <ThemedText style={styles.errorText}>{error}</ThemedText>
-            </ThemedView>
-        );
-    }
-
-    if (events.length === 0) {
-        return (
-            <ThemedView style={styles.centered}>
-                <ThemedText style={styles.emptyText}>
-                    Aucun événement à venir pour le moment.
-                </ThemedText>
-            </ThemedView>
-        );
-    }
-
-    // ---- Main list + modal ----
     return (
         <ThemedView style={styles.container}>
-            <ThemedText type="title" style={styles.screenTitle}>
-                ÉVÉNEMENTS DISPONIBLES
-            </ThemedText>
-
-            <FlatList<EventSummary>
+            <FlatList
                 data={events}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }: ListRenderItemInfo<EventSummary>) => (
-                    <Pressable
-                        style={styles.card}
-                        onPress={() => openEventModal(item)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`Voir détails, ${getTranslatedTitle(item.title, t)}`}
-                    >
-                        <View style={styles.cardHeader}>
-                            <ThemedText type="subtitle" style={styles.eventTitle}>
-                                {getTranslatedTitle(item.title, t)}
-                            </ThemedText>
-                            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-                                <ThemedText style={styles.statusText}>
-                                    {getStatusLabel(item.status, t)}
-                                </ThemedText>
-                            </View>
-                        </View>
-
-                        <View style={styles.row}>
-                            <ThemedText style={styles.label}>Date</ThemedText>
-                            <ThemedText style={styles.value}>
-                                {formatDate(item.startDateTime)}
-                            </ThemedText>
-                        </View>
-
-                        <View style={styles.row}>
-                            <ThemedText style={styles.label}>Heure</ThemedText>
-                            <ThemedText style={styles.value}>
-                                {formatTimeRange(item.startDateTime, item.endDateTime)}
-                            </ThemedText>
-                        </View>
-
-                        <View style={styles.row}>
-                            <ThemedText style={styles.label}>Lieu</ThemedText>
-                            <ThemedText style={styles.value}>{item.address}</ThemedText>
-                        </View>
-
-                        {item.maxCapacity != null &&
-                            item.currentRegistrations != null && (
-                                <View style={styles.row}>
-                                    <ThemedText style={styles.label}>Capacité</ThemedText>
-                                    <ThemedText style={styles.value}>
-                                        {item.currentRegistrations}/{item.maxCapacity}
-                                    </ThemedText>
-                                </View>
-                            )}
-
-                        <View style={styles.footerButton}>
-                            <ThemedText style={styles.footerButtonText}>
-                                Voir détails
-                            </ThemedText>
-                        </View>
-                    </Pressable>
-                )}
+                renderItem={renderEventItem}
+                keyExtractor={(item: EventSummary) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
+                }
+                ListEmptyComponent={
+                    <ThemedView style={styles.centered}>
+                        <ThemedText style={styles.emptyText}>{t('events.empty')}</ThemedText>
+                    </ThemedView>
                 }
             />
 
-            {/* ---- Event Detail Modal ---- */}
-            <Modal
-                visible={modalVisible && !!selectedEvent}
-                animationType="slide"
-                transparent
-                onRequestClose={closeEventModal}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalCard}>
-                        {/* Header with image + title */}
-                        <View style={styles.modalHeader}>
-                            {selectedEvent && getEventImage(selectedEvent) && (
-                                <Image
-                                    source={getEventImage(selectedEvent)!}
-                                    style={styles.modalImage}
-                                    resizeMode="contain"
-                                />
-                            )}
-                            <ThemedText type="title" style={styles.modalTitle}>
-                                {selectedEvent && getTranslatedTitle(selectedEvent.title, t)}
-                            </ThemedText>
-                        </View>
-
-                        <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
-                            {/* Loading state while fetching event details */}
-                            {modalLoading && (
-                                <View style={styles.modalLoadingContainer}>
-                                    <ActivityIndicator size="large" color="#0057B8" />
-                                    <ThemedText style={styles.modalLoadingText}>
-                                        Chargement des détails...
-                                    </ThemedText>
-                                </View>
-                            )}
-
-                            {/* Error state if event cannot be loaded */}
-                            {modalError && !modalLoading && (
-                                <View style={styles.modalErrorContainer}>
-                                    <ThemedText style={styles.modalErrorText}>
-                                        ❌ {modalError}
-                                    </ThemedText>
-                                    <ThemedText style={styles.modalErrorHint}>
-                                        Veuillez réessayer plus tard.
-                                    </ThemedText>
-                                </View>
-                            )}
-
-                            {/* Event details - only show when loaded successfully */}
-                            {!modalLoading && !modalError && eventDetail && (
-                                <>
-                                    <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-                                    <ThemedText>{getTranslatedDescription(eventDetail.description, t)}</ThemedText>
-
-                                    <View style={styles.modalRow}>
-                                        <ThemedText style={styles.sectionTitle}>Date</ThemedText>
-                                        <ThemedText>
-                                            {formatDate(eventDetail.startDateTime)}
-                                        </ThemedText>
-                                    </View>
-
-                                    <View style={styles.modalRow}>
-                                        <ThemedText style={styles.sectionTitle}>Heure</ThemedText>
-                                        <ThemedText>
-                                            {formatTimeRange(
-                                                eventDetail.startDateTime,
-                                                eventDetail.endDateTime,
-                                            )}
-                                        </ThemedText>
-                                    </View>
-
-                                    <View style={styles.modalRow}>
-                                        <ThemedText style={styles.sectionTitle}>Lieu</ThemedText>
-                                        <ThemedText>{eventDetail.address}</ThemedText>
-                                    </View>
-
-                                    <View style={styles.modalRow}>
-                                        <ThemedText style={styles.sectionTitle}>Statut</ThemedText>
-                                        <View style={[styles.inlineStatusBadge, { backgroundColor: getStatusColor(eventDetail.status) }]}>
-                                            <ThemedText style={styles.statusText}>
-                                                {getStatusLabel(eventDetail.status, t)}
-                                            </ThemedText>
-                                        </View>
-                                    </View>
-
-                                    {eventDetail.maxCapacity != null &&
-                                        eventDetail.currentRegistrations != null && (
-                                            <View style={styles.modalRow}>
-                                                <ThemedText style={styles.sectionTitle}>
-                                                    Capacité restante
-                                                </ThemedText>
-                                                <ThemedText>
-                                                    {eventDetail.currentRegistrations}/
-                                                    {eventDetail.maxCapacity}
-                                                </ThemedText>
-                                            </View>
-                                        )}
-
-                                    {/* Registration Summary Component */}
-                                    <RegistrationSummaryComponent
-                                        summary={registrationSummary}
-                                        loading={summaryLoading}
-                                        error={summaryError}
-                                        onRetry={() => loadRegistrationSummary(eventDetail.id)}
-                                    />
-
-                                    {/* Register button - visible for ROLE_MEMBER and ROLE_EMPLOYEE */}
-                                    {user && hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) && (
-                                        <View style={{ gap: 8, marginTop: 16 }}>
-                                            {eventDetail?.status === 'FULL' && (
-                                                <ThemedText style={styles.infoText}>
-                                                    L&apos;événement est complet : vous serez placé(e) sur liste d&apos;attente.
-                                                </ThemedText>
-                                            )}
-                                            <Pressable
-                                                style={styles.registerButton}
-                                            onPress={handleRegisterWithWarning}
-                                            >
-                                                <ThemedText style={styles.registerButtonText}>
-                                                    {eventDetail?.status === 'FULL'
-                                                        ? '📝 Rejoindre la liste d\'attente'
-                                                        : '📝 S\'inscrire à cet événement'}
-                                                </ThemedText>
-                                            </Pressable>
-                                        </View>
-                                    )}
-
-                                    {/* Message for non-members/employees */}
-                                    {!user && (
-                                        <View style={styles.infoBox}>
-                                            <ThemedText style={styles.infoText}>
-                                                ℹ️ Connectez-vous pour vous inscrire
-                                            </ThemedText>
-                                        </View>
-                                    )}
-                                </>
-                            )}
-                        </ScrollView>
-
-                        <Pressable
-                            style={styles.modalCloseButton}
-                            onPress={closeEventModal}
-                        >
-                            <ThemedText style={styles.modalCloseButtonText}>
-                                Fermer
-                            </ThemedText>
-                        </Pressable>
-                    </View>
-                </View>
-            </Modal>
+            <EventDetailModal
+                visible={modalVisible}
+                onClose={closeEventModal}
+                selectedEvent={selectedEvent}
+                eventDetail={eventDetail}
+                loading={detailsLoading}
+                error={detailsError}
+                user={user}
+                hasRole={hasRole}
+                t={t}
+                userRegistration={userRegistration}
+                onRegister={handleRegister}
+                onUnregister={handleUnregister}
+                showSuccessView={showSuccessView}
+                countdownValue={countdown}
+                countdownSeconds={countdownSeconds}
+                registrationSummary={registrationSummary}
+                summaryLoading={summaryLoading}
+                summaryError={summaryError}
+                onRetrySummary={() => selectedEvent && loadRegistrationSummary(selectedEvent.id)}
+            />
         </ThemedView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 24,
-    },
-    screenTitle: {
-        marginBottom: 16,
-        fontWeight: '700',
-        textTransform: 'uppercase',
-    },
-    listContent: {
-        paddingBottom: 16,
-    },
-    card: {
-        backgroundColor: '#ffffff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 2,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
-    },
-    eventTitle: {
-        flex: 1,
-        marginRight: 8,
-        fontWeight: '700',
-    },
-    statusBadge: {
-        backgroundColor: '#0057B8',
-        borderRadius: 999,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        alignSelf: 'flex-start',
-    },
-    statusText: {
-        color: '#ffffff',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    inlineStatusBadge: {
-        borderRadius: 6,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        alignSelf: 'flex-start',
-        marginTop: 4,
-    },
-    row: {
-        flexDirection: 'row',
-        marginBottom: 4,
-    },
-    label: {
-        width: 70,
-        fontWeight: '600',
-        fontSize: 12,
-    },
-    value: {
-        flex: 1,
-        fontSize: 12,
-    },
-    footerButton: {
-        marginTop: 12,
-        alignSelf: 'stretch',
-        backgroundColor: '#0057B8',
-        borderRadius: 8,
-        paddingVertical: 10,
-        alignItems: 'center',
-    },
-    footerButtonText: {
-        color: '#ffffff',
-        fontWeight: '600',
-        fontSize: 14,
-    },
-    debugBox: {
-        marginTop: 12,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#d0d7de',
-        borderRadius: 8,
-        backgroundColor: '#f6f8fa',
-    },
-    debugTitle: {
-        fontWeight: '700',
-        marginBottom: 4,
-    },
-    debugItem: {
-        fontSize: 13,
-        color: '#4a5568',
-    },
-    centered: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 24,
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 14,
-    },
-    errorText: {
-        textAlign: 'center',
-        color: 'red',
-    },
-    emptyText: {
-        textAlign: 'center',
-    },
-
-    // Modal styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.45)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 16,
-    },
-    modalCard: {
-        width: '100%',
-        maxWidth: 420,
-        maxHeight: '80%',
-        borderRadius: 16,
-        backgroundColor: '#ffffff',
-        overflow: 'hidden',
-    },
-    modalHeader: {
-        backgroundColor: '#0057B8',
-        paddingHorizontal: 16,
-        paddingTop: 16,
-        paddingBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    modalImage: {
-        width: 48,
-        height: 48,
-        marginRight: 12,
-    },
-    modalTitle: {
-        flex: 1,
-        color: '#ffffff',
-        fontWeight: '700',
-    },
-    modalBody: {
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-    },
-    sectionTitle: {
-        fontWeight: '700',
-        marginBottom: 4,
-    },
-    modalRow: {
-        marginTop: 8,
-    },
-    modalCloseButton: {
-        backgroundColor: '#E53935',
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    modalCloseButtonText: {
-        color: '#ffffff',
-        fontWeight: '600',
-    },
-    modalLoadingContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 32,
-    },
-    modalLoadingText: {
-        marginTop: 12,
-        fontSize: 14,
-        color: '#666',
-    },
-    modalErrorContainer: {
-        backgroundColor: '#FFEBEE',
-        borderRadius: 8,
-        padding: 16,
-        marginVertical: 8,
-    },
-    modalErrorText: {
-        color: '#D32F2F',
-        fontSize: 14,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    modalErrorHint: {
-        color: '#666',
-        fontSize: 12,
-    },
-    registerButton: {
-        backgroundColor: '#4CAF50',
-        borderRadius: 8,
-        paddingVertical: 14,
-        paddingHorizontal: 20,
-        marginTop: 16,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 2,
-    },
-    registerButtonText: {
-        color: '#ffffff',
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    infoBox: {
-        backgroundColor: '#E3F2FD',
-        borderRadius: 8,
-        padding: 12,
-        marginTop: 16,
-        borderLeftWidth: 4,
-        borderLeftColor: '#2196F3',
-    },
-    infoText: {
-        color: '#1565C0',
-        fontSize: 13,
-    },
-});

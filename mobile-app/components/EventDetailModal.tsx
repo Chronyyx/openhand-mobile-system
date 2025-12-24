@@ -38,6 +38,10 @@ type EventDetailModalProps = {
     summaryLoading: boolean;
     summaryError: string | null;
     onRetrySummary: () => void;
+
+    // Race Condition Prevention Props
+    isRegistering?: boolean;
+    registrationError?: string | null;
 };
 
 // Use explicit class for Animated View created in index if passed, but here we can just use View or re-create it.
@@ -65,7 +69,9 @@ export function EventDetailModal({
     registrationSummary,
     summaryLoading,
     summaryError,
-    onRetrySummary
+    onRetrySummary,
+    isRegistering = false,
+    registrationError = null
 }: EventDetailModalProps) {
 
     // Fallback if no details yet
@@ -221,25 +227,44 @@ export function EventDetailModal({
                                 {user ? (
                                     hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) ? (
                                         <View style={{ marginTop: 24, gap: 12 }}>
+                                            {/* Error Message Display */}
+                                            {registrationError && (
+                                                <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
+                                                    <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                                        {registrationError}
+                                                    </ThemedText>
+                                                </View>
+                                            )}
+
                                             {userRegistration ? (
                                                 <Pressable
-                                                    style={styles.unregisterButton}
+                                                    style={[styles.unregisterButton, isRegistering && { opacity: 0.6 }]}
                                                     onPress={onUnregister}
+                                                    disabled={isRegistering}
                                                 >
-                                                    <ThemedText style={styles.unregisterButtonText}>
-                                                        {t('events.actions.unregister', 'Se désinscrire')}
-                                                    </ThemedText>
+                                                    {isRegistering ? (
+                                                        <ActivityIndicator color="#FFFFFF" />
+                                                    ) : (
+                                                        <ThemedText style={styles.unregisterButtonText}>
+                                                            {t('events.actions.unregister', 'Se désinscrire')}
+                                                        </ThemedText>
+                                                    )}
                                                 </Pressable>
                                             ) : (
                                                 <Pressable
-                                                    style={styles.registerButton}
+                                                    style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
                                                     onPress={onRegister}
+                                                    disabled={isRegistering}
                                                 >
-                                                    <ThemedText style={styles.registerButtonText}>
-                                                        {displayEvent?.status === 'FULL'
-                                                            ? t('events.actions.joinWaitlist')
-                                                            : t('events.actions.register')}
-                                                    </ThemedText>
+                                                    {isRegistering ? (
+                                                        <ActivityIndicator color="#FFFFFF" />
+                                                    ) : (
+                                                        <ThemedText style={styles.registerButtonText}>
+                                                            {displayEvent?.status === 'FULL'
+                                                                ? t('events.actions.joinWaitlist')
+                                                                : t('events.actions.register')}
+                                                        </ThemedText>
+                                                    )}
                                                 </Pressable>
                                             )}
                                         </View>

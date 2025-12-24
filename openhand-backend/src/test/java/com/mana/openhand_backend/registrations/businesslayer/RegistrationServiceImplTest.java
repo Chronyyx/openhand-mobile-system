@@ -74,9 +74,8 @@ class RegistrationServiceImplTest {
     void registerForEvent_withValidUserAndEvent_shouldCreateConfirmedRegistration() {
         // Arrange
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(0L);
 
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> {
             Registration reg = invocation.getArgument(0);
@@ -111,9 +110,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(2L);
         when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED)).thenReturn(1L);
 
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> {
@@ -148,7 +146,7 @@ class RegistrationServiceImplTest {
     void registerForEvent_whenEventNotFound_shouldThrowEventNotFoundException() {
         // Arrange
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(999L)).thenReturn(Optional.empty());
+        when(registrationRepository.findEventByIdForUpdate(999L)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(EventNotFoundException.class, () -> registrationService.registerForEvent(1L, 999L));
@@ -159,7 +157,6 @@ class RegistrationServiceImplTest {
     void registerForEvent_whenAlreadyRegistered_shouldThrowAlreadyRegisteredException() {
         // Arrange
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L))
                 .thenReturn(Optional.of(new Registration(testUser, testEvent)));
 
@@ -184,9 +181,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(0L);
 
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -214,9 +210,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(7L);
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -244,9 +239,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(9L);
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -276,9 +270,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(10L);
         when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED)).thenReturn(2L);
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -308,12 +301,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(9L); // Not
-                                                                                                               // all
-                                                                                                               // are
-                                                                                                               // confirmed
         when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED)).thenReturn(1L);
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -337,16 +326,13 @@ class RegistrationServiceImplTest {
                 LocalDateTime.now().plusDays(2),
                 "Test Location",
                 "Test Address",
-                EventStatus.FULL, // Marked FULL explicitly
+            EventStatus.FULL, // Marked FULL explicitly
                 10,
-                5, // But only 5 registered
+            5, // But only 5 registered
                 "General");
-
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(5L);
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED)).thenReturn(0L);
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -354,9 +340,9 @@ class RegistrationServiceImplTest {
 
         // Assert
         assertNotNull(result);
-        assertEquals(RegistrationStatus.WAITLISTED, result.getStatus());
-        assertEquals(1, result.getWaitlistedPosition());
-        verify(eventRepository, never()).save(testEvent);
+        assertEquals(RegistrationStatus.CONFIRMED, result.getStatus());
+        assertEquals(6, testEvent.getCurrentRegistrations());
+        verify(eventRepository).save(testEvent);
     }
 
     @Test
@@ -376,9 +362,8 @@ class RegistrationServiceImplTest {
                 "General");
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(eventRepository.findById(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
         when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
-        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED)).thenReturn(30L); // < 100
         when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
@@ -390,6 +375,38 @@ class RegistrationServiceImplTest {
         assertNotNull(result.getConfirmedAt());
         assertEquals(31, testEvent.getCurrentRegistrations()); // Incremented from 30
         verify(eventRepository).save(testEvent);
+    }
+
+    @Test
+    void registerForEvent_calledTwiceOnSingleSlotEvent_secondIsWaitlisted() {
+        // Arrange
+        testEvent = new Event(
+                "Test Event",
+                "Test Description",
+                LocalDateTime.now().plusDays(1),
+                LocalDateTime.now().plusDays(2),
+                "Test Location",
+                "Test Address",
+                EventStatus.OPEN,
+                1,
+                0,
+                "General");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(testUser));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.findByUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.empty());
+        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED)).thenReturn(0L, 1L);
+        when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // Act
+        Registration first = registrationService.registerForEvent(1L, 1L);
+        Registration second = registrationService.registerForEvent(2L, 1L);
+
+        // Assert
+        assertEquals(RegistrationStatus.CONFIRMED, first.getStatus());
+        assertEquals(RegistrationStatus.WAITLISTED, second.getStatus());
+        assertEquals(1, testEvent.getCurrentRegistrations());
     }
 
     @Test

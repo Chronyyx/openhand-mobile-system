@@ -17,14 +17,35 @@ export type Registration = {
     eventEndDateTime: string | null;
 };
 
+export type RegistrationError = {
+    status: number;
+    error: string;
+    message: string;
+};
+
 async function handleResponse<T>(res: Response, context: string): Promise<T> {
     if (!res.ok) {
-        // Preserve status so the UI can show friendly messages (e.g., 409 already registered)
+        // Preserve status so the UI can show friendly messages based on HTTP status codes
         const errorText = await res.text();
-        const error = new Error(
-            errorText || `HTTP ${res.status} during ${context}`,
-        ) as Error & { status?: number };
+        let errorData: RegistrationError | null = null;
+
+        try {
+            errorData = JSON.parse(errorText);
+        } catch {
+            // If response isn't JSON, create a simple error object
+            errorData = {
+                status: res.status,
+                error: `HTTP ${res.status}`,
+                message: errorText || `Failed during ${context}`,
+            };
+        }
+
+        const error = new Error(errorData?.message || 'Unknown error') as Error & { 
+            status?: number; 
+            errorData?: RegistrationError;
+        };
         error.status = res.status;
+        error.errorData = errorData || undefined;
         throw error;
     }
 

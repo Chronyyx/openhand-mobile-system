@@ -37,6 +37,10 @@ public class Event {
     @Column(name = "category")
     private String category;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     protected Event() {
     }
 
@@ -145,5 +149,13 @@ public class Event {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

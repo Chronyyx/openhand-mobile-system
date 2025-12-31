@@ -63,6 +63,10 @@ export default function EventsScreen() {
     // Success View State
     const [showSuccessView, setShowSuccessView] = useState(false);
 
+    // Registration Request State - CRITICAL for preventing race conditions
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [registrationError, setRegistrationError] = useState<string | null>(null);
+
     // Countdown Hook
     const {
         countdownSeconds,
@@ -186,25 +190,47 @@ export default function EventsScreen() {
         setRegistrationSummary(null);
         setUserRegistration(null);
         setShowSuccessView(false);
+        setIsRegistering(false);
+        setRegistrationError(null);
     };
 
+    /**
+     * RACE CONDITION PREVENTION: Request Debouncing
+     * 
+     * This handler implements client-side request debouncing to prevent race conditions.
+     * Even though the backend has pessimistic locking, we prevent unnecessary concurrent
+     * requests from the client side by:
+     * 
+     * 1. Setting isRegistering=true immediately, which disables the register button
+     * 2. Only allowing one registration request at a time
+     * 3. Properly handling HTTP 409 conflicts from concurrent attempts
+     * 
+     * Flow:
+     * - User clicks register → isRegistering becomes true → button disabled
+     * - Backend locks event and atomically checks capacity
+     * - If successful: show success view
+     * - If 409 conflict (event full): show waitlist message
+     * - If other error: show error alert
+     */
     const handleRegister = async () => {
-        if (!selectedEvent || !user) return;
+        if (!selectedEvent || !user || isRegistering) return;
 
-        // Perform simplified registration
         try {
+            setIsRegistering(true);
+            setRegistrationError(null);
+
             const newReg = await registerForEvent(selectedEvent.id, user.token);
+            
             if (newReg.status === 'CONFIRMED') {
                 setUserRegistration(newReg);
                 setShowSuccessView(true);
                 startCountdown();
             } else if (newReg.status === 'WAITLISTED') {
-                Alert.alert(
-                    t('alerts.registerWaitlistSuccess'),
-                    t('alerts.registerWaitlistMessage', { position: newReg.waitlistedPosition })
+                setRegistrationError(
+                    t('events.errors.eventFull',
+                        `L'événement est complet. Vous êtes en position ${newReg.waitlistedPosition} sur la liste d'attente.`)
                 );
                 setUserRegistration(newReg);
-                closeEventModal();
             }
 
             // Refresh list
@@ -216,18 +242,53 @@ export default function EventsScreen() {
             }
 
         } catch (e: any) {
-            const errorMessage = e instanceof Error ? e.message : '';
-            if (errorMessage.includes('409')) {
-                Alert.alert('Déjà inscrit', t('alerts.alreadyRegistered'));
+            setIsRegistering(false);
+
+            // Handle different error scenarios
+            if (e.status === 409) {
+                // HTTP 409 Conflict - either already registered or capacity exceeded
+                const errorMessage = e.errorData?.message || e.message;
+
+                if (errorMessage.includes('capacity')) {
+                    // Event reached capacity - user placed on waitlist
+                    setRegistrationError(
+                        t('events.errors.eventFull',
+                            'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
+                    );
+                } else if (errorMessage.includes('Already Registered')) {
+                    // User already has active registration
+                    setRegistrationError(
+                        t('events.errors.alreadyRegistered',
+                            'Vous êtes déjà inscrit(e) à cet événement.')
+                    );
+                } else {
+                    setRegistrationError(errorMessage);
+                }
+
+                // Refresh registrations to show current state
+                const myRegs = await getMyRegistrations(user.token);
+                const reg = myRegs.find((r: Registration) => r.eventId === selectedEvent.id && r.status !== 'CANCELLED');
+                setUserRegistration(reg || null);
             } else {
-                Alert.alert(t('alerts.registerError'));
+                // Other errors (network, server, etc.)
+                const errorMessage = e.errorData?.message || e.message;
+                setRegistrationError(
+                    t('events.errors.registrationFailed',
+                        'Inscription échouée. Veuillez réessayer.')
+                );
+                console.error('Registration error:', errorMessage);
             }
+        } finally {
+            setIsRegistering(false);
         }
     };
 
     const handleUnregister = async () => {
         if (!selectedEvent || !userRegistration || !user) return;
         try {
+            setIsRegistering(true);
+            setRegistrationError(null);
+
             await cancelRegistration(selectedEvent.id, user.token);
 
             // Manually update selectedEvent state to reflect changes immediately
@@ -285,7 +346,12 @@ export default function EventsScreen() {
             }
         } catch (e) {
             console.error(e);
-            Alert.alert(t('alerts.unregisterFailed'));
+            setRegistrationError(
+                t('events.errors.unregisterFailed',
+                    'Annulation échouée. Veuillez réessayer.')
+            );
+        } finally {
+            setIsRegistering(false);
         }
     };
 
@@ -376,6 +442,10 @@ export default function EventsScreen() {
                 summaryLoading={summaryLoading}
                 summaryError={summaryError}
                 onRetrySummary={() => selectedEvent && loadRegistrationSummary(selectedEvent.id)}
+
+                // Race Condition Prevention Props
+                isRegistering={isRegistering}
+                registrationError={registrationError}
             />
         </ThemedView>
     );

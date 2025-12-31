@@ -48,6 +48,10 @@ export default function EventsDetailScreen() {
     const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
     const [userRegistration, setUserRegistration] = useState<Registration | null>(null);
 
+    // Registration Request State - CRITICAL for preventing race conditions
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [registrationError, setRegistrationError] = useState<string | null>(null);
+
     // Admin/Employee Stats
     const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
     const [summaryLoading, setSummaryLoading] = useState(false);
@@ -137,6 +141,8 @@ export default function EventsDetailScreen() {
         setRegistrationSummary(null);
         setUserRegistration(null);
         setShowSuccessView(false);
+        setIsRegistering(false);
+        setRegistrationError(null);
     }
 
     useEffect(() => {
@@ -181,10 +187,34 @@ export default function EventsDetailScreen() {
 
 
 
+    /**
+     * RACE CONDITION PREVENTION: Request Debouncing
+     * 
+     * This handler implements client-side request debouncing to prevent race conditions.
+     * Even though the backend has pessimistic locking, we prevent unnecessary concurrent
+     * requests from the client side by:
+     * 
+     * 1. Setting isRegistering=true immediately, which disables the register button
+     * 2. Only allowing one registration request at a time
+     * 3. Properly handling HTTP 409 conflicts from concurrent attempts
+     * 
+     * Flow:
+     * - User clicks register → isRegistering becomes true → button disabled
+     * - Backend locks event and atomically checks capacity
+     * - If successful: show success view
+     * - If 409 conflict (event full): show waitlist message
+     * - If other error: show error alert
+     */
     const handleRegister = async () => {
-        if (!selectedEvent || !user) return;
+        if (!selectedEvent || !user || isRegistering) return;
+        
         try {
+            setIsRegistering(true);
+            setRegistrationError(null);
+
             const newReg = await registerForEvent(selectedEvent.id, user.token);
+            
+            // Success - registration confirmed or added to waitlist
             const updatedRegs = await getMyRegistrations(user.token);
             setMyRegistrations(updatedRegs);
             setUserRegistration(newReg);
@@ -195,17 +225,53 @@ export default function EventsDetailScreen() {
                 loadRegistrationSummary(selectedEvent.id);
             }
         } catch (err: any) {
-            if (err.response?.status === 409) {
-                alert(t('events.errors.conflict'));
+            setIsRegistering(false);
+            
+            // Handle different error scenarios
+            if (err.status === 409) {
+                // HTTP 409 Conflict - either already registered or capacity exceeded
+                const errorMessage = err.errorData?.message || err.message;
+                
+                if (errorMessage.includes('capacity')) {
+                    // Event reached capacity - user placed on waitlist
+                    setRegistrationError(
+                        t('events.errors.eventFull', 
+                          'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
+                    );
+                } else if (errorMessage.includes('Already Registered')) {
+                    // User already has active registration
+                    setRegistrationError(
+                        t('events.errors.alreadyRegistered', 
+                          'Vous êtes déjà inscrit(e) à cet événement.')
+                    );
+                } else {
+                    setRegistrationError(errorMessage);
+                }
+                
+                // Refresh registrations to show current state
+                const updatedRegs = await getMyRegistrations(user.token);
+                setMyRegistrations(updatedRegs);
+                checkUserRegistration(selectedEvent.id);
             } else {
-                alert(t('events.errors.registrationFailed'));
+                // Other errors (network, server, etc.)
+                const errorMessage = err.errorData?.message || err.message;
+                setRegistrationError(
+                    t('events.errors.registrationFailed', 
+                      'Inscription échouée. Veuillez réessayer.')
+                );
+                console.error('Registration error:', errorMessage);
             }
+        } finally {
+            setIsRegistering(false);
         }
     };
 
     const handleUnregister = async () => {
         if (!selectedEvent || !userRegistration || !user) return;
         try {
+            setIsRegistering(true);
+            setRegistrationError(null);
+            
             await cancelRegistration(selectedEvent.id, user.token);
 
             // Manually update selectedEvent state locally
@@ -235,7 +301,12 @@ export default function EventsDetailScreen() {
             alert(t('events.success.unregistered'));
         } catch (err) {
             console.error(err);
-            alert(t('events.errors.unregisterFailed'));
+            setRegistrationError(
+                t('events.errors.unregisterFailed', 
+                  'Annulation échouée. Veuillez réessayer.')
+            );
+        } finally {
+            setIsRegistering(false);
         }
     };
 
@@ -295,6 +366,8 @@ export default function EventsDetailScreen() {
                 summaryLoading={summaryLoading}
                 summaryError={summaryError}
                 onRetrySummary={() => selectedEvent && loadRegistrationSummary(selectedEvent.id)}
+                isRegistering={isRegistering}
+                registrationError={registrationError}
             />
         </ThemedView>
     );

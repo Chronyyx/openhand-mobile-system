@@ -55,8 +55,7 @@ public class EventAdminServiceImpl implements EventAdminService {
         return eventRepository.save(event);
     }
 
-    @Override
-    public Event updateEvent(Long id, CreateEventRequest request) {
+    @Override    @SuppressWarnings("null")    public Event updateEvent(Long id, CreateEventRequest request) {
         Event existing = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
 

@@ -302,5 +302,25 @@
         "employee": "Empleado"
       }
     }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "Sin notificaciones por ahora",
+    "emptySubtext": "Recibirá notificaciones cuando se registre en eventos",
+    "loading": "Cargando notificaciones...",
+    "notAuthenticated": "Inicie sesión para ver las notificaciones",
+    "markAllAsRead": "Marcar todo como leído",
+    "time": {
+      "justNow": "Justo ahora",
+      "minutesAgo": "Hace {{count}} minuto",
+      "hoursAgo": "Hace {{count}} hora",
+      "daysAgo": "Hace {{count}} día"
+    },
+    "errors": {
+      "loadFailed": "Error al cargar notificaciones",
+      "markReadFailed": "Error al marcar como leído",
+      "deleteFailed": "Error al eliminar notificación",
+      "markAllReadFailed": "Error al marcar todo como leído"
+    }
   }
 }

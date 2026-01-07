@@ -6,6 +6,7 @@ import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
@@ -26,13 +27,16 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public RegistrationServiceImpl(RegistrationRepository registrationRepository,
             EventRepository eventRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            NotificationService notificationService) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -60,6 +64,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Registration registerForEvent(Long userId, Long eventId) {
         // Verify user exists
+        @SuppressWarnings("null")
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
@@ -141,7 +146,23 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         // Save registration and return (event lock is released after transaction commits)
-        return registrationRepository.save(registration);
+        Registration savedRegistration = registrationRepository.save(registration);
+
+        // Create notification for successful registration confirmation
+        try {
+            String userLanguage = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            notificationService.createNotification(
+                    userId,
+                    eventId,
+                    "REGISTRATION_CONFIRMATION",
+                    userLanguage
+            );
+        } catch (Exception e) {
+            // Log but don't throw - notification creation failure shouldn't block registration
+            System.err.println("Failed to create registration confirmation notification: " + e.getMessage());
+        }
+
+        return savedRegistration;
     }
 
     @Override
@@ -158,6 +179,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional
     public Registration cancelRegistration(Long userId, Long eventId) {
+        @SuppressWarnings("null")
         Registration registration = registrationRepository.findByUserIdAndEventId(userId, eventId)
                 .orElseThrow(() -> new RuntimeException(
                         "Registration not found for user " + userId + " and event " + eventId));
@@ -186,6 +208,24 @@ public class RegistrationServiceImpl implements RegistrationService {
         registration.setStatus(RegistrationStatus.CANCELLED);
         registration.setCancelledAt(LocalDateTime.now());
 
-        return registrationRepository.save(registration);
+        Registration cancelledRegistration = registrationRepository.save(registration);
+
+        // Create cancellation notification
+        try {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+            String userLanguage = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            notificationService.createNotification(
+                    userId,
+                    eventId,
+                    "CANCELLATION",
+                    userLanguage
+            );
+        } catch (Exception e) {
+            // Log but don't throw - notification creation failure shouldn't block cancellation
+            System.err.println("Failed to create cancellation notification: " + e.getMessage());
+        }
+
+        return cancelledRegistration;
     }
 }

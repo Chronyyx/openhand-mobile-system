@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 public class EventDataLoader implements CommandLineRunner {
 
         private final EventRepository eventRepository;
+        @SuppressWarnings("unused")
         private final RegistrationRepository registrationRepository;
 
         public EventDataLoader(EventRepository eventRepository,

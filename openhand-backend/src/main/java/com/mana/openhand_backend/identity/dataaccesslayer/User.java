@@ -112,6 +112,9 @@ public class User {
     @Column(name = "account_non_locked")
     private boolean accountNonLocked = true;
 
+    @Column(name = "preferred_language", length = 10)
+    private String preferredLanguage = "en";
+
     public int getFailedAttempt() {
         return failedAttempt;
     }
@@ -126,5 +129,13 @@ public class User {
 
     public void setAccountNonLocked(boolean accountNonLocked) {
         this.accountNonLocked = accountNonLocked;
+    }
+
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
     }
 }

@@ -304,5 +304,25 @@
         "employee": "Employee"
       }
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "emptySubtext": "You'll receive notifications when you register for events",
+    "loading": "Loading notifications...",
+    "notAuthenticated": "Please log in to view notifications",
+    "markAllAsRead": "Mark all read",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} minute{{count}} ago",
+      "hoursAgo": "{{count}} hour ago",
+      "daysAgo": "{{count}} day ago"
+    },
+    "errors": {
+      "loadFailed": "Failed to load notifications",
+      "markReadFailed": "Failed to mark as read",
+      "deleteFailed": "Failed to delete notification",
+      "markAllReadFailed": "Failed to mark all as read"
+    }
   }
 }

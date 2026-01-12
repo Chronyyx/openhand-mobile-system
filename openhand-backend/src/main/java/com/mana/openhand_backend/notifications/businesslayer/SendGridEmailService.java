@@ -113,7 +113,7 @@ public class SendGridEmailService {
         return switch (lang) {
             case "fr" -> new LocalizedEmailContent(
                     "Confirmation d'inscription : " + eventTitle,
-                    "Vous etes inscrit a l'evenement \"" + eventTitle + "\". Merci de votre inscription."
+                    "Vous êtes inscrit à l'événement \"" + eventTitle + "\". Merci de votre inscription."
             );
             case "spa" -> new LocalizedEmailContent(
                     "Confirmacion de registro: " + eventTitle,

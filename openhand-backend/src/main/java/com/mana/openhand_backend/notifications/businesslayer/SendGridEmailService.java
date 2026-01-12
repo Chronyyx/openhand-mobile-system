@@ -157,7 +157,7 @@ public class SendGridEmailService {
         return switch (lang) {
             case "fr" -> new LocalizedEmailContent(
                     "Mise à jour importante : " + eventTitle,
-                    "Votre evenement \"" + eventTitle + "\" a change ou est annule." + details
+                    "Votre événement \"" + eventTitle + "\" a change ou est annule." + details
             );
             case "spa" -> new LocalizedEmailContent(
                     "Actualización importante: " + eventTitle,

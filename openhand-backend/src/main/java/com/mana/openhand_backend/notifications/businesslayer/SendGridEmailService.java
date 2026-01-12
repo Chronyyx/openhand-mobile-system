@@ -160,7 +160,7 @@ public class SendGridEmailService {
                     "Votre evenement \"" + eventTitle + "\" a change ou est annule." + details
             );
             case "spa" -> new LocalizedEmailContent(
-                    "Actualizacion importante: " + eventTitle,
+                    "Actualización importante: " + eventTitle,
                     "Su evento \"" + eventTitle + "\" ha cambiado o ha sido cancelado." + details
             );
             default -> new LocalizedEmailContent(

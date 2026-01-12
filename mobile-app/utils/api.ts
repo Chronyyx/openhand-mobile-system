@@ -25,7 +25,8 @@ const normalizeEnvApiUrl = (raw: string): string => {
             }
         }
 
-        const normalized = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}${url.pathname}`;
+        const pathname = (url.pathname === '/' || url.pathname === '') ? '/api' : url.pathname;
+        const normalized = `${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ''}${pathname}`;
         return stripTrailingSlash(normalized);
     } catch (e) {
         if (__DEV__) {

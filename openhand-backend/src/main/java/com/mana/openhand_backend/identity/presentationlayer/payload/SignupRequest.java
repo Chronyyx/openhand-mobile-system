@@ -17,7 +17,9 @@ public class SignupRequest {
     @jakarta.validation.constraints.Size(max = 50, message = "Name must be less than 50 characters")
     private String name;
 
-    @jakarta.validation.constraints.Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must be valid")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^$|^\\+?[0-9]{10,15}$",
+            message = "Phone number must be valid")
     private String phoneNumber;
     private com.mana.openhand_backend.identity.dataaccesslayer.Gender gender;
 

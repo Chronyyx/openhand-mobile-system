@@ -4,19 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="tests for 90%+ test coverage">
-      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_2025-12-06_12_36_p_m__[Changes]/shelved.patch" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_2025-12-06_12_36_p_m___Changes_.xml" beforeDir="false" />
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="send grid implementation.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/utils/api.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/utils/api.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventAdminServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventAdminServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/events/businesslayer/EventServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/payload/SignupRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/payload/SignupRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/registrations/businesslayer/RegistrationServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/registrations/businesslayer/RegistrationServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/WebSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/security/WebSecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/businesslayer/EventServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/businesslayer/EventServiceImplTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,6 +74,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Gradle.Build openhand-backend.executor": "Run",
+    "Gradle.EventServiceImplTest.executor": "Run",
     "Gradle.OpenhandBackendApplicationTests.dummyTest.executor": "Run",
     "Gradle.Tests in 'com.mana.openhand_backend'.executor": "Run",
     "Gradle.Tests in 'openhand-backend'.executor": "Run",
@@ -124,6 +115,30 @@
     </key>
   </component>
   <component name="RunManager" selected="Gradle.Tests in 'openhand-backend'">
+    <configuration name="EventServiceImplTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/openhand-backend" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;com.mana.openhand_backend.events.businesslayer.EventServiceImplTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
     <configuration name="OpenhandBackendApplicationTests.dummyTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -204,10 +219,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Tests in 'openhand-backend'" />
+        <item itemvalue="Gradle.EventServiceImplTest" />
         <item itemvalue="Gradle.Tests in 'com.mana.openhand_backend'" />
         <item itemvalue="Gradle.OpenhandBackendApplicationTests.dummyTest" />
         <item itemvalue="Gradle.Tests in 'openhand-backend'" />
-        <item itemvalue="Gradle.Tests in 'com.mana.openhand_backend'" />
       </list>
     </recent_temporary>
   </component>
@@ -236,7 +251,7 @@
       <workItem from="1765553305280" duration="7988000" />
       <workItem from="1765810745151" duration="1038000" />
       <workItem from="1765847724586" duration="1691000" />
-      <workItem from="1768229926900" duration="8227000" />
+      <workItem from="1768229926900" duration="10040000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -342,7 +357,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765755537530</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="send grid implementation.">
+      <option name="closed" value="true" />
+      <created>1768247356982</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1768247356982</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -371,7 +394,8 @@
     <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
     <MESSAGE value="fixed FE running issue, on the .sh file for docker-start.sh" />
     <MESSAGE value="tests for 90%+ test coverage" />
-    <option name="LAST_COMMIT_MESSAGE" value="tests for 90%+ test coverage" />
+    <MESSAGE value="send grid implementation." />
+    <option name="LAST_COMMIT_MESSAGE" value="send grid implementation." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

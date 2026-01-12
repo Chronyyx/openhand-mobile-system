@@ -155,8 +155,19 @@
       "close": "Fermer",
       "register": "📝 S'inscrire à cet événement",
       "joinWaitlist": "📝 Rejoindre la liste d'attente",
-      "undo": "Annuler l'inscription"
+      "undo": "Annuler l'inscription",
+      "unregister": "Se désinscrire"
     },
+    "errors": {
+      "loadFailed": "Impossible de charger l'événement.",
+      "detailsFailed": "Impossible de charger les détails de l'événement.",
+      "summaryFailed": "Impossible de charger le récapitulatif des inscriptions.",
+      "eventFull": "L'événement est complet. Vous avez été ajouté(e) à la liste d'attente.",
+      "alreadyRegistered": "Vous êtes déjà inscrit à cet événement.",
+      "registrationFailed": "L'inscription a échoué. Veuillez réessayer.",
+      "unregisterFailed": "Impossible d'annuler l'inscription. Veuillez réessayer."
+    },
+    "loginToRegister": "Connectez-vous pour vous inscrire",
     "status": {
       "OPEN": "OUVERT",
       "NEARLY_FULL": "PLACES LIMITÉES",
@@ -181,6 +192,18 @@
     },
     "registrationSuccess": {
       "closingIn": "Fermeture dans {{count}}s"
+    },
+    "walkin": {
+      "title": "Inscription sur place",
+      "searchPlaceholder": "Entrez un email ou téléphone",
+      "search": "Rechercher",
+      "register": "Enregistrer le participant",
+      "notAuthenticated": "Non authentifié",
+      "searchFailed": "Échec de la recherche",
+      "successConfirmed": "Participant confirmé à l'événement.",
+      "successWaitlisted": "Événement complet. Participant ajouté à la liste d'attente.",
+      "successRegistered": "Inscription effectuée.",
+      "alreadyRegistered": "{{email}} est déjà inscrit à cet événement."
     },
     "names": {
       "gala": "Gala de reconnaissance MANA",
@@ -210,10 +233,10 @@
     "timeLabel": "Heure",
     "statusLabel": "Statut",
     "status": {
-      "CONFIRMED": "ConfirmAce",
+      "CONFIRMED": "Confirmée",
       "WAITLISTED": "Liste d'attente",
-      "CANCELLED": "AnnulAce",
-      "REQUESTED": "DemandAce"
+      "CANCELLED": "Annulée",
+      "REQUESTED": "Demandée"
     }
   },
   "alerts": {

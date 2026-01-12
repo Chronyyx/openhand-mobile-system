@@ -155,8 +155,19 @@
       "close": "Close",
       "register": "📝 Register for this event",
       "joinWaitlist": "📝 Join waitlist",
-      "undo": "Undo registration"
+      "undo": "Undo registration",
+      "unregister": "Unregister"
     },
+    "errors": {
+      "loadFailed": "Unable to load event.",
+      "detailsFailed": "Unable to load event details.",
+      "summaryFailed": "Unable to load registration summary.",
+      "eventFull": "The event is full. You have been added to the waitlist.",
+      "alreadyRegistered": "You are already registered for this event.",
+      "registrationFailed": "Registration failed. Please try again.",
+      "unregisterFailed": "Failed to cancel registration. Please try again."
+    },
+    "loginToRegister": "Log in to register",
     "status": {
       "OPEN": "OPEN",
       "NEARLY_FULL": "LIMITED SPOTS",
@@ -181,6 +192,18 @@
     },
     "registrationSuccess": {
       "closingIn": "Closing in {{count}}s"
+    },
+    "walkin": {
+      "title": "Walk-In Registration",
+      "searchPlaceholder": "Enter email or phone",
+      "search": "Search",
+      "register": "Register Participant",
+      "notAuthenticated": "Not authenticated",
+      "searchFailed": "Search failed",
+      "successConfirmed": "Participant confirmed for event.",
+      "successWaitlisted": "Event full. Participant added to waitlist.",
+      "successRegistered": "Registration completed.",
+      "alreadyRegistered": "{{email}} is already registered for this event."
     },
     "names": {
       "gala": "MANA Recognition Gala",

@@ -137,6 +137,8 @@
     "empty": "No hay eventos próximos por el momento.",
     "noEvents": "No se encontraron eventos.",
     "loadError": "No se pudieron cargar los eventos.",
+    "searchPlaceholder": "Buscar eventos...",
+    "noResults": "No se encontraron resultados para tu búsqueda.",
     "fields": {
       "date": "Fecha",
       "time": "Hora",
@@ -153,8 +155,19 @@
       "close": "Cerrar",
       "register": "📝 Registrarse para este evento",
       "joinWaitlist": "📝 Unirse a la lista de espera",
-      "undo": "Deshacer registro"
+      "undo": "Deshacer registro",
+      "unregister": "Cancelar inscripción"
     },
+    "errors": {
+      "loadFailed": "No se pudo cargar el evento.",
+      "detailsFailed": "No se pudieron cargar los detalles del evento.",
+      "summaryFailed": "No se pudo cargar el resumen de inscripciones.",
+      "eventFull": "El evento está lleno. Has sido agregado a la lista de espera.",
+      "alreadyRegistered": "Ya estás registrado para este evento.",
+      "registrationFailed": "El registro falló. Por favor, intenta nuevamente.",
+      "unregisterFailed": "No se pudo cancelar la inscripción. Por favor, intenta nuevamente."
+    },
+    "loginToRegister": "Inicia sesión para inscribirte",
     "status": {
       "OPEN": "ABIERTO",
       "NEARLY_FULL": "CUPOS LIMITADOS",
@@ -180,6 +193,18 @@
     "registrationSuccess": {
       "closingIn": "Cerrando en {{count}}s"
     },
+    "walkin": {
+      "title": "Registro presencial",
+      "searchPlaceholder": "Ingresa correo o teléfono",
+      "search": "Buscar",
+      "register": "Registrar participante",
+      "notAuthenticated": "No autenticado",
+      "searchFailed": "La búsqueda falló",
+      "successConfirmed": "Participante confirmado para el evento.",
+      "successWaitlisted": "Evento lleno. Participante agregado a la lista de espera.",
+      "successRegistered": "Registro completado.",
+      "alreadyRegistered": "{{email}} ya está registrado para este evento."
+    },
     "names": {
       "gala": "Gala de reconocimiento MANA",
       "panier_noel": "Cesta de Navidad",
@@ -195,13 +220,13 @@
   },
   "registrations": {
     "title": "Mis inscripciones",
-    "noRegistrations": "Aun no tienes inscripciones.",
+      "noRegistrations": "Aún no tienes inscripciones.",
     "loadError": "No se pueden cargar las inscripciones.",
-    "loginRequired": "Inicia sesiA3n para ver tus inscripciones.",
+      "loginRequired": "Inicia sesión para ver tus inscripciones.",
     "conflict": "Conflicto de horario",
     "conflictHint": "Se superpone con otra inscripción.",
     "overlapTitle": "Conflicto de horario detectado",
-    "overlapMessage": "Este evento se superpone con otro al que ya estA!s inscrito. Puedes continuar de todos modos.",
+      "overlapMessage": "Este evento se superpone con otro al que ya estás inscrito. Puedes continuar de todos modos.",
     "overlapProceed": "Continuar",
     "overlapBack": "Regresar",
     "dateLabel": "Fecha",

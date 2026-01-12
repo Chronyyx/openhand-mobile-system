@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
 import { styles } from '../app/events/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
 import { type Registration } from '../services/registration.service';
+import { searchUsers, registerParticipantForEvent, type EmployeeSearchResult } from '../services/employee.service';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
 import { getEventImage } from '../constants/event-images';
@@ -42,6 +43,8 @@ type EventDetailModalProps = {
     // Race Condition Prevention Props
     isRegistering?: boolean;
     registrationError?: string | null;
+    // Optional callback to refresh capacity/details from parent
+    onCapacityRefresh?: () => void;
 };
 
 // Use explicit class for Animated View created in index if passed, but here we can just use View or re-create it.
@@ -72,10 +75,83 @@ export function EventDetailModal({
     onRetrySummary,
     isRegistering = false,
     registrationError = null
+    ,
+    onCapacityRefresh
 }: EventDetailModalProps) {
 
     // Fallback if no details yet
     const displayEvent = eventDetail || selectedEvent;
+
+    // Employee Walk-in State
+    const [walkinQuery, setWalkinQuery] = React.useState('');
+    const [walkinResults, setWalkinResults] = React.useState<EmployeeSearchResult[]>([]);
+    const [walkinSelected, setWalkinSelected] = React.useState<EmployeeSearchResult | null>(null);
+    const [walkinSubmitting, setWalkinSubmitting] = React.useState(false);
+    const [walkinError, setWalkinError] = React.useState<string | null>(null);
+    const [walkinSuccess, setWalkinSuccess] = React.useState<string | null>(null);
+
+    const handleWalkinSearch = async () => {
+        setWalkinError(null);
+        setWalkinSuccess(null);
+        setWalkinSelected(null);
+        try {
+            // We don't have direct token here; parent passes user in props
+            // For simplicity, we assume user has a token field
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const token = (user as any)?.token;
+            if (!token) {
+                setWalkinError(t('events.walkin.notAuthenticated'));
+                return;
+            }
+            const results = await searchUsers(walkinQuery.trim(), token);
+            setWalkinResults(results);
+            if (results.length === 1) setWalkinSelected(results[0]);
+        } catch (e: any) {
+            setWalkinError(e.message || t('events.walkin.searchFailed'));
+        }
+    };
+
+    const handleWalkinRegister = async () => {
+        if (!displayEvent || !walkinSelected) return;
+        setWalkinSubmitting(true);
+        setWalkinError(null);
+        setWalkinSuccess(null);
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const token = (user as any)?.token;
+            if (!token) {
+                setWalkinError(t('events.walkin.notAuthenticated'));
+                return;
+            }
+            const reg = await registerParticipantForEvent(displayEvent.id, walkinSelected.id, token);
+            // Success message based on status
+            const status = (reg as any)?.status as string | undefined;
+            if (status === 'CONFIRMED') {
+                setWalkinSuccess(t('events.walkin.successConfirmed'));
+                // Capacity may have changed; ask parent to refresh details
+                onCapacityRefresh?.();
+            } else if (status === 'WAITLISTED') {
+                setWalkinSuccess(t('events.walkin.successWaitlisted'));
+            } else {
+                setWalkinSuccess(t('events.walkin.successRegistered'));
+            }
+            // Refresh summary for admins/employees
+            onRetrySummary();
+        } catch (e: any) {
+            // Parse the error message to provide a user-friendly version
+            const rawMsg = e?.message || 'Registration failed';
+            let displayMsg = rawMsg;
+            
+            // If the message mentions "already registered", provide a cleaner version
+            if (rawMsg.toLowerCase().includes('already registered')) {
+                displayMsg = t('events.walkin.alreadyRegistered', { email: walkinSelected?.email });
+            }
+            
+            setWalkinError(displayMsg);
+        } finally {
+            setWalkinSubmitting(false);
+        }
+    };
 
     return (
         <Modal
@@ -221,6 +297,54 @@ export function EventDetailModal({
                                         summary={registrationSummary}
                                         onRetry={onRetrySummary}
                                     />
+                                )}
+
+                                {/* Employee Walk-In Registration */}
+                                {selectedEvent && user && hasRole(['ROLE_EMPLOYEE', 'ROLE_ADMIN']) && (
+                                    <View style={{ marginTop: 18, gap: 10 }}>
+                                        <ThemedText style={styles.sectionTitle}>{t('events.walkin.title')}</ThemedText>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                            <TextInput
+                                                style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#E0E7F3' }}
+                                                placeholder={t('events.walkin.searchPlaceholder')}
+                                                value={walkinQuery}
+                                                onChangeText={setWalkinQuery}
+                                            />
+                                            <Pressable style={styles.registerButton} onPress={handleWalkinSearch}>
+                                                <ThemedText style={styles.registerButtonText}>{t('events.walkin.search')}</ThemedText>
+                                            </Pressable>
+                                        </View>
+                                        {walkinError && (
+                                            <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
+                                                <ThemedText style={[styles.infoText, { color: '#c62828' }]}>{walkinError}</ThemedText>
+                                            </View>
+                                        )}
+                                        {walkinSuccess && (
+                                            <View style={[styles.infoBox, { borderLeftColor: '#2e7d32', borderLeftWidth: 4, backgroundColor: '#e8f5e9' }]}> 
+                                                <ThemedText style={[styles.infoText, { color: '#2e7d32' }]}>{walkinSuccess}</ThemedText>
+                                            </View>
+                                        )}
+                                        {walkinResults.length > 0 && (
+                                            <View style={{ gap: 8 }}>
+                                                {walkinResults.map(r => (
+                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}> 
+                                                        <ThemedText style={styles.unregisterButtonText}>{r.email}</ThemedText>
+                                                    </Pressable>
+                                                ))}
+                                            </View>
+                                        )}
+                                        <Pressable
+                                            style={[styles.registerButton, (walkinSubmitting || !walkinSelected) && { opacity: 0.6 }]}
+                                            onPress={handleWalkinRegister}
+                                            disabled={walkinSubmitting || !walkinSelected}
+                                        >
+                                            {walkinSubmitting ? (
+                                                <ActivityIndicator color="#FFFFFF" />
+                                            ) : (
+                                                <ThemedText style={styles.registerButtonText}>{t('events.walkin.register')}</ThemedText>
+                                            )}
+                                        </Pressable>
+                                    </View>
                                 )}
 
                                 {/* Buttons */}

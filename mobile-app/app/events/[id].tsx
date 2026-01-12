@@ -365,9 +365,22 @@ export default function EventsDetailScreen() {
                 registrationSummary={registrationSummary}
                 summaryLoading={summaryLoading}
                 summaryError={summaryError}
-                onRetrySummary={() => selectedEvent && loadRegistrationSummary(selectedEvent.id)}
+                onRetrySummary={() => {
+                    if (!selectedEvent) return;
+                    // Refresh both details and summary to reflect capacity updates immediately
+                    getEventById(selectedEvent.id)
+                        .then(setEventDetail)
+                        .catch(() => {});
+                    loadRegistrationSummary(selectedEvent.id);
+                }}
                 isRegistering={isRegistering}
                 registrationError={registrationError}
+                onCapacityRefresh={() => {
+                    if (!selectedEvent) return;
+                    getEventById(selectedEvent.id)
+                        .then(setEventDetail)
+                        .catch(() => {});
+                }}
             />
         </ThemedView>
     );

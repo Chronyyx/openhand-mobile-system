@@ -116,8 +116,8 @@ public class SendGridEmailService {
                     "Vous êtes inscrit à l'événement \"" + eventTitle + "\". Merci de votre inscription."
             );
             case "spa" -> new LocalizedEmailContent(
-                    "Confirmacion de registro: " + eventTitle,
-                    "Esta registrado en el evento \"" + eventTitle + "\". Gracias por registrarse."
+                    "Confirmación de registro: " + eventTitle,
+                    "Está registrado en el evento \"" + eventTitle + "\". Gracias por registrarse."
             );
             default -> new LocalizedEmailContent(
                     "Registration confirmed: " + eventTitle,

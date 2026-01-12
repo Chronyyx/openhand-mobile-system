@@ -441,11 +441,26 @@ export default function EventsScreen() {
                 registrationSummary={registrationSummary}
                 summaryLoading={summaryLoading}
                 summaryError={summaryError}
-                onRetrySummary={() => selectedEvent && loadRegistrationSummary(selectedEvent.id)}
+                onRetrySummary={() => {
+                    if (!selectedEvent) return;
+                    // Refresh event details to update capacity immediately
+                    getEventById(selectedEvent.id)
+                        .then(setEventDetail)
+                        .catch(() => {});
+                    // Refresh registration summary for admin/employee
+                    loadRegistrationSummary(selectedEvent.id);
+                }}
 
                 // Race Condition Prevention Props
                 isRegistering={isRegistering}
                 registrationError={registrationError}
+                onCapacityRefresh={() => {
+                    if (!selectedEvent) return;
+                    // Fetch latest event details to reflect capacity change right away
+                    getEventById(selectedEvent.id)
+                        .then(setEventDetail)
+                        .catch(() => {});
+                }}
             />
         </ThemedView>
     );

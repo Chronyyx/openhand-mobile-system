@@ -1,7 +1,7 @@
 // mobile-app/services/notification.service.ts
 import { API_BASE } from '../utils/api';
 
-export type NotificationType = 'REGISTRATION_CONFIRMATION' | 'REMINDER' | 'CANCELLATION';
+export type NotificationType = 'REGISTRATION_CONFIRMATION' | 'REMINDER' | 'CANCELLATION' | 'EMPLOYEE_REGISTERED_PARTICIPANT';
 
 export type Notification = {
     id: number;
@@ -12,6 +12,8 @@ export type Notification = {
     isRead: boolean;
     createdAt: string;
     readAt: string | null;
+    eventStartDateTime: string | null;
+    participantName: string | null;
 };
 
 async function handleResponse<T>(res: Response, context: string): Promise<T> {

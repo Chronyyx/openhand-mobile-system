@@ -13,6 +13,7 @@ type NavigationMenuProps = {
     onClose: () => void;
     onNavigateHome: () => void;
     onNavigateEvents: () => void;
+    onNavigateProfile?: () => void;
     onNavigateMyRegistrations?: () => void;
     showDashboard?: boolean;
     onNavigateDashboard?: () => void;
@@ -27,6 +28,7 @@ export function NavigationMenu({
     onClose,
     onNavigateHome,
     onNavigateEvents,
+    onNavigateProfile,
     onNavigateMyRegistrations,
     showDashboard = false,
     onNavigateDashboard,
@@ -121,15 +123,22 @@ export function NavigationMenu({
                         </Pressable>
                     )}
 
-                    <View style={[styles.menuItem, styles.menuItemDisabled]}>
-                        <View style={styles.menuItemLeft}>
-                            <Ionicons name="person-circle" size={20} color="#9BA5B7" />
-                            <Text style={[styles.menuItemText, styles.menuItemTextDisabled]}>
-                                {t('menu.profile')}
-                            </Text>
-                        </View>
-                        <Text style={styles.menuPill}>{t('menu.soon')}</Text>
-                    </View>
+                    {onNavigateProfile && (
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.menuItem,
+                                styles.menuItemElevated,
+                                pressed && styles.menuItemPressed,
+                            ]}
+                            onPress={onNavigateProfile}
+                        >
+                            <View style={styles.menuItemLeft}>
+                                <Ionicons name="person-circle" size={20} color={BLUE} />
+                                <Text style={styles.menuItemText}>{t('menu.profile')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={BLUE} />
+                        </Pressable>
+                    )}
                 </View>
             </View>
         </Modal>

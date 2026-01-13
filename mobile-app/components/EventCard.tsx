@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Pressable } from 'react-native';
 import { ThemedText } from './themed-text';
-import { styles } from '../app/events/events.styles';
+import { styles } from '../styles/events.styles';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle } from '../utils/event-translations';
 import { type EventSummary } from '../services/events.service';

@@ -23,7 +23,7 @@ import {
 } from '../../services/events.service';
 import { registerForEvent, getMyRegistrations, cancelRegistration, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from './events.styles';
+import { styles } from '../../styles/events.styles';
 import { useCountdownTimer } from '../../hooks/useCountdownTimer';
 
 export default function EventsDetailScreen() {
@@ -207,13 +207,13 @@ export default function EventsDetailScreen() {
      */
     const handleRegister = async () => {
         if (!selectedEvent || !user || isRegistering) return;
-        
+
         try {
             setIsRegistering(true);
             setRegistrationError(null);
 
             const newReg = await registerForEvent(selectedEvent.id, user.token);
-            
+
             // Success - registration confirmed or added to waitlist
             const updatedRegs = await getMyRegistrations(user.token);
             setMyRegistrations(updatedRegs);
@@ -226,28 +226,28 @@ export default function EventsDetailScreen() {
             }
         } catch (err: any) {
             setIsRegistering(false);
-            
+
             // Handle different error scenarios
             if (err.status === 409) {
                 // HTTP 409 Conflict - either already registered or capacity exceeded
                 const errorMessage = err.errorData?.message || err.message;
-                
+
                 if (errorMessage.includes('capacity')) {
                     // Event reached capacity - user placed on waitlist
                     setRegistrationError(
-                        t('events.errors.eventFull', 
-                          'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
+                        t('events.errors.eventFull',
+                            'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
                     );
                 } else if (errorMessage.includes('Already Registered')) {
                     // User already has active registration
                     setRegistrationError(
-                        t('events.errors.alreadyRegistered', 
-                          'Vous êtes déjà inscrit(e) à cet événement.')
+                        t('events.errors.alreadyRegistered',
+                            'Vous êtes déjà inscrit(e) à cet événement.')
                     );
                 } else {
                     setRegistrationError(errorMessage);
                 }
-                
+
                 // Refresh registrations to show current state
                 const updatedRegs = await getMyRegistrations(user.token);
                 setMyRegistrations(updatedRegs);
@@ -256,8 +256,8 @@ export default function EventsDetailScreen() {
                 // Other errors (network, server, etc.)
                 const errorMessage = err.errorData?.message || err.message;
                 setRegistrationError(
-                    t('events.errors.registrationFailed', 
-                      'Inscription échouée. Veuillez réessayer.')
+                    t('events.errors.registrationFailed',
+                        'Inscription échouée. Veuillez réessayer.')
                 );
                 console.error('Registration error:', errorMessage);
             }
@@ -271,7 +271,7 @@ export default function EventsDetailScreen() {
         try {
             setIsRegistering(true);
             setRegistrationError(null);
-            
+
             await cancelRegistration(selectedEvent.id, user.token);
 
             // Manually update selectedEvent state locally
@@ -302,8 +302,8 @@ export default function EventsDetailScreen() {
         } catch (err) {
             console.error(err);
             setRegistrationError(
-                t('events.errors.unregisterFailed', 
-                  'Annulation échouée. Veuillez réessayer.')
+                t('events.errors.unregisterFailed',
+                    'Annulation échouée. Veuillez réessayer.')
             );
         } finally {
             setIsRegistering(false);

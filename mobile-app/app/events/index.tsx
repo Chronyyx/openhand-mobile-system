@@ -30,7 +30,7 @@ import {
 import { registerForEvent, cancelRegistration, getMyRegistrations, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 
-import { styles } from './events.styles';
+import { styles } from '../../styles/events.styles';
 
 export default function EventsScreen() {
     // Cast t to avoid type errors
@@ -220,7 +220,7 @@ export default function EventsScreen() {
             setRegistrationError(null);
 
             const newReg = await registerForEvent(selectedEvent.id, user.token);
-            
+
             if (newReg.status === 'CONFIRMED') {
                 setUserRegistration(newReg);
                 setShowSuccessView(true);

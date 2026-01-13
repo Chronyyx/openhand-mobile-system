@@ -93,6 +93,7 @@ export default function AdminDashboardScreen() {
                 onClose={() => setMenuVisible(false)}
                 onNavigateHome={handleNavigateHome}
                 onNavigateEvents={handleNavigateEvents}
+                onNavigateProfile={() => { setMenuVisible(false); router.push('/profile'); }}
                 onNavigateDashboard={handleNavigateDashboard}
                 showDashboard={hasRole(['ROLE_ADMIN'])}
                 t={t}

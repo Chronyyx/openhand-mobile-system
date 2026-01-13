@@ -5,7 +5,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "notAuthenticated": "You need to be logged in."
   },
   "tabs": {
     "home": "Home",
@@ -20,6 +21,15 @@
     "dashboard": "Dashboard",
     "profile": "Profile",
     "soon": "Soon"
+  },
+  "profile": {
+    "title": "My Profile",
+    "phone": "Phone",
+    "gender": "Gender",
+    "age": "Age",
+    "details": "Profile Details",
+    "edit": "Edit Profile",
+    "logout": "Log Out"
   },
   "home": {
     "browseEvents": "Browse Events",
@@ -325,7 +335,9 @@
         "admin": "Administrator",
         "member": "Member",
         "employee": "Employee"
-      }
+      },
+      "userDetails": "User Details",
+      "role": "Role"
     }
   },
   "notifications": {

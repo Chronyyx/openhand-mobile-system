@@ -8,6 +8,10 @@ export type ManagedUser = {
     id: number;
     email: string;
     roles: string[];
+    name: string;
+    phoneNumber: string;
+    gender: string;
+    age: number;
 };
 
 const getAuthHeaders = async () => {

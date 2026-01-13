@@ -25,14 +25,23 @@ public class UserDetailsImpl implements UserDetails {
     private boolean accountNonLocked;
 
     private Collection<? extends GrantedAuthority> authorities;
+    private String name;
+    private String phoneNumber;
+    private String gender;
+    private Integer age;
 
     public UserDetailsImpl(Long id, String email, String password, boolean accountNonLocked,
-            Collection<? extends GrantedAuthority> authorities) {
+            Collection<? extends GrantedAuthority> authorities, String name, String phoneNumber, String gender,
+            Integer age) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.accountNonLocked = accountNonLocked;
         this.authorities = authorities;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.age = age;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -45,7 +54,11 @@ public class UserDetailsImpl implements UserDetails {
                 user.getEmail(),
                 user.getPasswordHash(),
                 user.isAccountNonLocked(),
-                authorities);
+                authorities,
+                user.getName(),
+                user.getPhoneNumber(),
+                user.getGender() != null ? user.getGender().name() : null,
+                user.getAge());
     }
 
     @Override
@@ -59,6 +72,22 @@ public class UserDetailsImpl implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public Integer getAge() {
+        return age;
     }
 
     @Override

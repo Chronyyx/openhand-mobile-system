@@ -328,6 +328,11 @@ export default function AdminEventsScreen() {
         router.push('/admin');
     };
 
+    const handleNavigateProfile = () => {
+        setMenuVisible(false);
+        router.push('/profile');
+    };
+
     const selectedActionEvent = actionMenuFor
         ? events.find((evt) => evt.id === actionMenuFor) ?? null
         : null;
@@ -718,6 +723,7 @@ export default function AdminEventsScreen() {
                 onClose={() => setMenuVisible(false)}
                 onNavigateHome={handleNavigateHome}
                 onNavigateEvents={handleNavigateEvents}
+                onNavigateProfile={handleNavigateProfile}
                 onNavigateDashboard={handleNavigateDashboard}
                 showDashboard={hasRole(['ROLE_ADMIN'])}
                 t={t}

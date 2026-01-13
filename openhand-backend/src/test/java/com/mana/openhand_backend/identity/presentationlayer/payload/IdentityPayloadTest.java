@@ -51,7 +51,8 @@ class IdentityPayloadTest {
     @Test
     void testJwtResponse() {
         List<String> roles = Collections.singletonList("ROLE_USER");
-        JwtResponse response = new JwtResponse("access", "refresh", 1L, "user@test.com", roles);
+        JwtResponse response = new JwtResponse("access", "refresh", 1L, "user@test.com", roles, "Test User",
+                "1234567890", "MALE", 30);
 
         // Test Setters if they exist
         response.setToken("access2");

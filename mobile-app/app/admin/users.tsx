@@ -101,6 +101,11 @@ export default function AdminUsersScreen() {
         router.push('/admin');
     };
 
+    const handleNavigateProfile = () => {
+        setMenuVisible(false);
+        router.push('/profile');
+    };
+
     const saveRoleChange = async () => {
         if (!selectedUser || !selectedRole) return;
         setSaving(true);
@@ -128,6 +133,7 @@ export default function AdminUsersScreen() {
                     <Ionicons name="person" size={18} color={ACCENT} />
                 </View>
                 <View style={{ flex: 1 }}>
+                    {item.name ? <Text style={styles.userNameList}>{item.name}</Text> : null}
                     <Text style={styles.userEmail}>{item.email}</Text>
                     <View style={styles.rolesRow}>
                         {item.roles.map((role) => (
@@ -200,12 +206,28 @@ export default function AdminUsersScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalCard}>
                         <View style={styles.modalHeader}>
-                            <Ionicons name="create-outline" size={18} color={ACCENT} />
-                            <Text style={styles.modalTitle}>{t('admin.users.editRole')}</Text>
+                            <Ionicons name="person-circle-outline" size={24} color={ACCENT} />
+                            <Text style={styles.modalTitle}>{t('admin.users.userDetails')}</Text>
                         </View>
-                        <Text style={styles.modalSubtitle}>{selectedUser?.email}</Text>
 
-                        <Text style={styles.fieldLabel}>{t('admin.users.selectRole')}</Text>
+                        <View style={styles.userInfoBlock}>
+                            <Text style={styles.userName}>{selectedUser?.name || '-'}</Text>
+                            <Text style={styles.userEmail}>{selectedUser?.email}</Text>
+
+                            <View style={styles.infoRow}>
+                                <Ionicons name="call-outline" size={14} color="#5C6A80" />
+                                <Text style={styles.infoText}>{selectedUser?.phoneNumber || '-'}</Text>
+                            </View>
+                            <View style={styles.infoRow}>
+                                <Ionicons name="male-female-outline" size={14} color="#5C6A80" />
+                                <Text style={styles.infoText}>{selectedUser?.gender || '-'}</Text>
+                                <Text style={styles.separator}>•</Text>
+                                <Ionicons name="calendar-outline" size={14} color="#5C6A80" />
+                                <Text style={styles.infoText}>{selectedUser?.age ? selectedUser.age + ' y.o.' : '-'}</Text>
+                            </View>
+                        </View>
+
+                        <Text style={styles.fieldLabel}>{t('admin.users.role')}</Text>
                         <Pressable
                             style={styles.dropdown}
                             onPress={() => setRolePickerOpen((open) => !open)}
@@ -280,6 +302,7 @@ export default function AdminUsersScreen() {
                 onClose={() => setMenuVisible(false)}
                 onNavigateHome={handleNavigateHome}
                 onNavigateEvents={handleNavigateEvents}
+                onNavigateProfile={handleNavigateProfile}
                 onNavigateDashboard={handleNavigateDashboard}
                 showDashboard={hasRole(['ROLE_ADMIN'])}
                 t={t}
@@ -376,10 +399,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    userEmail: {
+    userNameList: {
         fontSize: 15,
         fontWeight: '700',
         color: '#0F2848',
+        marginBottom: 2,
+    },
+    userEmail: {
+        fontSize: 13,
+        color: '#5C6A80',
     },
     rolesRow: {
         flexDirection: 'row',
@@ -544,4 +572,30 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '700',
     },
+    userInfoBlock: {
+        backgroundColor: '#F7F9FC',
+        padding: 12,
+        borderRadius: 12,
+        marginBottom: 12,
+    },
+    userName: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#0F2848',
+        marginBottom: 2,
+    },
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 4,
+    },
+    infoText: {
+        fontSize: 13,
+        color: '#5C6A80',
+    },
+    separator: {
+        color: '#C5CDD9',
+        marginHorizontal: 4,
+    }
 });

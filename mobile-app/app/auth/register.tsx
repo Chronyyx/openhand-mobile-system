@@ -12,7 +12,7 @@ import {
     Keyboard,
     ScrollView,
 } from "react-native";
-import { styles } from "./register.styles";
+import { styles } from "../../styles/auth.register.styles";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { Link, useRouter } from "expo-router";

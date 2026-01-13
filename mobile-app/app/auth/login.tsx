@@ -11,7 +11,7 @@ import {
     TouchableWithoutFeedback,
     Keyboard,
 } from "react-native";
-import { styles } from "./login.styles";
+import { styles } from "../../styles/auth.login.styles";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { Link, useRouter } from "expo-router";

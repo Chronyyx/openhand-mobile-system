@@ -127,7 +127,11 @@ public class AuthController {
                 refreshToken.getToken(),
                 userDetails.getId(),
                 userDetails.getUsername(),
-                roles));
+                roles,
+                userDetails.getName(),
+                userDetails.getPhoneNumber(),
+                userDetails.getGender(),
+                userDetails.getAge()));
     }
 
     @PostMapping("/refreshtoken")

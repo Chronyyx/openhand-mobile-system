@@ -10,17 +10,63 @@ public class UserResponseModel {
     private String email;
     private Set<String> roles;
 
-    public UserResponseModel(Long id, String email, Set<String> roles) {
+    private String name;
+    private String phoneNumber;
+    private String gender;
+    private Integer age;
+
+    public UserResponseModel(Long id, String email, Set<String> roles, String name, String phoneNumber, String gender,
+            Integer age) {
         this.id = id;
         this.email = email;
         this.roles = roles;
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.gender = gender;
+        this.age = age;
     }
 
     public static UserResponseModel fromEntity(User user) {
         return new UserResponseModel(
                 user.getId(),
                 user.getEmail(),
-                new HashSet<>(user.getRoles()));
+                new HashSet<>(user.getRoles()),
+                user.getName(),
+                user.getPhoneNumber(),
+                user.getGender() != null ? user.getGender().name() : null,
+                user.getAge());
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
     }
 
     public Long getId() {

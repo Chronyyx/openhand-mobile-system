@@ -8,6 +8,10 @@ export interface User {
     id: number;
     email: string;
     roles: string[];
+    name: string;
+    phoneNumber: string;
+    gender: string;
+    age: number;
 }
 
 interface AuthContextProps {

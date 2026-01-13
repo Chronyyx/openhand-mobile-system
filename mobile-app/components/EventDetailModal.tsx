@@ -3,7 +3,7 @@ import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator 
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
-import { styles } from '../app/events/events.styles';
+import { styles } from '../styles/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
 import { type Registration } from '../services/registration.service';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';

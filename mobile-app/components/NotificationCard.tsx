@@ -6,6 +6,8 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 import { useTranslation } from 'react-i18next';
 import { type Notification } from '../services/notification.service';
+import { getTranslatedEventTitle } from '../utils/event-translations';
+import { getTranslatedNotificationText } from '../utils/notification-translations';
 
 interface NotificationCardProps {
     notification: Notification;
@@ -46,7 +48,22 @@ export function NotificationCard({
     onMarkAsRead,
     onDelete,
 }: NotificationCardProps) {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+
+    // Try to translate event title if it's a translation key (fallback to displayed title)
+    const displayedEventTitle = getTranslatedEventTitle(
+        { title: notification.eventTitle },
+        t as any
+    );
+
+    // Translate notification text dynamically based on current language
+    const displayedNotificationText = getTranslatedNotificationText(
+        notification.notificationType,
+        displayedEventTitle,
+        i18n.language,
+        notification.eventStartDateTime,
+        notification.participantName
+    );
 
     // Trigger re-render to keep relative time labels fresh
     const [now, setNow] = useState(Date.now());
@@ -100,13 +117,13 @@ export function NotificationCard({
                         numberOfLines={1}
                         style={[styles.eventTitle, !notification.isRead && styles.eventTitleBold]}
                     >
-                        {notification.eventTitle}
+                        {displayedEventTitle}
                     </ThemedText>
                     <ThemedText
                         numberOfLines={2}
                         style={styles.notificationText}
                     >
-                        {notification.textContent}
+                        {displayedNotificationText}
                     </ThemedText>
                     <ThemedText style={styles.timeText}>
                         {timeLabel}

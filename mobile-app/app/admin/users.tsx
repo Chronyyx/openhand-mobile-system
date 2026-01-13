@@ -223,7 +223,7 @@ export default function AdminUsersScreen() {
                                 <Text style={styles.infoText}>{selectedUser?.gender || '-'}</Text>
                                 <Text style={styles.separator}>•</Text>
                                 <Ionicons name="calendar-outline" size={14} color="#5C6A80" />
-                                <Text style={styles.infoText}>{selectedUser?.age ? selectedUser.age + ' yo' : '-'}</Text>
+                                <Text style={styles.infoText}>{selectedUser?.age ? selectedUser.age + ' y.o.' : '-'}</Text>
                             </View>
                         </View>
 

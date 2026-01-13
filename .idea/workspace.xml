@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add support for event management: backend seeding rules, UI updates, and i18n translations">
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="send grid implementation.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/events.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/businesslayer/EventServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/events/businesslayer/EventServiceImplTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,6 +74,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Gradle.Build openhand-backend.executor": "Run",
+    "Gradle.EventServiceImplTest.executor": "Run",
     "Gradle.OpenhandBackendApplicationTests.dummyTest.executor": "Run",
     "Gradle.Tests in 'com.mana.openhand_backend'.executor": "Run",
     "Gradle.Tests in 'openhand-backend'.executor": "Run",
@@ -92,7 +90,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "feat/OP-28__Duplicate__Existing__Event",
+    "git-widget-placeholder": "feat/OP-85__SendGrid__Email__SMS__Delivery__For__Notifications",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/maximilian/Desktop/Final Project/openhand-mobile-system",
     "node.js.detected.package.eslint": "true",
@@ -116,7 +114,31 @@
       <recent name="D:\openhand-mobile-system\mobile-app\app\settings" />
     </key>
   </component>
-  <component name="RunManager" selected="Gradle.Tests in 'com.mana.openhand_backend'">
+  <component name="RunManager" selected="Gradle.Tests in 'openhand-backend'">
+    <configuration name="EventServiceImplTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/openhand-backend" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;com.mana.openhand_backend.events.businesslayer.EventServiceImplTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
     <configuration name="OpenhandBackendApplicationTests.dummyTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -137,11 +159,8 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'com.mana.openhand_backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -164,11 +183,8 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="Tests in 'openhand-backend'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
@@ -189,11 +205,8 @@
       </ExternalSystemSettings>
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
-      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
       <DebugAllEnabled>false</DebugAllEnabled>
       <RunAsTest>true</RunAsTest>
-      <GradleProfilingDisabled>false</GradleProfilingDisabled>
-      <GradleCoverageDisabled>false</GradleCoverageDisabled>
       <method v="2" />
     </configuration>
     <configuration name="OpenhandBackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
@@ -206,18 +219,18 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Tests in 'openhand-backend'" />
+        <item itemvalue="Gradle.EventServiceImplTest" />
         <item itemvalue="Gradle.Tests in 'com.mana.openhand_backend'" />
         <item itemvalue="Gradle.OpenhandBackendApplicationTests.dummyTest" />
         <item itemvalue="Gradle.Tests in 'openhand-backend'" />
-        <item itemvalue="Gradle.Tests in 'com.mana.openhand_backend'" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-30f59d01ecdd-cffe25b9f5b3-intellij.indexing.shared.core-IU-253.28294.334" />
-        <option value="bundled-js-predefined-d6986cc7102b-c7e53b3be11b-JavaScript-IU-253.28294.334" />
+        <option value="jdk-20.0.2-azul-20.0.2-f644763e9732-d86f2a68" />
+        <option value="jdk-22-openjdk-22-f644763e9732-8c5c9ae5" />
       </set>
     </attachedChunks>
   </component>
@@ -236,6 +249,9 @@
       <workItem from="1765295628708" duration="55000" />
       <workItem from="1765552967494" duration="323000" />
       <workItem from="1765553305280" duration="7988000" />
+      <workItem from="1765810745151" duration="1038000" />
+      <workItem from="1765847724586" duration="1691000" />
+      <workItem from="1768229926900" duration="10040000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -325,7 +341,31 @@
       <option name="project" value="LOCAL" />
       <updated>1765589934617</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="fixed FE running issue, on the .sh file for docker-start.sh">
+      <option name="closed" value="true" />
+      <created>1765754560708</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1765754560708</updated>
+    </task>
+    <task id="LOCAL-00013" summary="tests for 90%+ test coverage">
+      <option name="closed" value="true" />
+      <created>1765755537530</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1765755537530</updated>
+    </task>
+    <task id="LOCAL-00014" summary="send grid implementation.">
+      <option name="closed" value="true" />
+      <created>1768247356982</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1768247356982</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -352,7 +392,10 @@
     <MESSAGE value="Updated CI tests." />
     <MESSAGE value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
     <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
-    <option name="LAST_COMMIT_MESSAGE" value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
+    <MESSAGE value="fixed FE running issue, on the .sh file for docker-start.sh" />
+    <MESSAGE value="tests for 90%+ test coverage" />
+    <MESSAGE value="send grid implementation." />
+    <option name="LAST_COMMIT_MESSAGE" value="send grid implementation." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

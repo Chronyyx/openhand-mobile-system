@@ -4,18 +4,33 @@ import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.presentationlayer.payload.CreateEventRequest;
+import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
+import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.List;
 
 @Service
 public class EventAdminServiceImpl implements EventAdminService {
 
-    private final EventRepository eventRepository;
+    private static final Logger logger = LoggerFactory.getLogger(EventAdminServiceImpl.class);
 
-    public EventAdminServiceImpl(EventRepository eventRepository) {
+    private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
+    private final SendGridEmailService sendGridEmailService;
+
+    public EventAdminServiceImpl(EventRepository eventRepository,
+            RegistrationRepository registrationRepository,
+            SendGridEmailService sendGridEmailService) {
         this.eventRepository = eventRepository;
+        this.registrationRepository = registrationRepository;
+        this.sendGridEmailService = sendGridEmailService;
     }
 
     @Override
@@ -58,6 +73,7 @@ public class EventAdminServiceImpl implements EventAdminService {
     @Override    @SuppressWarnings("null")    public Event updateEvent(Long id, CreateEventRequest request) {
         Event existing = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+        LocalDateTime originalStart = existing.getStartDateTime();
 
         LocalDateTime startDateTime = request.getParsedStartDateTime();
         LocalDateTime endDateTime = request.getParsedEndDateTime();
@@ -91,7 +107,51 @@ public class EventAdminServiceImpl implements EventAdminService {
         existing.setMaxCapacity(maxCapacity);
         existing.setStatus(determineStatus(maxCapacity, currentCount));
 
-        return eventRepository.save(existing);
+        Event updated = eventRepository.save(existing);
+
+        // Notify members if the schedule changed
+        if (scheduleChanged(originalStart, updated.getStartDateTime())) {
+            notifyScheduleChange(updated);
+        }
+
+        return updated;
+    }
+
+    private boolean scheduleChanged(LocalDateTime originalStart, LocalDateTime updatedStart) {
+        if (originalStart == null && updatedStart == null) {
+            return false;
+        }
+        if (originalStart == null) {
+            return true;
+        }
+        return !originalStart.equals(updatedStart);
+    }
+
+    private void notifyScheduleChange(Event event) {
+        try {
+            List<Registration> registrations = registrationRepository.findByEventId(event.getId());
+            registrations.stream()
+                    .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
+                    .forEach(reg -> {
+                        try {
+                            String language = reg.getUser().getPreferredLanguage() != null
+                                    ? reg.getUser().getPreferredLanguage()
+                                    : "en";
+                            sendGridEmailService.sendCancellationOrUpdate(
+                                    reg.getUser().getEmail(),
+                                    reg.getUser().getName(),
+                                    event.getTitle(),
+                                    "Event schedule updated to " + event.getStartDateTime(),
+                                    language
+                            );
+                        } catch (Exception ex) {
+                            logger.error("Failed to send schedule update email for registration {}: {}",
+                                    reg.getId(), ex.getMessage());
+                        }
+                    });
+        } catch (Exception ex) {
+            logger.error("Failed to process schedule change notifications for event {}: {}", event.getId(), ex.getMessage());
+        }
     }
 
     private EventStatus determineStatus(Integer maxCapacity, Integer currentRegistrations) {

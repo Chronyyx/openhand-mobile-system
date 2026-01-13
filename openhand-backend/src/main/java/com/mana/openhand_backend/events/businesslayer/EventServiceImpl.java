@@ -7,6 +7,7 @@ import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,7 +27,14 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<Event> getUpcomingEvents() {
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        return eventRepository.findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(startOfToday);
+        List<Event> upcoming = eventRepository.findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(startOfToday);
+
+        // Fallback: if no future events, surface past events (e.g., seed data) so the list is never empty
+        if (upcoming.isEmpty()) {
+            return eventRepository.findAll(Sort.by(Sort.Direction.ASC, "startDateTime"));
+        }
+
+        return upcoming;
     }
 
     @Override

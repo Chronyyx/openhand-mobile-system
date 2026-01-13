@@ -3,6 +3,7 @@ package com.mana.openhand_backend.notifications.businesslayer;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
+import com.mana.openhand_backend.events.utils.EventTitleResolver;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
@@ -37,6 +38,12 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public Notification createNotification(Long userId, Long eventId, String notificationType, String language) {
+        return createNotification(userId, eventId, notificationType, language, null);
+    }
+
+    @Override
+    @Transactional
+    public Notification createNotification(Long userId, Long eventId, String notificationType, String language, String participantName) {
         // Verify user exists
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -48,17 +55,22 @@ public class NotificationServiceImpl implements NotificationService {
         // Convert string to NotificationType enum
         NotificationType type = NotificationType.valueOf(notificationType);
 
-        // Generate notification text based on type and language
-        String textContent = textGenerator.generateText(type, event.getTitle(), language, event.getStartDateTime());
+        // Resolve event title from translation key to display name for text content
+        String resolvedEventTitle = EventTitleResolver.resolve(event.getTitle(), language);
 
-        // Create notification entity
+        // Generate notification text based on type and language using resolved title
+        String textContent = textGenerator.generateText(type, resolvedEventTitle, language, event.getStartDateTime(), participantName);
+
+        // Create notification entity with ORIGINAL translation key (not resolved)
+        // The frontend will translate the title dynamically based on user's current language
         Notification notification = new Notification(
                 user,
                 event,
                 type,
                 language,
                 textContent,
-                event.getTitle()
+                event.getTitle(),  // Pass original translation key, not resolved title
+                participantName
         );
 
         // Save and return

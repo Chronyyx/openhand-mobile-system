@@ -57,12 +57,17 @@ public class EmployeeRegistrationController {
             User actor = userRepository.findByEmail(actorDetails.getUsername())
                     .orElseThrow(() -> new RuntimeException("Acting user not found: " + actorDetails.getUsername()));
 
+            // Get the participant who was registered
+            User participant = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new RuntimeException("Participant not found: " + request.getUserId()));
+
             String language = actor.getPreferredLanguage() != null ? actor.getPreferredLanguage() : "en";
             notificationService.createNotification(
                     actor.getId(),
                     request.getEventId(),
-                    "REGISTRATION_CONFIRMATION",
-                    language
+                    "EMPLOYEE_REGISTERED_PARTICIPANT",
+                    language,
+                    participant.getName()
             );
         } catch (Exception e) {
             // Do not block registration flow on notification failures

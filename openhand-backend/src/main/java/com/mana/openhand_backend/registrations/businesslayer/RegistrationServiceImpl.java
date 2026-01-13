@@ -7,12 +7,15 @@ import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
+import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
 import com.mana.openhand_backend.registrations.utils.EventCapacityException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,19 +27,24 @@ import java.util.Optional;
 @Service
 public class RegistrationServiceImpl implements RegistrationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(RegistrationServiceImpl.class);
+
     private final RegistrationRepository registrationRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final SendGridEmailService sendGridEmailService;
 
     public RegistrationServiceImpl(RegistrationRepository registrationRepository,
             EventRepository eventRepository,
             UserRepository userRepository,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            SendGridEmailService sendGridEmailService) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.sendGridEmailService = sendGridEmailService;
     }
 
     /**
@@ -162,6 +170,11 @@ public class RegistrationServiceImpl implements RegistrationService {
             System.err.println("Failed to create registration confirmation notification: " + e.getMessage());
         }
 
+        // Fire-and-forget external email
+        if (savedRegistration.getStatus() == RegistrationStatus.CONFIRMED) {
+            sendRegistrationConfirmationEmail(user, lockedEvent);
+        }
+
         return savedRegistration;
     }
 
@@ -226,6 +239,39 @@ public class RegistrationServiceImpl implements RegistrationService {
             System.err.println("Failed to create cancellation notification: " + e.getMessage());
         }
 
+        sendCancellationEmail(registration.getUser(), registration.getEvent(), "Registration cancelled by member.");
+
         return cancelledRegistration;
+    }
+
+    private void sendRegistrationConfirmationEmail(User user, Event event) {
+        try {
+            String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            sendGridEmailService.sendRegistrationConfirmation(
+                    user.getEmail(),
+                    user.getName(),
+                    event.getTitle(),
+                    language
+            );
+        } catch (Exception ex) {
+            logger.error("Failed to send registration confirmation email for user {} and event {}: {}",
+                    user.getId(), event.getId(), ex.getMessage());
+        }
+    }
+
+    private void sendCancellationEmail(User user, Event event, String details) {
+        try {
+            String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            sendGridEmailService.sendCancellationOrUpdate(
+                    user.getEmail(),
+                    user.getName(),
+                    event.getTitle(),
+                    details,
+                    language
+            );
+        } catch (Exception ex) {
+            logger.error("Failed to send cancellation/update email for user {} and event {}: {}",
+                    user.getId(), event.getId(), ex.getMessage());
+        }
     }
 }

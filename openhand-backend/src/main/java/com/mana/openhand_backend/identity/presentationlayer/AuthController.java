@@ -5,6 +5,7 @@ import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.presentationlayer.payload.*;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
+import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
@@ -52,6 +53,9 @@ public class AuthController {
 
     @Autowired
     RefreshTokenService refreshTokenService;
+
+    @Autowired
+    SendGridEmailService sendGridEmailService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
@@ -180,8 +184,9 @@ public class AuthController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
+        String normalizedPhone = null;
         if (signUpRequest.getPhoneNumber() != null && !signUpRequest.getPhoneNumber().trim().isEmpty()) {
-            String normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", "");
+            normalizedPhone = signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", "");
             if (userRepository.existsByPhoneNumber(normalizedPhone)) {
                 return ResponseEntity
                         .badRequest()
@@ -204,13 +209,22 @@ public class AuthController {
         user.setName(signUpRequest.getName());
 
         // Normalize phone number before saving
-        if (signUpRequest.getPhoneNumber() != null) {
-            user.setPhoneNumber(signUpRequest.getPhoneNumber().replaceAll("[^0-9+]", ""));
+        if (normalizedPhone != null) {
+            user.setPhoneNumber(normalizedPhone);
         }
 
         user.setGender(signUpRequest.getGender());
         user.setAge(signUpRequest.getAge());
         userRepository.save(user);
+
+        try {
+            sendGridEmailService.sendAccountRegistrationConfirmation(
+                    user.getEmail(),
+                    user.getName()
+            );
+        } catch (Exception ex) {
+            logger.error("Failed to send account registration email to {}: {}", user.getEmail(), ex.getMessage());
+        }
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }

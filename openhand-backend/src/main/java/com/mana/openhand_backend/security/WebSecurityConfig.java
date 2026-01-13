@@ -94,6 +94,8 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refreshtoken").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").authenticated()
+                        // TODO: Remove dev testing endpoints when proper profile-based gating is added
+                        .requestMatchers("/api/dev/**").permitAll()
                         .requestMatchers("/api/events/**").permitAll()
                         .requestMatchers("/api/registrations/**").authenticated()
                         .requestMatchers("/error").permitAll()

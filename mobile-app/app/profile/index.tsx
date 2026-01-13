@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -99,7 +99,7 @@ export default function ProfileScreen() {
 
                 <Pressable style={styles.logoutButton} onPress={signOut}>
                     <Ionicons name="log-out-outline" size={20} color="#C62828" />
-                    <Text style={styles.logoutButtonText}>{t('home.logout')}</Text>
+                    <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
                 </Pressable>
 
             </ScrollView>

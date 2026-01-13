@@ -21,6 +21,10 @@ class UserDetailsImplTest {
                                 Set.of("ROLE_MEMBER", "ROLE_ADMIN"));
                 user.setId(1L);
                 user.setAccountNonLocked(true);
+                user.setName("John Doe");
+                user.setPhoneNumber("+1234567890");
+                user.setGender(com.mana.openhand_backend.identity.dataaccesslayer.Gender.MALE);
+                user.setAge(30);
 
                 // act
                 UserDetailsImpl details = UserDetailsImpl.build(user);
@@ -30,6 +34,10 @@ class UserDetailsImplTest {
                 assertEquals("user@example.com", details.getEmail());
                 assertEquals("hashed-password", details.getPassword());
                 assertTrue(details.isAccountNonLocked());
+                assertEquals("John Doe", details.getName());
+                assertEquals("+1234567890", details.getPhoneNumber());
+                assertEquals("MALE", details.getGender());
+                assertEquals(30, details.getAge());
 
                 // authorities -> role names
                 Set<String> roles = details.getAuthorities().stream()

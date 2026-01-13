@@ -106,8 +106,6 @@ export default function AdminUsersScreen() {
         router.push('/profile');
     };
 
-
-
     const saveRoleChange = async () => {
         if (!selectedUser || !selectedRole) return;
         setSaving(true);

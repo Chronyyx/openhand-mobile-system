@@ -16,6 +16,7 @@ import {
     type Registration,
 } from '../../services/registration.service';
 import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
+import { getTranslatedEventTitle } from '../../utils/event-translations';
 
 type RegistrationWithConflict = Registration & { hasConflict: boolean };
 
@@ -93,11 +94,14 @@ export default function MyRegistrationsScreen() {
     }, [loadRegistrations]);
 
     const renderItem = useCallback(
-        ({ item }: { item: RegistrationWithConflict }) => (
+        ({ item }: { item: RegistrationWithConflict }) => {
+            // Translate event title from translation key
+            const translatedTitle = getTranslatedEventTitle({ title: item.eventTitle }, t);
+            return (
             <View style={styles.card}>
                 <View style={styles.cardHeader}>
                     <ThemedText type="subtitle" style={styles.eventTitle}>
-                        {item.eventTitle}
+                        {translatedTitle}
                     </ThemedText>
                     <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
                         <ThemedText style={styles.statusText}>
@@ -141,7 +145,8 @@ export default function MyRegistrationsScreen() {
                     </View>
                 )}
             </View>
-        ),
+            );
+        },
         [t],
     );
 

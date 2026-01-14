@@ -32,7 +32,7 @@ public class EventTitleResolver {
         Map<String, String> frTitles = new HashMap<>();
         frTitles.put("gala", "Gala de reconnaissance MANA");
         frTitles.put("panier_noel", "Panier de Noël");
-        frTitles.put("distribution_mardi", "Distribution Alimentaire - Mardi");
+        frTitles.put("distribution_mardi", "Distribution Alimentaire – Mardi");
         frTitles.put("distribution_jeudi", "Distribution alimentaire – Jeudi");
         frTitles.put("formation_mediateur", "Formation MANA – Médiateur interculturel");
         TITLE_TRANSLATIONS.put("fr", frTitles);

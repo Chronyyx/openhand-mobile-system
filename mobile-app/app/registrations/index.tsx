@@ -1,33 +1,41 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     ActivityIndicator,
-    FlatList,
     RefreshControl,
+    SectionList,
     StyleSheet,
     View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { useAuth } from '../../context/AuthContext';
 import {
-    getMyRegistrations,
-    type Registration,
+    getRegistrationHistory,
+    type RegistrationHistoryItem,
+    type RegistrationStatus,
 } from '../../services/registration.service';
 import { formatIsoDate, formatIsoTimeRange } from '../../utils/date-time';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 
-type RegistrationWithConflict = Registration & { hasConflict: boolean };
+type RegistrationWithConflict = RegistrationHistoryItem & { hasConflict: boolean };
+type RegistrationSection = {
+    key: 'ACTIVE' | 'PAST';
+    title: string;
+    emptyText: string;
+    data: RegistrationWithConflict[];
+};
 
-function computeConflictIds(registrations: Registration[]): Set<number> {
+function computeConflictIds(registrations: RegistrationHistoryItem[]): Set<number> {
     const conflictIds = new Set<number>();
     const parsed = registrations
         .filter((r) => r.status !== 'CANCELLED')
         .map((r) => ({
-            id: r.id,
-            start: r.eventStartDateTime ? Date.parse(r.eventStartDateTime) : NaN,
-            end: r.eventEndDateTime ? Date.parse(r.eventEndDateTime) : NaN,
+            id: r.registrationId,
+            start: r.event?.startDateTime ? Date.parse(r.event.startDateTime) : NaN,
+            end: r.event?.endDateTime ? Date.parse(r.event.endDateTime) : NaN,
         }));
 
     for (let i = 0; i < parsed.length; i++) {
@@ -67,12 +75,13 @@ export default function MyRegistrationsScreen() {
 
         try {
             setError(null);
-            const data = await getMyRegistrations(user.token);
-            const conflictIds = computeConflictIds(data);
+            const data = await getRegistrationHistory(user.token, 'ALL');
+            const activeRegistrations = data.filter((item) => item.timeCategory === 'ACTIVE');
+            const conflictIds = computeConflictIds(activeRegistrations);
             setRegistrations(
                 data.map((item) => ({
                     ...item,
-                    hasConflict: conflictIds.has(item.id),
+                    hasConflict: conflictIds.has(item.registrationId),
                 })),
             );
         } catch (e) {
@@ -84,19 +93,43 @@ export default function MyRegistrationsScreen() {
         }
     }, [t, user?.token]);
 
-    useEffect(() => {
-        loadRegistrations();
-    }, [loadRegistrations]);
+    useFocusEffect(
+        useCallback(() => {
+            loadRegistrations();
+        }, [loadRegistrations]),
+    );
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         loadRegistrations();
     }, [loadRegistrations]);
 
+    const activeRegistrations = registrations.filter(
+        (registration) => registration.timeCategory === 'ACTIVE',
+    );
+    const pastRegistrations = registrations.filter(
+        (registration) => registration.timeCategory === 'PAST',
+    );
+
+    const sections: RegistrationSection[] = [
+        {
+            key: 'ACTIVE',
+            title: t('registrations.activeTitle'),
+            emptyText: t('registrations.emptyActive'),
+            data: activeRegistrations,
+        },
+        {
+            key: 'PAST',
+            title: t('registrations.pastTitle'),
+            emptyText: t('registrations.emptyPast'),
+            data: pastRegistrations,
+        },
+    ];
+
     const renderItem = useCallback(
         ({ item }: { item: RegistrationWithConflict }) => {
             // Translate event title from translation key
-            const translatedTitle = getTranslatedEventTitle({ title: item.eventTitle }, t);
+            const translatedTitle = getTranslatedEventTitle({ title: item.event.title }, t);
             return (
             <View style={styles.card}>
                 <View style={styles.cardHeader}>
@@ -113,14 +146,14 @@ export default function MyRegistrationsScreen() {
                 <View style={styles.row}>
                     <ThemedText style={styles.label}>{t('registrations.dateLabel')}</ThemedText>
                     <ThemedText style={styles.value}>
-                        {item.eventStartDateTime ? formatIsoDate(item.eventStartDateTime) : 'N/A'}
+                        {item.event.startDateTime ? formatIsoDate(item.event.startDateTime) : 'N/A'}
                     </ThemedText>
                 </View>
                 <View style={styles.row}>
                     <ThemedText style={styles.label}>{t('registrations.timeLabel')}</ThemedText>
                     <ThemedText style={styles.value}>
-                        {item.eventStartDateTime
-                            ? formatIsoTimeRange(item.eventStartDateTime, item.eventEndDateTime)
+                        {item.event.startDateTime
+                            ? formatIsoTimeRange(item.event.startDateTime, item.event.endDateTime)
                             : 'N/A'}
                     </ThemedText>
                 </View>
@@ -180,14 +213,28 @@ export default function MyRegistrationsScreen() {
             <ThemedText type="title" style={styles.screenTitle}>
                 {t('registrations.title')}
             </ThemedText>
-            <FlatList
-                data={registrations}
-                keyExtractor={(item) => item.id.toString()}
+            <SectionList
+                sections={sections}
+                keyExtractor={(item) => item.registrationId.toString()}
                 renderItem={renderItem}
-                contentContainerStyle={registrations.length === 0 && styles.emptyContainer}
-                ListEmptyComponent={
-                    <ThemedText>{t('registrations.noRegistrations')}</ThemedText>
+                renderSectionHeader={({ section }) => (
+                    <View style={styles.sectionHeader}>
+                        <ThemedText type="subtitle" style={styles.sectionTitle}>
+                            {section.title}
+                        </ThemedText>
+                        <ThemedText style={styles.sectionCount}>
+                            {section.data.length}
+                        </ThemedText>
+                    </View>
+                )}
+                renderSectionFooter={({ section }) =>
+                    section.data.length === 0 ? (
+                        <ThemedText style={styles.sectionEmptyText}>
+                            {section.emptyText}
+                        </ThemedText>
+                    ) : null
                 }
+                contentContainerStyle={styles.listContent}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
@@ -196,7 +243,7 @@ export default function MyRegistrationsScreen() {
     );
 }
 
-function getStatusStyle(status: Registration['status']) {
+function getStatusStyle(status: RegistrationStatus) {
     switch (status) {
         case 'CONFIRMED':
             return styles.statusConfirmed;
@@ -232,6 +279,27 @@ const styles = StyleSheet.create({
     errorText: {
         color: 'red',
         textAlign: 'center',
+    },
+    listContent: {
+        paddingBottom: 24,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 6,
+    },
+    sectionTitle: {
+        fontWeight: '700',
+    },
+    sectionCount: {
+        color: '#6b7280',
+        fontSize: 12,
+    },
+    sectionEmptyText: {
+        color: '#6b7280',
+        marginBottom: 12,
     },
     card: {
         backgroundColor: '#ffffff',
@@ -312,10 +380,5 @@ const styles = StyleSheet.create({
     conflictHint: {
         color: '#9a3412',
         fontSize: 12,
-    },
-    emptyContainer: {
-        flexGrow: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
     },
 });

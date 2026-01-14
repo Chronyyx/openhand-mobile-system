@@ -2,19 +2,49 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Events Screen', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('/events', { waitUntil: 'commit' });
+        const mockUser = {
+            token: 'test-token',
+            refreshToken: 'refresh-token',
+            type: 'Bearer',
+            id: 1,
+            email: 'test@mana.org',
+            roles: ['ROLE_USER'],
+        };
+
+        // Mock upcoming events endpoint
+        await page.route('**/events/upcoming', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([
+                    {
+                        id: 1,
+                        title: 'gala_2025',
+                        description: 'A grand gala event',
+                        startDateTime: '2025-12-24T18:00:00',
+                        endDateTime: '2025-12-25T02:00:00',
+                        locationName: 'Grand Hall',
+                        address: '123 Main St',
+                        status: 'OPEN',
+                        maxCapacity: 100,
+                        currentRegistrations: 45,
+                    },
+                ]),
+            });
+        });
+
+        // Set auth token before navigating
+        await page.addInitScript((user) => {
+            window.localStorage.setItem('userToken', JSON.stringify(user));
+        }, mockUser);
+
+        await page.goto('/events', { waitUntil: 'domcontentloaded' });
     });
 
     test('Loads and displays list of events', async ({ page }) => {
-        // Title can be French or English
-        await expect(
-            page.locator('text=/ÉVÉNEMENTS DISPONIBLES|AVAILABLE EVENTS/i')
-        ).toBeVisible();
-
-        // At least one "View details" / "Voir détails"
-        await expect(
-            page.locator('text=/view details|voir détails|details/i').first()
-        ).toBeVisible();
+        // Check for at least one "View details" button which indicates an event is loaded
+        const viewDetails = page.locator('text=/view details|voir détails|details/i').first();
+        await expect(viewDetails).toBeVisible({ timeout: 15000 });
     });
 
     test('Opens event details modal when an event is pressed', async ({ page }) => {

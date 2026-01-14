@@ -22,6 +22,8 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
 
     long countByEventIdAndStatus(Long eventId, RegistrationStatus status);
 
+    List<Registration> findByEventIdAndStatusIn(Long eventId, List<RegistrationStatus> statuses);
+
     /**
      * Retrieves an Event with a pessimistic write lock to prevent concurrent registrations
      * from violating capacity constraints. The database will lock the row until the transaction

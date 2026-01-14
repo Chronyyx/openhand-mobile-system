@@ -12,6 +12,8 @@ export type ManagedUser = {
     phoneNumber: string;
     gender: string;
     age: number;
+    memberStatus: 'ACTIVE' | 'INACTIVE';
+    statusChangedAt: string | null;
 };
 
 const getAuthHeaders = async () => {
@@ -43,3 +45,10 @@ export const updateUserRoles = async (userId: number, roles: string[]): Promise<
     const response = await axios.put(`${API_BASE}/admin/users/${userId}/roles`, { roles }, { headers });
     return response.data;
 };
+
+export const updateUserStatus = async (userId: number, status: 'ACTIVE' | 'INACTIVE'): Promise<ManagedUser> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_BASE}/admin/users/${userId}/status`, { status }, { headers });
+    return response.data;
+};
+

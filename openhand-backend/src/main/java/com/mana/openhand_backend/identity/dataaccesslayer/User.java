@@ -1,6 +1,7 @@
 package com.mana.openhand_backend.identity.dataaccesslayer;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,6 +33,12 @@ public class User {
     private Gender gender;
 
     private Integer age;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(255) default 'ACTIVE'")
+    private MemberStatus memberStatus = MemberStatus.ACTIVE;
+
+    private LocalDateTime statusChangedAt;
 
     public User() {
     }
@@ -137,5 +144,21 @@ public class User {
 
     public void setPreferredLanguage(String preferredLanguage) {
         this.preferredLanguage = preferredLanguage;
+    }
+
+    public MemberStatus getMemberStatus() {
+        return memberStatus;
+    }
+
+    public void setMemberStatus(MemberStatus memberStatus) {
+        this.memberStatus = memberStatus;
+    }
+
+    public LocalDateTime getStatusChangedAt() {
+        return statusChangedAt;
+    }
+
+    public void setStatusChangedAt(LocalDateTime statusChangedAt) {
+        this.statusChangedAt = statusChangedAt;
     }
 }

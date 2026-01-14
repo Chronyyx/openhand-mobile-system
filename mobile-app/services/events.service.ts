@@ -20,6 +20,17 @@ export type EventSummary = {
 // If later you have more fields for the detail, you can extend this.
 export type EventDetail = EventSummary;
 
+export type AttendeeInfo = {
+    userId: number;
+    userName: string;
+    userEmail: string;
+    registrationStatus: 'CONFIRMED' | 'WAITLISTED' | 'CANCELLED';
+    memberStatus: 'ACTIVE' | 'INACTIVE';
+    waitlistedPosition: number | null;
+    requestedAt: string | null;
+    confirmedAt: string | null;
+};
+
 export type RegistrationSummary = {
     eventId: number;
     totalRegistrations: number;
@@ -27,6 +38,7 @@ export type RegistrationSummary = {
     maxCapacity: number | null;
     remainingSpots: number | null;
     percentageFull: number | null;
+    attendees?: AttendeeInfo[];
 };
 
 async function handleResponse<T>(res: Response, context: string): Promise<T> {
@@ -53,3 +65,4 @@ export async function getRegistrationSummary(eventId: number): Promise<Registrat
     const res = await fetch(url, { method: 'GET' });
     return handleResponse<RegistrationSummary>(res, "le résumé des inscriptions");
 }
+

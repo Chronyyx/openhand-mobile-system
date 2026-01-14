@@ -2,6 +2,7 @@ package com.mana.openhand_backend.identity.domainclientlayer;
 
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,9 +15,11 @@ public class UserResponseModel {
     private String phoneNumber;
     private String gender;
     private Integer age;
+    private String memberStatus;
+    private LocalDateTime statusChangedAt;
 
     public UserResponseModel(Long id, String email, Set<String> roles, String name, String phoneNumber, String gender,
-            Integer age) {
+            Integer age, String memberStatus, LocalDateTime statusChangedAt) {
         this.id = id;
         this.email = email;
         this.roles = roles;
@@ -24,6 +27,8 @@ public class UserResponseModel {
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.age = age;
+        this.memberStatus = memberStatus;
+        this.statusChangedAt = statusChangedAt;
     }
 
     public static UserResponseModel fromEntity(User user) {
@@ -34,7 +39,9 @@ public class UserResponseModel {
                 user.getName(),
                 user.getPhoneNumber(),
                 user.getGender() != null ? user.getGender().name() : null,
-                user.getAge());
+                user.getAge(),
+                user.getMemberStatus() != null ? user.getMemberStatus().name() : "ACTIVE",
+                user.getStatusChangedAt());
     }
 
     public String getName() {
@@ -92,4 +99,21 @@ public class UserResponseModel {
     public void setRoles(Set<String> roles) {
         this.roles = roles;
     }
+
+    public String getMemberStatus() {
+        return memberStatus;
+    }
+
+    public void setMemberStatus(String memberStatus) {
+        this.memberStatus = memberStatus;
+    }
+
+    public LocalDateTime getStatusChangedAt() {
+        return statusChangedAt;
+    }
+
+    public void setStatusChangedAt(LocalDateTime statusChangedAt) {
+        this.statusChangedAt = statusChangedAt;
+    }
 }
+

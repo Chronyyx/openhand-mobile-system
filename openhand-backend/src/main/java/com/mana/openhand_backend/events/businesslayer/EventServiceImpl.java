@@ -4,14 +4,17 @@ import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
+import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
+import com.mana.openhand_backend.registrations.domainclientlayer.AttendeeResponseModel;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -71,13 +74,33 @@ public class EventServiceImpl implements EventService {
             }
         }
 
+        // Fetch all registrations for this event to populate attendees list
+        List<Registration> registrations = registrationRepository.findByEventIdAndStatusIn(eventId, 
+                List.of(RegistrationStatus.CONFIRMED, RegistrationStatus.WAITLISTED));
+        
+        // Convert to attendee response models with member status
+        List<AttendeeResponseModel> attendees = registrations.stream()
+                .map(registration -> new AttendeeResponseModel(
+                        registration.getUser().getId(),
+                        registration.getUser().getName(),
+                        registration.getUser().getEmail(),
+                        registration.getStatus().toString(),
+                        registration.getUser().getMemberStatus() != null ? 
+                                registration.getUser().getMemberStatus().toString() : "ACTIVE",
+                        registration.getWaitlistedPosition(),
+                        registration.getRequestedAt() != null ? registration.getRequestedAt().toString() : null,
+                        registration.getConfirmedAt() != null ? registration.getConfirmedAt().toString() : null
+                ))
+                .collect(Collectors.toList());
+
         return new RegistrationSummaryResponseModel(
                 eventId,
                 (int) confirmedCount,
                 (int) waitlistedCount,
                 maxCapacity,
                 remainingSpots,
-                percentageFull
+                percentageFull,
+                attendees
         );
     }
 }

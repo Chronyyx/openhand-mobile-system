@@ -238,13 +238,13 @@
   },
   "registrations": {
     "title": "Mis inscripciones",
-      "noRegistrations": "Aún no tienes inscripciones.",
+    "noRegistrations": "Aún no tienes inscripciones.",
     "loadError": "No se pueden cargar las inscripciones.",
-      "loginRequired": "Inicia sesión para ver tus inscripciones.",
+    "loginRequired": "Inicia sesión para ver tus inscripciones.",
     "conflict": "Conflicto de horario",
     "conflictHint": "Se superpone con otra inscripción.",
     "overlapTitle": "Conflicto de horario detectado",
-      "overlapMessage": "Este evento se superpone con otro al que ya estás inscrito. Puedes continuar de todos modos.",
+    "overlapMessage": "Este evento se superpone con otro al que ya estás inscrito. Puedes continuar de todos modos.",
     "overlapProceed": "Continuar",
     "overlapBack": "Regresar",
     "dateLabel": "Fecha",
@@ -257,7 +257,11 @@
       "WAITLISTED": "Lista de espera",
       "CANCELLED": "Cancelada",
       "REQUESTED": "Solicitada"
-    }
+    },
+    "activeTitle": "Activas",
+    "pastTitle": "Pasadas",
+    "emptyActive": "No hay inscripciones prA3ximas.",
+    "emptyPast": "No hay inscripciones pasadas."
   },
   "alerts": {
     "registerSuccess": "¡Registro confirmado! ✅",

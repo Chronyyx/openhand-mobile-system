@@ -12,36 +12,36 @@ test.describe('Overlapping Event Conflict Detection', () => {
 
   test('shows conflict badge when registrations overlap', async ({ page }) => {
     // Intercept my-registrations with overlapping events
-    await page.route('**/api/registrations/my-registrations', (route) => {
+    await page.route('**/api/registrations/me**', (route) => {
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([
           {
-            id: 1,
-            userId: 1,
-            eventId: 101,
-            eventTitle: 'Event A',
+            registrationId: 1,
             status: 'CONFIRMED',
-            requestedAt: '2025-01-01T09:00:00',
-            confirmedAt: '2025-01-01T09:05:00',
-            cancelledAt: null,
-            waitlistedPosition: null,
-            eventStartDateTime: '2025-01-01T10:00:00',
-            eventEndDateTime: '2025-01-01T11:00:00',
+            createdAt: '2025-01-01T09:00:00',
+            timeCategory: 'ACTIVE',
+            event: {
+              eventId: 101,
+              title: 'Event A',
+              startDateTime: '2025-01-01T10:00:00',
+              endDateTime: '2025-01-01T11:00:00',
+              location: 'Main Hall',
+            },
           },
           {
-            id: 2,
-            userId: 1,
-            eventId: 102,
-            eventTitle: 'Event B',
+            registrationId: 2,
             status: 'CONFIRMED',
-            requestedAt: '2025-01-01T09:30:00',
-            confirmedAt: '2025-01-01T09:35:00',
-            cancelledAt: null,
-            waitlistedPosition: null,
-            eventStartDateTime: '2025-01-01T10:30:00',
-            eventEndDateTime: '2025-01-01T12:00:00',
+            createdAt: '2025-01-01T09:30:00',
+            timeCategory: 'ACTIVE',
+            event: {
+              eventId: 102,
+              title: 'Event B',
+              startDateTime: '2025-01-01T10:30:00',
+              endDateTime: '2025-01-01T12:00:00',
+              location: 'Main Hall',
+            },
           },
         ]),
       });

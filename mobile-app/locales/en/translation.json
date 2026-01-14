@@ -238,6 +238,10 @@
   },
   "registrations": {
     "title": "My Registrations",
+    "activeTitle": "Active",
+    "pastTitle": "Past",
+    "emptyActive": "No upcoming registrations.",
+    "emptyPast": "No past registrations.",
     "noRegistrations": "No registrations yet.",
     "loadError": "Unable to load registrations.",
     "loginRequired": "Log in to view your registrations.",

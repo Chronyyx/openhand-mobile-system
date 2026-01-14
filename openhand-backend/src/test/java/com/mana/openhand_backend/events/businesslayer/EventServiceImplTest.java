@@ -2,7 +2,9 @@ package com.mana.openhand_backend.events.businesslayer;
 
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
+import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Sort;
@@ -12,8 +14,11 @@ import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -78,5 +83,89 @@ class EventServiceImplTest {
 
         assertThat(results).containsExactly(past);
         verify(eventRepository).findAll(any(Sort.class));
+    }
+
+    @Test
+    void getRegistrationSummary_usesEventCountersWhenAvailable() {
+        Event event = new Event(
+                "Event",
+                "Desc",
+                LocalDateTime.now().plusDays(1),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                4,
+                null
+        );
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(registrationRepository.countByEventIdAndStatus(1L, RegistrationStatus.WAITLISTED))
+                .thenReturn(2L);
+
+        RegistrationSummaryResponseModel summary = eventService.getRegistrationSummary(1L);
+
+        assertEquals(4, summary.getTotalRegistrations());
+        assertEquals(2, summary.getWaitlistedCount());
+        assertEquals(10, summary.getMaxCapacity());
+        assertEquals(6, summary.getRemainingSpots());
+        assertEquals(40.0, summary.getPercentageFull());
+        verify(registrationRepository, never())
+                .countByEventIdAndStatus(1L, RegistrationStatus.CONFIRMED);
+    }
+
+    @Test
+    void getRegistrationSummary_fallsBackToDbCountWhenEventCounterMissing() {
+        Event event = new Event(
+                "Event",
+                "Desc",
+                LocalDateTime.now().plusDays(1),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                0,
+                null,
+                null
+        );
+        when(eventRepository.findById(2L)).thenReturn(Optional.of(event));
+        when(registrationRepository.countByEventIdAndStatus(2L, RegistrationStatus.CONFIRMED))
+                .thenReturn(3L);
+        when(registrationRepository.countByEventIdAndStatus(2L, RegistrationStatus.WAITLISTED))
+                .thenReturn(1L);
+
+        RegistrationSummaryResponseModel summary = eventService.getRegistrationSummary(2L);
+
+        assertEquals(3, summary.getTotalRegistrations());
+        assertEquals(1, summary.getWaitlistedCount());
+        assertEquals(0, summary.getMaxCapacity());
+        assertEquals(0, summary.getRemainingSpots());
+        assertEquals(0.0, summary.getPercentageFull());
+    }
+
+    @Test
+    void getRegistrationSummary_withNoCapacityLeavesRemainingAndPercentageNull() {
+        Event event = new Event(
+                "Event",
+                "Desc",
+                LocalDateTime.now().plusDays(1),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                null,
+                2,
+                null
+        );
+        when(eventRepository.findById(3L)).thenReturn(Optional.of(event));
+        when(registrationRepository.countByEventIdAndStatus(3L, RegistrationStatus.WAITLISTED))
+                .thenReturn(0L);
+
+        RegistrationSummaryResponseModel summary = eventService.getRegistrationSummary(3L);
+
+        assertEquals(2, summary.getTotalRegistrations());
+        assertNull(summary.getMaxCapacity());
+        assertNull(summary.getRemainingSpots());
+        assertNull(summary.getPercentageFull());
     }
 }

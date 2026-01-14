@@ -238,6 +238,10 @@
   },
   "registrations": {
     "title": "Mes inscriptions",
+    "activeTitle": "Actives",
+    "pastTitle": "Passées",
+    "emptyActive": "Aucune inscription à venir.",
+    "emptyPast": "Aucune inscription passée.",
     "noRegistrations": "Aucune inscription pour le moment.",
     "loadError": "Impossible de charger les inscriptions.",
     "loginRequired": "Connectez-vous pour voir vos inscriptions.",

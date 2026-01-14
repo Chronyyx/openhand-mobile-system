@@ -143,11 +143,11 @@ class UserEmployeeControllerIntegrationTest {
     }
 
     @Test
-    void searchUsers_withoutAuthentication_shouldReturn401Unauthorized() throws Exception {
+    void searchUsers_withoutAuthentication_shouldReturn403Forbidden() throws Exception {
         // Act & Assert
         mockMvc.perform(get("/api/employee/users/search")
                         .param("query", "employee@example.com"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

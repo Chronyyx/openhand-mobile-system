@@ -174,6 +174,7 @@
       "summaryFailed": "Impossible de charger le récapitulatif des inscriptions.",
       "eventFull": "L'événement est complet. Vous avez été ajouté(e) à la liste d'attente.",
       "alreadyRegistered": "Vous êtes déjà inscrit à cet événement.",
+      "inactiveMember": "Vous êtes inactif(ve) et ne pouvez pas vous inscrire à de nouveaux événements. Veuillez contacter un administrateur.",
       "registrationFailed": "L'inscription a échoué. Veuillez réessayer.",
       "unregisterFailed": "Impossible d'annuler l'inscription. Veuillez réessayer."
     },
@@ -182,6 +183,12 @@
       "OPEN": "OUVERT",
       "NEARLY_FULL": "PLACES LIMITÉES",
       "FULL": "COMPLET"
+    },
+    "registrationStatus": {
+      "confirmed": "Confirmé",
+      "waitlisted": "Liste d'attente",
+      "cancelled": "Annulé",
+      "requested": "Demandé"
     },
     "accessibility": {
       "viewDetails": "Voir détails, {{title}}"
@@ -194,6 +201,7 @@
       "remainingSpots": "Places restantes",
       "unlimited": "Illimitée",
       "noRegistrations": "Aucune inscription pour le moment.",
+      "attendees": "Participants",
       "eventFull": "⚠️ L'événement est complet. Les nouvelles inscriptions seront ajoutées à la liste d'attente.",
       "limitedSpots": "⏰ Seulement {{count}} place(s) restante(s) !",
       "loading": "Chargement du résumé...",
@@ -242,6 +250,8 @@
     "dateLabel": "Date",
     "timeLabel": "Heure",
     "statusLabel": "Statut",
+    "active": "Actif",
+    "inactive": "Inactif",
     "status": {
       "CONFIRMED": "Confirmée",
       "WAITLISTED": "Liste d'attente",

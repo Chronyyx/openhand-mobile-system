@@ -35,7 +35,6 @@ public class UserAdminServiceImpl implements UserAdminService {
             throw new InvalidRoleException(ex.getMessage());
         }
 
-        @SuppressWarnings("null")
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 

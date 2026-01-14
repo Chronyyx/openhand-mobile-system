@@ -17,6 +17,18 @@ public interface NotificationService {
     Notification createNotification(Long userId, Long eventId, String notificationType, String language);
 
     /**
+     * Create a notification for an employee/admin who registered someone else
+     * 
+     * @param userId the user ID (employee/admin)
+     * @param eventId the event ID
+     * @param notificationType the type of notification
+     * @param language the user's preferred language
+     * @param participantName the name of the person who was registered
+     * @return the created notification
+     */
+    Notification createNotification(Long userId, Long eventId, String notificationType, String language, String participantName);
+
+    /**
      * Get all notifications for a user, ordered by newest first
      */
     List<Notification> getUserNotifications(Long userId);

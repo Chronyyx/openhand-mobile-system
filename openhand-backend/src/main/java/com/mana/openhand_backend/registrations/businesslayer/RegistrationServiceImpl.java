@@ -4,6 +4,7 @@ import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
+import com.mana.openhand_backend.events.utils.EventTitleResolver;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
@@ -247,10 +248,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     private void sendRegistrationConfirmationEmail(User user, Event event) {
         try {
             String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            String resolvedEventTitle = EventTitleResolver.resolve(event.getTitle(), language);
             sendGridEmailService.sendRegistrationConfirmation(
                     user.getEmail(),
                     user.getName(),
-                    event.getTitle(),
+                    resolvedEventTitle,
                     language
             );
         } catch (Exception ex) {
@@ -262,10 +264,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     private void sendCancellationEmail(User user, Event event, String details) {
         try {
             String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            String resolvedEventTitle = EventTitleResolver.resolve(event.getTitle(), language);
             sendGridEmailService.sendCancellationOrUpdate(
                     user.getEmail(),
                     user.getName(),
-                    event.getTitle(),
+                    resolvedEventTitle,
                     details,
                     language
             );

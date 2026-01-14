@@ -11,8 +11,30 @@ test.describe('Register Button in Event Details', () => {
             roles: ['ROLE_MEMBER'],
         };
 
-        await page.goto('/', { waitUntil: 'domcontentloaded' });
-        await page.evaluate((user) => {
+        // Mock upcoming events endpoint
+        await page.route('**/events/upcoming', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([
+                    {
+                        id: 1,
+                        title: 'gala_2025',
+                        description: 'A grand gala event',
+                        startDateTime: '2025-12-24T18:00:00',
+                        endDateTime: '2025-12-25T02:00:00',
+                        locationName: 'Grand Hall',
+                        address: '123 Main St',
+                        status: 'OPEN',
+                        maxCapacity: 100,
+                        currentRegistrations: 45,
+                    },
+                ]),
+            });
+        });
+
+        // Set auth token before navigating
+        await page.addInitScript((user) => {
             window.localStorage.setItem('userToken', JSON.stringify(user));
         }, mockUser);
 

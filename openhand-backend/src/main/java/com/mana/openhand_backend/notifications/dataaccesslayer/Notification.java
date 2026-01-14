@@ -42,17 +42,25 @@ public class Notification {
     @Column(nullable = false)
     private String eventTitle;
 
+    private String participantName;
+
     protected Notification() {
     }
 
     public Notification(User user, Event event, NotificationType notificationType, 
                        String language, String textContent, String eventTitle) {
+        this(user, event, notificationType, language, textContent, eventTitle, null);
+    }
+
+    public Notification(User user, Event event, NotificationType notificationType, 
+                       String language, String textContent, String eventTitle, String participantName) {
         this.user = user;
         this.event = event;
         this.notificationType = notificationType;
         this.language = language;
         this.textContent = textContent;
         this.eventTitle = eventTitle;
+        this.participantName = participantName;
         this.isRead = false;
         this.createdAt = LocalDateTime.now();
     }
@@ -136,5 +144,13 @@ public class Notification {
 
     public void setEventTitle(String eventTitle) {
         this.eventTitle = eventTitle;
+    }
+
+    public String getParticipantName() {
+        return participantName;
+    }
+
+    public void setParticipantName(String participantName) {
+        this.participantName = participantName;
     }
 }

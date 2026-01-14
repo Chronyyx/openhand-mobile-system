@@ -17,7 +17,9 @@ public class NotificationResponseMapper {
                 notification.getTextContent(),
                 notification.isRead(),
                 notification.getCreatedAt().format(FORMATTER),
-                notification.getReadAt() != null ? notification.getReadAt().format(FORMATTER) : null
+                notification.getReadAt() != null ? notification.getReadAt().format(FORMATTER) : null,
+                notification.getEvent().getStartDateTime() != null ? notification.getEvent().getStartDateTime().format(FORMATTER) : null,
+                notification.getParticipantName()
         );
     }
 }

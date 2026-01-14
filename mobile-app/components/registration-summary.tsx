@@ -184,6 +184,70 @@ export function RegistrationSummaryComponent({
                     </ThemedText>
                 </View>
             )}
+
+            {/* Attendees List with Member Status */}
+            {summary.attendees && summary.attendees.length > 0 && (
+                <View style={styles.attendeesSection}>
+                    <ThemedText style={styles.attendeesSectionTitle}>
+                        {t('events.registrationSummary.attendees', 'Attendees')}
+                    </ThemedText>
+                    {summary.attendees.map((attendee) => (
+                        <View key={attendee.userId} style={styles.attendeeItem}>
+                            <View style={styles.attendeeInfo}>
+                                <ThemedText style={styles.attendeeName}>
+                                    {attendee.userName || 'Unknown'}
+                                </ThemedText>
+                                <ThemedText style={styles.attendeeEmail}>
+                                    {attendee.userEmail}
+                                </ThemedText>
+                            </View>
+                            <View style={styles.attendeeStatusContainer}>
+                                <View 
+                                    style={[
+                                        styles.memberStatusBadge,
+                                        attendee.memberStatus === 'ACTIVE' 
+                                            ? styles.activeStatus 
+                                            : styles.inactiveStatus
+                                    ]}
+                                >
+                                    <ThemedText 
+                                        style={[
+                                            styles.memberStatusText,
+                                            attendee.memberStatus === 'ACTIVE'
+                                                ? styles.activeStatusText
+                                                : styles.inactiveStatusText
+                                        ]}
+                                    >
+                                        {attendee.memberStatus === 'ACTIVE' ? '●' : '○'} {t(`registrations.${attendee.memberStatus.toLowerCase()}`, attendee.memberStatus)}
+                                    </ThemedText>
+                                </View>
+                                <View 
+                                    style={[
+                                        styles.registrationStatusBadge,
+                                        attendee.registrationStatus === 'CONFIRMED' 
+                                            ? styles.confirmedStatus 
+                                            : styles.waitlistedStatus
+                                    ]}
+                                >
+                                    <ThemedText 
+                                        style={[
+                                            styles.registrationStatusText,
+                                            attendee.registrationStatus === 'CONFIRMED'
+                                                ? styles.confirmedStatusText
+                                                : styles.waitlistedStatusText
+                                        ]}
+                                    >
+                                        {t(`events.registrationStatus.${attendee.registrationStatus.toLowerCase()}`, attendee.registrationStatus)}
+                                        {attendee.waitlistedPosition && attendee.registrationStatus === 'WAITLISTED' 
+                                            ? ` #${attendee.waitlistedPosition}` 
+                                            : ''}
+                                    </ThemedText>
+                                </View>
+                            </View>
+                        </View>
+                    ))}
+                </View>
+            )}
         </View>
     );
 }
@@ -197,6 +261,88 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 16,
         marginBottom: 12,
+    },
+    attendeesSection: {
+        marginTop: 20,
+        paddingTop: 16,
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+    },
+    attendeesSectionTitle: {
+        fontWeight: '700',
+        fontSize: 14,
+        marginBottom: 12,
+        color: '#333',
+    },
+    attendeeItem: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#F0F0F0',
+    },
+    attendeeInfo: {
+        flex: 1,
+        marginRight: 12,
+    },
+    attendeeName: {
+        fontWeight: '600',
+        fontSize: 13,
+        color: '#333',
+        marginBottom: 2,
+    },
+    attendeeEmail: {
+        fontSize: 11,
+        color: '#999',
+    },
+    attendeeStatusContainer: {
+        flexDirection: 'row',
+        gap: 6,
+        alignItems: 'center',
+    },
+    memberStatusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    activeStatus: {
+        backgroundColor: '#E8F5E9',
+    },
+    inactiveStatus: {
+        backgroundColor: '#FFEBEE',
+    },
+    memberStatusText: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    activeStatusText: {
+        color: '#2E7D32',
+    },
+    inactiveStatusText: {
+        color: '#C62828',
+    },
+    registrationStatusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    confirmedStatus: {
+        backgroundColor: '#C8E6C9',
+    },
+    waitlistedStatus: {
+        backgroundColor: '#FFF9C4',
+    },
+    registrationStatusText: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    confirmedStatusText: {
+        color: '#1B5E20',
+    },
+    waitlistedStatusText: {
+        color: '#F57F17',
     },
     statsRow: {
         flexDirection: 'row',

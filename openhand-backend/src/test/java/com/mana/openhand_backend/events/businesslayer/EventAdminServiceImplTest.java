@@ -4,14 +4,21 @@ import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.presentationlayer.payload.CreateEventRequest;
+import com.mana.openhand_backend.identity.dataaccesslayer.User;
+import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
+import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -25,7 +32,13 @@ class EventAdminServiceImplTest {
     @Mock
     private EventRepository eventRepository;
 
-@InjectMocks
+    @Mock
+    private RegistrationRepository registrationRepository;
+
+    @Mock
+    private SendGridEmailService sendGridEmailService;
+
+    @InjectMocks
     private EventAdminServiceImpl eventAdminService;
 
     private CreateEventRequest buildRequest(String title, String endDateTime, Integer maxCapacity, String category) {
@@ -161,5 +174,128 @@ class EventAdminServiceImplTest {
         assertEquals(EventStatus.NEARLY_FULL, updated.getStatus());
         assertEquals(Integer.valueOf(5), updated.getMaxCapacity());
         verify(eventRepository, times(1)).save(existing);
+    }
+
+    @Test
+    void updateEvent_setsStatusToOpenWhenNoCapacityLimit() {
+        CreateEventRequest request = buildRequest("Updated", "2026-01-02T20:00", null, "GENERAL");
+        Event existing = existingEvent(1);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Event updated = eventAdminService.updateEvent(1L, request);
+
+        assertEquals(EventStatus.OPEN, updated.getStatus());
+        assertNull(updated.getMaxCapacity());
+    }
+
+    @Test
+    void updateEvent_notifiesWhenScheduleChanges() {
+        CreateEventRequest request = buildRequest("Updated", "2026-01-02T20:00", 10, "GENERAL");
+        Event existing = existingEvent(1);
+        ReflectionTestUtils.setField(existing, "id", 1L);
+        existing.setStartDateTime(null);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User user = new User();
+        user.setEmail("member@example.com");
+        user.setName("Member");
+
+        Registration active = new Registration(user, existing);
+        active.setStatus(RegistrationStatus.CONFIRMED);
+
+        Registration cancelled = new Registration(user, existing);
+        cancelled.setStatus(RegistrationStatus.CANCELLED);
+
+        when(registrationRepository.findByEventId(1L)).thenReturn(List.of(active, cancelled));
+
+        eventAdminService.updateEvent(1L, request);
+
+        verify(sendGridEmailService).sendCancellationOrUpdate(
+                eq("member@example.com"),
+                eq("Member"),
+                eq("Updated"),
+                contains("Event schedule updated"),
+                eq("en")
+        );
+    }
+
+    @Test
+    void notifyScheduleChange_handlesSendFailures() {
+        Event event = existingEvent(1);
+        ReflectionTestUtils.setField(event, "id", 5L);
+
+        User firstUser = new User();
+        firstUser.setEmail("first@example.com");
+        firstUser.setName("First");
+        User secondUser = new User();
+        secondUser.setEmail("second@example.com");
+        secondUser.setName("Second");
+
+        Registration first = new Registration(firstUser, event);
+        first.setStatus(RegistrationStatus.CONFIRMED);
+        Registration second = new Registration(secondUser, event);
+        second.setStatus(RegistrationStatus.CONFIRMED);
+
+        when(registrationRepository.findByEventId(5L)).thenReturn(List.of(first, second));
+        doThrow(new RuntimeException("send failed"))
+                .when(sendGridEmailService)
+                .sendCancellationOrUpdate(eq("first@example.com"), any(), any(), any(), any());
+
+        ReflectionTestUtils.invokeMethod(eventAdminService, "notifyScheduleChange", event);
+
+        verify(sendGridEmailService).sendCancellationOrUpdate(
+                eq("first@example.com"),
+                eq("First"),
+                eq(event.getTitle()),
+                contains("Event schedule updated"),
+                eq("en")
+        );
+        verify(sendGridEmailService).sendCancellationOrUpdate(
+                eq("second@example.com"),
+                eq("Second"),
+                eq(event.getTitle()),
+                contains("Event schedule updated"),
+                eq("en")
+        );
+    }
+
+    @Test
+    void notifyScheduleChange_handlesRepositoryFailures() {
+        Event event = existingEvent(1);
+        ReflectionTestUtils.setField(event, "id", 9L);
+        when(registrationRepository.findByEventId(9L))
+                .thenThrow(new RuntimeException("db down"));
+
+        ReflectionTestUtils.invokeMethod(eventAdminService, "notifyScheduleChange", event);
+
+        verifyNoInteractions(sendGridEmailService);
+    }
+
+    @Test
+    void scheduleChanged_handlesNulls() {
+        LocalDateTime now = LocalDateTime.now();
+
+        boolean bothNull = ReflectionTestUtils.invokeMethod(eventAdminService, "scheduleChanged", null, null);
+        boolean originalNull = ReflectionTestUtils.invokeMethod(eventAdminService, "scheduleChanged", null, now);
+        boolean same = ReflectionTestUtils.invokeMethod(eventAdminService, "scheduleChanged", now, now);
+
+        assertFalse(bothNull);
+        assertTrue(originalNull);
+        assertFalse(same);
+    }
+
+    @Test
+    void determineStatus_coversAllBranches() {
+        EventStatus openUnlimited = ReflectionTestUtils.invokeMethod(eventAdminService, "determineStatus", null, 1);
+        EventStatus full = ReflectionTestUtils.invokeMethod(eventAdminService, "determineStatus", 5, 5);
+        EventStatus nearlyFull = ReflectionTestUtils.invokeMethod(eventAdminService, "determineStatus", 10, 8);
+        EventStatus open = ReflectionTestUtils.invokeMethod(eventAdminService, "determineStatus", 10, 2);
+
+        assertEquals(EventStatus.OPEN, openUnlimited);
+        assertEquals(EventStatus.FULL, full);
+        assertEquals(EventStatus.NEARLY_FULL, nearlyFull);
+        assertEquals(EventStatus.OPEN, open);
     }
 }

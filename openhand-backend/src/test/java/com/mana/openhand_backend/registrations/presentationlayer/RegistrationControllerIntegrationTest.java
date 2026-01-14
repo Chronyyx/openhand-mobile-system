@@ -92,6 +92,22 @@ class RegistrationControllerIntegrationTest {
                 }
         }
 
+        private Event createEvent(String title, LocalDateTime start, LocalDateTime end) {
+                Event event = new Event(
+                        title,
+                        "Description",
+                        start,
+                        end,
+                        "Location",
+                        "Address",
+                        EventStatus.OPEN,
+                        10,
+                        0,
+                        "General"
+                );
+                return eventRepository.save(event);
+        }
+
         // ========== registerForEvent Tests ==========
 
         @Test
@@ -321,5 +337,133 @@ class RegistrationControllerIntegrationTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(asJsonString(request)))
                         .andExpect(status().isConflict());
+        }
+
+        // ========== getMyRegistrationHistory Tests ==========
+
+        @Test
+        @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
+        @Transactional
+        void getMyRegistrationHistory_returnsOnlyLoggedInUsersRegistrations() throws Exception {
+                // Arrange
+                User otherUser = new User();
+                otherUser.setEmail("other@example.com");
+                otherUser.setPasswordHash("hashedPassword");
+                otherUser = userRepository.save(otherUser);
+
+                Registration myRegistration = new Registration(testUser, testEvent);
+                myRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(myRegistration);
+
+                Registration otherRegistration = new Registration(otherUser, testEvent);
+                otherRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(otherRegistration);
+
+                // Act & Assert
+                mockMvc.perform(get("/api/registrations/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)))
+                        .andExpect(jsonPath("$[0].event.title", equalTo("Test Event")));
+        }
+
+        @Test
+        @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
+        @Transactional
+        void getMyRegistrationHistory_classifiesActiveAndPast() throws Exception {
+                // Arrange
+                Event futureEvent = createEvent(
+                        "Future Event",
+                        LocalDateTime.now().plusDays(2),
+                        LocalDateTime.now().plusDays(3));
+                Event pastEvent = createEvent(
+                        "Past Event",
+                        LocalDateTime.now().minusDays(3),
+                        LocalDateTime.now().minusDays(2));
+
+                Registration activeRegistration = new Registration(testUser, futureEvent);
+                activeRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(activeRegistration);
+
+                Registration pastRegistration = new Registration(testUser, pastEvent);
+                pastRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(pastRegistration);
+
+                // Act & Assert
+                mockMvc.perform(get("/api/registrations/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(2)))
+                        .andExpect(jsonPath("$[0].event.title", equalTo("Future Event")))
+                        .andExpect(jsonPath("$[0].timeCategory", equalTo("ACTIVE")))
+                        .andExpect(jsonPath("$[1].event.title", equalTo("Past Event")))
+                        .andExpect(jsonPath("$[1].timeCategory", equalTo("PAST")));
+        }
+
+        @Test
+        @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
+        @Transactional
+        void getMyRegistrationHistory_sortsActiveThenPast() throws Exception {
+                // Arrange
+                Event soonEvent = createEvent(
+                        "Soon Event",
+                        LocalDateTime.now().plusDays(1),
+                        LocalDateTime.now().plusDays(1).plusHours(2));
+                Event laterEvent = createEvent(
+                        "Later Event",
+                        LocalDateTime.now().plusDays(4),
+                        LocalDateTime.now().plusDays(4).plusHours(2));
+                Event recentPastEvent = createEvent(
+                        "Recent Past Event",
+                        LocalDateTime.now().minusDays(1),
+                        LocalDateTime.now().minusDays(1).plusHours(2));
+                Event olderPastEvent = createEvent(
+                        "Older Past Event",
+                        LocalDateTime.now().minusDays(5),
+                        LocalDateTime.now().minusDays(5).plusHours(2));
+
+                Registration laterRegistration = new Registration(testUser, laterEvent);
+                laterRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(laterRegistration);
+
+                Registration olderPastRegistration = new Registration(testUser, olderPastEvent);
+                olderPastRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(olderPastRegistration);
+
+                Registration soonRegistration = new Registration(testUser, soonEvent);
+                soonRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(soonRegistration);
+
+                Registration recentPastRegistration = new Registration(testUser, recentPastEvent);
+                recentPastRegistration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(recentPastRegistration);
+
+                // Act & Assert
+                mockMvc.perform(get("/api/registrations/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(4)))
+                        .andExpect(jsonPath("$[0].event.title", equalTo("Soon Event")))
+                        .andExpect(jsonPath("$[1].event.title", equalTo("Later Event")))
+                        .andExpect(jsonPath("$[2].event.title", equalTo("Recent Past Event")))
+                        .andExpect(jsonPath("$[3].event.title", equalTo("Older Past Event")));
+        }
+
+        @Test
+        @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
+        @Transactional
+        void getMyRegistrationHistory_includesCancelledStatus() throws Exception {
+                // Arrange
+                Registration registration = new Registration(testUser, testEvent);
+                registration.setStatus(RegistrationStatus.CANCELLED);
+                registration.setCancelledAt(LocalDateTime.now());
+                registrationRepository.save(registration);
+
+                // Act & Assert
+                mockMvc.perform(get("/api/registrations/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)))
+                        .andExpect(jsonPath("$[0].status", equalTo("CANCELLED")));
         }
 }

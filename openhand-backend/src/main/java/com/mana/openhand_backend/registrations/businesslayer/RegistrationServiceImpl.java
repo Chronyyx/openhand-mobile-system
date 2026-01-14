@@ -12,9 +12,13 @@ import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailServic
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
+import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryFilter;
+import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryResponseModel;
+import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationTimeCategory;
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
 import com.mana.openhand_backend.registrations.utils.EventCapacityException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
+import com.mana.openhand_backend.registrations.utils.RegistrationHistoryResponseMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,8 +26,10 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RegistrationServiceImpl implements RegistrationService {
@@ -191,6 +197,29 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     @Override
+    public List<RegistrationHistoryResponseModel> getUserRegistrationHistory(
+            Long userId,
+            RegistrationHistoryFilter filter) {
+        List<Registration> registrations = registrationRepository.findByUserIdWithEvent(userId);
+        LocalDateTime now = LocalDateTime.now();
+
+        List<RegistrationWithCategory> categorized = registrations.stream()
+                .map(registration -> new RegistrationWithCategory(
+                        registration,
+                        resolveTimeCategory(registration, now)))
+                .filter(item -> filter == RegistrationHistoryFilter.ALL
+                        || item.timeCategory == mapFilterToCategory(filter))
+                .sorted(registrationHistoryComparator())
+                .collect(Collectors.toList());
+
+        return categorized.stream()
+                .map(item -> RegistrationHistoryResponseMapper.toResponseModel(
+                        item.registration,
+                        item.timeCategory))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public Registration cancelRegistration(Long userId, Long eventId) {
         @SuppressWarnings("null")
@@ -243,6 +272,53 @@ public class RegistrationServiceImpl implements RegistrationService {
         sendCancellationEmail(registration.getUser(), registration.getEvent(), "Registration cancelled by member.");
 
         return cancelledRegistration;
+    }
+
+    private RegistrationTimeCategory resolveTimeCategory(Registration registration, LocalDateTime now) {
+        if (registration.getEvent() == null || registration.getEvent().getStartDateTime() == null) {
+            return RegistrationTimeCategory.PAST;
+        }
+
+        return registration.getEvent().getStartDateTime().isAfter(now)
+                ? RegistrationTimeCategory.ACTIVE
+                : RegistrationTimeCategory.PAST;
+    }
+
+    private RegistrationTimeCategory mapFilterToCategory(RegistrationHistoryFilter filter) {
+        if (filter == RegistrationHistoryFilter.ACTIVE) {
+            return RegistrationTimeCategory.ACTIVE;
+        }
+        return RegistrationTimeCategory.PAST;
+    }
+
+    private Comparator<RegistrationWithCategory> registrationHistoryComparator() {
+        return (left, right) -> {
+            int leftGroup = left.timeCategory == RegistrationTimeCategory.ACTIVE ? 0 : 1;
+            int rightGroup = right.timeCategory == RegistrationTimeCategory.ACTIVE ? 0 : 1;
+
+            if (leftGroup != rightGroup) {
+                return Integer.compare(leftGroup, rightGroup);
+            }
+
+            LocalDateTime leftStart = left.registration.getEvent().getStartDateTime();
+            LocalDateTime rightStart = right.registration.getEvent().getStartDateTime();
+
+            if (left.timeCategory == RegistrationTimeCategory.ACTIVE) {
+                return leftStart.compareTo(rightStart);
+            }
+
+            return rightStart.compareTo(leftStart);
+        };
+    }
+
+    private static class RegistrationWithCategory {
+        private final Registration registration;
+        private final RegistrationTimeCategory timeCategory;
+
+        private RegistrationWithCategory(Registration registration, RegistrationTimeCategory timeCategory) {
+            this.registration = registration;
+            this.timeCategory = timeCategory;
+        }
     }
 
     private void sendRegistrationConfirmationEmail(User user, Event event) {

@@ -17,6 +17,24 @@ export type Registration = {
     eventEndDateTime: string | null;
 };
 
+export type RegistrationTimeCategory = 'ACTIVE' | 'PAST';
+
+export type RegistrationHistoryEvent = {
+    eventId: number;
+    title: string;
+    startDateTime: string;
+    endDateTime: string | null;
+    location: string | null;
+};
+
+export type RegistrationHistoryItem = {
+    registrationId: number;
+    status: RegistrationStatus;
+    createdAt: string;
+    timeCategory: RegistrationTimeCategory;
+    event: RegistrationHistoryEvent;
+};
+
 export type RegistrationError = {
     status: number;
     error: string;
@@ -74,6 +92,20 @@ export async function getMyRegistrations(token: string): Promise<Registration[]>
         },
     });
     return handleResponse<Registration[]>(res, "les inscriptions");
+}
+
+export async function getRegistrationHistory(
+    token: string,
+    filter: RegistrationTimeCategory | 'ALL' = 'ALL',
+): Promise<RegistrationHistoryItem[]> {
+    const url = `${API_BASE}/registrations/me?filter=${encodeURIComponent(filter)}`;
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+    return handleResponse<RegistrationHistoryItem[]>(res, "l'historique");
 }
 
 export async function cancelRegistration(eventId: number, token: string): Promise<Registration> {

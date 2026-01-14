@@ -63,12 +63,12 @@ class NotificationServiceImplTest {
 
         User mockUser = mock(User.class);
         Event mockEvent = mock(Event.class);
-        when(mockEvent.getTitle()).thenReturn("Test Event");
+        when(mockEvent.getTitle()).thenReturn("distribution_mardi");
         when(mockEvent.getStartDateTime()).thenReturn(LocalDateTime.now().plusDays(1));
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(mockEvent));
-        when(textGenerator.generateText(any(NotificationType.class), eq("Test Event"), eq(language), any()))
+        when(textGenerator.generateText(any(NotificationType.class), anyString(), eq(language), any(LocalDateTime.class), any()))
                 .thenReturn("You are confirmed for the event: Test Event. Thank you for registering!");
 
         Notification mockNotification = mock(Notification.class);
@@ -81,7 +81,7 @@ class NotificationServiceImplTest {
         assertNotNull(result);
         verify(userRepository).findById(userId);
         verify(eventRepository).findById(eventId);
-        verify(textGenerator).generateText(eq(NotificationType.REGISTRATION_CONFIRMATION), eq("Test Event"), eq(language), any());
+        verify(textGenerator).generateText(eq(NotificationType.REGISTRATION_CONFIRMATION), anyString(), eq(language), any(LocalDateTime.class), isNull());
         verify(notificationRepository).save(any(Notification.class));
     }
 

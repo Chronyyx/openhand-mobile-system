@@ -77,6 +77,11 @@ public class RegistrationServiceImpl implements RegistrationService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
+        // Check if user is inactive - prevent registration
+        if (user.getMemberStatus() != null && user.getMemberStatus().name().equals("INACTIVE")) {
+            throw new com.mana.openhand_backend.registrations.utils.InactiveMemberException(userId);
+        }
+
         // Check for existing registration BEFORE locking (quick check)
         Optional<Registration> existingRegistrationOpt = registrationRepository.findByUserIdAndEventId(userId, eventId);
         Registration registration;

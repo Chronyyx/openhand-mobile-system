@@ -59,6 +59,7 @@ class EmployeeRegistrationControllerTest {
         participantUser = new User();
         participantUser.setEmail("participant@example.com");
         participantUser.setId(2L);
+    participantUser.setName("John Doe");
 
         actorUser = new User();
         actorUser.setEmail("employee@example.com");
@@ -95,6 +96,7 @@ class EmployeeRegistrationControllerTest {
         EmployeeRegistrationRequestModel request = new EmployeeRegistrationRequestModel(2L, 1L);
 
         when(registrationService.registerForEvent(2L, 1L)).thenReturn(testRegistration);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(participantUser));
 
         // Act
         RegistrationResponseModel response = employeeRegistrationController.registerParticipant(request, authentication);
@@ -104,7 +106,7 @@ class EmployeeRegistrationControllerTest {
         assertEquals("CONFIRMED", response.getStatus());
         verify(registrationService).registerForEvent(2L, 1L);
         verify(userRepository).findByEmail("employee@example.com");
-        verify(notificationService).createNotification(1L, 1L, "REGISTRATION_CONFIRMATION", "en");
+        verify(notificationService).createNotification(1L, 1L, "EMPLOYEE_REGISTERED_PARTICIPANT", "en", "John Doe");
     }
 
     @Test
@@ -118,6 +120,7 @@ class EmployeeRegistrationControllerTest {
         waitlistedReg.setWaitlistedPosition(1);
 
         when(registrationService.registerForEvent(2L, 1L)).thenReturn(waitlistedReg);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(participantUser));
 
         // Act
         RegistrationResponseModel response = employeeRegistrationController.registerParticipant(request, authentication);
@@ -126,7 +129,7 @@ class EmployeeRegistrationControllerTest {
         assertNotNull(response);
         assertEquals("WAITLISTED", response.getStatus());
         verify(registrationService).registerForEvent(2L, 1L);
-        verify(notificationService).createNotification(1L, 1L, "REGISTRATION_CONFIRMATION", "en");
+        verify(notificationService).createNotification(1L, 1L, "EMPLOYEE_REGISTERED_PARTICIPANT", "en", "John Doe");
     }
 
     @Test
@@ -136,8 +139,9 @@ class EmployeeRegistrationControllerTest {
         EmployeeRegistrationRequestModel request = new EmployeeRegistrationRequestModel(2L, 1L);
 
         when(registrationService.registerForEvent(2L, 1L)).thenReturn(testRegistration);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(participantUser));
         doThrow(new RuntimeException("Notification service error"))
-                .when(notificationService).createNotification(anyLong(), anyLong(), anyString(), anyString());
+                .when(notificationService).createNotification(anyLong(), anyLong(), anyString(), anyString(), anyString());
 
         // Act
         RegistrationResponseModel response = employeeRegistrationController.registerParticipant(request, authentication);
@@ -145,7 +149,7 @@ class EmployeeRegistrationControllerTest {
         // Assert
         assertNotNull(response);
         assertEquals("CONFIRMED", response.getStatus());
-        verify(notificationService).createNotification(1L, 1L, "REGISTRATION_CONFIRMATION", "en");
+        verify(notificationService).createNotification(1L, 1L, "EMPLOYEE_REGISTERED_PARTICIPANT", "en", "John Doe");
     }
 
     @Test
@@ -156,13 +160,14 @@ class EmployeeRegistrationControllerTest {
         EmployeeRegistrationRequestModel request = new EmployeeRegistrationRequestModel(2L, 1L);
 
         when(registrationService.registerForEvent(2L, 1L)).thenReturn(testRegistration);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(participantUser));
 
         // Act
         RegistrationResponseModel response = employeeRegistrationController.registerParticipant(request, authentication);
 
         // Assert
         assertNotNull(response);
-        verify(notificationService).createNotification(1L, 1L, "REGISTRATION_CONFIRMATION", "en");
+        verify(notificationService).createNotification(1L, 1L, "EMPLOYEE_REGISTERED_PARTICIPANT", "en", "John Doe");
     }
 
     @Test
@@ -173,13 +178,14 @@ class EmployeeRegistrationControllerTest {
         EmployeeRegistrationRequestModel request = new EmployeeRegistrationRequestModel(2L, 1L);
 
         when(registrationService.registerForEvent(2L, 1L)).thenReturn(testRegistration);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(participantUser));
 
         // Act
         RegistrationResponseModel response = employeeRegistrationController.registerParticipant(request, authentication);
 
         // Assert
         assertNotNull(response);
-        verify(notificationService).createNotification(1L, 1L, "REGISTRATION_CONFIRMATION", "fr");
+        verify(notificationService).createNotification(1L, 1L, "EMPLOYEE_REGISTERED_PARTICIPANT", "fr", "John Doe");
     }
 
     @Test

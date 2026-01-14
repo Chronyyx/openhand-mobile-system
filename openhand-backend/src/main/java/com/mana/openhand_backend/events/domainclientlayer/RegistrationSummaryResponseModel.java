@@ -1,5 +1,8 @@
 package com.mana.openhand_backend.events.domainclientlayer;
 
+import com.mana.openhand_backend.registrations.domainclientlayer.AttendeeResponseModel;
+import java.util.List;
+
 public class RegistrationSummaryResponseModel {
 
     private Long eventId;
@@ -8,6 +11,7 @@ public class RegistrationSummaryResponseModel {
     private Integer maxCapacity;
     private Integer remainingSpots;
     private Double percentageFull;
+    private List<AttendeeResponseModel> attendees;
 
     public RegistrationSummaryResponseModel() {
     }
@@ -21,6 +25,19 @@ public class RegistrationSummaryResponseModel {
         this.maxCapacity = maxCapacity;
         this.remainingSpots = remainingSpots;
         this.percentageFull = percentageFull;
+    }
+
+    public RegistrationSummaryResponseModel(Long eventId, Integer totalRegistrations, 
+                                           Integer waitlistedCount, Integer maxCapacity,
+                                           Integer remainingSpots, Double percentageFull,
+                                           List<AttendeeResponseModel> attendees) {
+        this.eventId = eventId;
+        this.totalRegistrations = totalRegistrations;
+        this.waitlistedCount = waitlistedCount;
+        this.maxCapacity = maxCapacity;
+        this.remainingSpots = remainingSpots;
+        this.percentageFull = percentageFull;
+        this.attendees = attendees;
     }
 
     public Long getEventId() {
@@ -69,5 +86,13 @@ public class RegistrationSummaryResponseModel {
 
     public void setPercentageFull(Double percentageFull) {
         this.percentageFull = percentageFull;
+    }
+
+    public List<AttendeeResponseModel> getAttendees() {
+        return attendees;
+    }
+
+    public void setAttendees(List<AttendeeResponseModel> attendees) {
+        this.attendees = attendees;
     }
 }

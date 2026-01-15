@@ -215,7 +215,7 @@
       "loading": "Chargement des participants...",
       "empty": "Aucun participant pour le moment.",
       "error": "Impossible de charger les participants.",
-      "retry": "Ressayer",
+      "retry": "Réessayer",
       "ageLabel": "Age",
       "ageUnknown": "Age indisponible",
       "accessDenied": "Cette liste est reservee aux employes et aux administrateurs."

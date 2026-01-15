@@ -208,6 +208,18 @@
       "loadingError": "Impossible de charger le résumé des inscriptions.",
       "retry": "Réessayer"
     },
+    "attendees": {
+      "title": "Participants",
+      "viewButton": "Voir les participants",
+      "total": "{{count}} au total",
+      "loading": "Chargement des participants...",
+      "empty": "Aucun participant pour le moment.",
+      "error": "Impossible de charger les participants.",
+      "retry": "Réessayer",
+      "ageLabel": "Age",
+      "ageUnknown": "Age indisponible",
+      "accessDenied": "Cette liste est réservée aux employés et aux administrateurs."
+    },
     "registrationSuccess": {
       "closingIn": "Fermeture dans {{count}}s"
     },

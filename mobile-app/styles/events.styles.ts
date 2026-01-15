@@ -54,6 +54,42 @@ export const styles = StyleSheet.create({
     listContent: {
         paddingBottom: 24,
     },
+    attendeesHeader: {
+        marginBottom: 12,
+        gap: 6,
+    },
+    attendeesEventTitle: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: COLORS.textDark,
+    },
+    attendeesCount: {
+        fontSize: 13,
+        color: COLORS.textGrey,
+    },
+    attendeeCard: {
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        shadowColor: '#000',
+        shadowOpacity: 0.04,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    attendeeName: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: COLORS.textDark,
+    },
+    attendeeAge: {
+        marginTop: 4,
+        fontSize: 13,
+        color: COLORS.textGrey,
+    },
     // Card Styles
     card: {
         backgroundColor: COLORS.white,
@@ -132,6 +168,19 @@ export const styles = StyleSheet.create({
     },
     footerButtonText: {
         color: COLORS.primary,
+        fontWeight: '600',
+        fontSize: 14,
+    },
+    attendeesButton: {
+        marginTop: 16,
+        backgroundColor: COLORS.primary,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    attendeesButtonText: {
+        color: COLORS.white,
         fontWeight: '600',
         fontSize: 14,
     },

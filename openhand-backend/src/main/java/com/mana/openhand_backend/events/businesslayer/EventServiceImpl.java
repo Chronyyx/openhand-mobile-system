@@ -2,7 +2,10 @@ package com.mana.openhand_backend.events.businesslayer;
 
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
+import com.mana.openhand_backend.events.domainclientlayer.EventAttendeeResponseModel;
+import com.mana.openhand_backend.events.domainclientlayer.EventAttendeesResponseModel;
 import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
+import com.mana.openhand_backend.events.utils.EventAttendeeResponseMapper;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
@@ -102,5 +105,22 @@ public class EventServiceImpl implements EventService {
                 percentageFull,
                 attendees
         );
+    }
+
+    @Override
+    public EventAttendeesResponseModel getEventAttendees(Long eventId) {
+        getEventById(eventId);
+
+        List<Registration> registrations = registrationRepository.findByEventIdAndStatusNot(
+                eventId,
+                RegistrationStatus.CANCELLED
+        );
+
+        List<EventAttendeeResponseModel> attendees = registrations.stream()
+                .map(EventAttendeeResponseMapper::toResponseModel)
+                .filter(attendee -> attendee != null)
+                .collect(Collectors.toList());
+
+        return new EventAttendeesResponseModel(eventId, attendees.size(), attendees);
     }
 }

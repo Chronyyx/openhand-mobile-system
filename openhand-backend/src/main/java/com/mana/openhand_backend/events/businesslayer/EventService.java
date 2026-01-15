@@ -1,6 +1,7 @@
 package com.mana.openhand_backend.events.businesslayer;
 
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
+import com.mana.openhand_backend.events.domainclientlayer.EventAttendeesResponseModel;
 import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface EventService {
     Event getEventById(Long id);
 
     RegistrationSummaryResponseModel getRegistrationSummary(Long eventId);
+
+    EventAttendeesResponseModel getEventAttendees(Long eventId);
 }

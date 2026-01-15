@@ -41,6 +41,18 @@ export type RegistrationSummary = {
     attendees?: AttendeeInfo[];
 };
 
+export type EventAttendee = {
+    attendeeId: number;
+    fullName: string | null;
+    age: number | null;
+};
+
+export type EventAttendeesResponse = {
+    eventId: number;
+    totalAttendees: number;
+    attendees: EventAttendee[];
+};
+
 async function handleResponse<T>(res: Response, context: string): Promise<T> {
     if (!res.ok) {
         throw new Error(`HTTP ${res.status} en chargeant ${context}`);
@@ -64,5 +76,16 @@ export async function getRegistrationSummary(eventId: number): Promise<Registrat
     const url = `${API_BASE}/events/${eventId}/registration-summary`;
     const res = await fetch(url, { method: 'GET' });
     return handleResponse<RegistrationSummary>(res, "le résumé des inscriptions");
+}
+
+export async function getEventAttendees(eventId: number, token: string): Promise<EventAttendeesResponse> {
+    const url = `${API_BASE}/events/${eventId}/attendees`;
+    const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return handleResponse<EventAttendeesResponse>(res, "la liste des participants");
 }
 

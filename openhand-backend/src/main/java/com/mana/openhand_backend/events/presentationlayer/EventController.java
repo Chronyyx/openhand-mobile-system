@@ -2,9 +2,11 @@ package com.mana.openhand_backend.events.presentationlayer;
 
 import com.mana.openhand_backend.events.businesslayer.EventService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
+import com.mana.openhand_backend.events.domainclientlayer.EventAttendeesResponseModel;
 import com.mana.openhand_backend.events.domainclientlayer.EventResponseModel;
 import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
 import com.mana.openhand_backend.events.utils.EventResponseMapper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,5 +39,11 @@ public class EventController {
     @GetMapping("/{id}/registration-summary")
     public RegistrationSummaryResponseModel getRegistrationSummary(@PathVariable Long id) {
         return eventService.getRegistrationSummary(id);
+    }
+
+    @GetMapping("/{id}/attendees")
+    @PreAuthorize("hasRole('ROLE_EMPLOYEE') or hasRole('ROLE_ADMIN')")
+    public EventAttendeesResponseModel getEventAttendees(@PathVariable Long id) {
+        return eventService.getEventAttendees(id);
     }
 }

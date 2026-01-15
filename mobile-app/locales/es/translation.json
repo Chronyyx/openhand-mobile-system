@@ -213,7 +213,7 @@
       "viewButton": "Ver asistentes",
       "total": "{{count}} en total",
       "loading": "Cargando asistentes...",
-      "empty": "Todavia no hay asistentes.",
+      "empty": "Todavía no hay asistentes.",
       "error": "No se pudieron cargar los asistentes.",
       "retry": "Reintentar",
       "ageLabel": "Edad",

@@ -135,6 +135,22 @@
         "spanish": "Español (Spanish)"
       },
       "success": "Language changed successfully"
+    },
+    "notifications": {
+      "title": "Notification Preferences",
+      "subtitle": "Control which updates you receive",
+      "categories": {
+        "confirmation": "Confirmations",
+        "reminder": "Reminders",
+        "cancellation": "Cancellations"
+      },
+      "mandatory": "Required",
+      "mandatoryHint": "Cancellations are required and cannot be disabled.",
+      "memberOnly": "Notification preferences are available to members only.",
+      "errors": {
+        "loadFailed": "Unable to load preferences.",
+        "updateFailed": "Unable to update preferences."
+      }
     }
   },
   "modal": {

@@ -24,15 +24,18 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final NotificationTextGenerator textGenerator;
+    private final NotificationPreferenceService preferenceService;
 
     public NotificationServiceImpl(NotificationRepository notificationRepository,
                                   UserRepository userRepository,
                                   EventRepository eventRepository,
-                                  NotificationTextGenerator textGenerator) {
+                                  NotificationTextGenerator textGenerator,
+                                  NotificationPreferenceService preferenceService) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.textGenerator = textGenerator;
+        this.preferenceService = preferenceService;
     }
 
     @Override
@@ -54,6 +57,10 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Convert string to NotificationType enum
         NotificationType type = NotificationType.valueOf(notificationType);
+
+        if (!preferenceService.isNotificationEnabled(userId, type)) {
+            return null;
+        }
 
         // Resolve event title from translation key to display name for text content
         String resolvedEventTitle = EventTitleResolver.resolve(event.getTitle(), language);

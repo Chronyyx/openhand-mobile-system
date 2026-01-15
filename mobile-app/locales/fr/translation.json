@@ -135,6 +135,22 @@
         "spanish": "Español (Espagnol)"
       },
       "success": "Langue changée avec succès"
+    },
+    "notifications": {
+      "title": "Preferences de notification",
+      "subtitle": "Controlez les mises a jour que vous recevez",
+      "categories": {
+        "confirmation": "Confirmations",
+        "reminder": "Rappels",
+        "cancellation": "Annulations"
+      },
+      "mandatory": "Obligatoire",
+      "mandatoryHint": "Les annulations sont obligatoires et ne peuvent pas etre desactivees.",
+      "memberOnly": "Les preferences de notification sont reservees aux membres.",
+      "errors": {
+        "loadFailed": "Impossible de charger les preferences.",
+        "updateFailed": "Impossible de mettre a jour les preferences."
+      }
     }
   },
   "modal": {
@@ -387,3 +403,8 @@
     }
   }
 }
+
+
+
+
+

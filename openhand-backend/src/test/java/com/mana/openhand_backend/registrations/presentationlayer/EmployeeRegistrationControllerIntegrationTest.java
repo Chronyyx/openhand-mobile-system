@@ -6,6 +6,7 @@ import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationPreferenceRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
@@ -49,6 +50,9 @@ class EmployeeRegistrationControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationPreferenceRepository notificationPreferenceRepository;
+
     private User employeeUser;
     private User participantUser;
     private Event testEvent;
@@ -65,6 +69,8 @@ class EmployeeRegistrationControllerIntegrationTest {
         registrationRepository.flush();
         eventRepository.deleteAll();
         eventRepository.flush();
+        notificationPreferenceRepository.deleteAll();
+        notificationPreferenceRepository.flush();
         userRepository.deleteAll();
         userRepository.flush();
 

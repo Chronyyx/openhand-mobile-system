@@ -97,6 +97,21 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
+                {hasRole(['ROLE_MEMBER']) && (
+                    <View style={styles.settingsCard}>
+                        <Pressable
+                            style={styles.settingsItem}
+                            onPress={() => router.push('/settings/notifications')}
+                        >
+                            <View style={styles.settingsItemLeft}>
+                                <Ionicons name="notifications-outline" size={20} color={ACCENT} />
+                                <Text style={styles.settingsItemText}>{t('settings.notifications.title')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                        </Pressable>
+                    </View>
+                )}
+
                 <Pressable style={styles.logoutButton} onPress={signOut}>
                     <Ionicons name="log-out-outline" size={20} color="#C62828" />
                     <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
@@ -267,5 +282,38 @@ const styles = StyleSheet.create({
     loginButtonText: {
         color: '#FFFFFF',
         fontWeight: '600',
-    }
+    },
+    settingsCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        shadowColor: '#000',
+        shadowOpacity: 0.05,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 3,
+        marginBottom: 20,
+    },
+    settingsItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: 14,
+        paddingHorizontal: 10,
+        borderRadius: 12,
+        backgroundColor: '#F8FAFE',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: '#D9E5FF',
+    },
+    settingsItemLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    settingsItemText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#1A2D4A',
+    },
 });

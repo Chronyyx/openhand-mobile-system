@@ -152,6 +152,7 @@ export default function NotificationPreferencesScreen() {
                   disabled={pref.isCritical || isSaving}
                   trackColor={{ false: '#D4DBE7', true: '#8CC3FF' }}
                   thumbColor={pref.enabled ? BLUE : '#F5F7FB'}
+                  testID={`notification-toggle-${pref.category.toLowerCase()}`}
                 />
               </View>
               {pref.isCritical && (

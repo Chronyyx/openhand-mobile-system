@@ -208,6 +208,18 @@
       "loadingError": "No se pudo cargar el resumen de inscripciones.",
       "retry": "Reintentar"
     },
+    "attendees": {
+      "title": "Asistentes",
+      "viewButton": "Ver asistentes",
+      "total": "{{count}} en total",
+      "loading": "Cargando asistentes...",
+      "empty": "Todavia no hay asistentes.",
+      "error": "No se pudieron cargar los asistentes.",
+      "retry": "Reintentar",
+      "ageLabel": "Edad",
+      "ageUnknown": "Edad no disponible",
+      "accessDenied": "Esta lista es solo para empleados y administradores."
+    },
     "registrationSuccess": {
       "closingIn": "Cerrando en {{count}}s"
     },

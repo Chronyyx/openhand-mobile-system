@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
 import { styles } from '../styles/events.styles';
@@ -78,6 +79,7 @@ export function EventDetailModal({
     ,
     onCapacityRefresh
 }: EventDetailModalProps) {
+    const router = useRouter();
 
     // Fallback if no details yet
     const displayEvent = eventDetail || selectedEvent;
@@ -151,6 +153,12 @@ export function EventDetailModal({
         } finally {
             setWalkinSubmitting(false);
         }
+    };
+
+    const handleOpenAttendees = () => {
+        if (!displayEvent) return;
+        onClose();
+        router.push(`/events/${displayEvent.id}/attendees`);
     };
 
     return (
@@ -297,6 +305,14 @@ export function EventDetailModal({
                                         summary={registrationSummary}
                                         onRetry={onRetrySummary}
                                     />
+                                )}
+
+                                {selectedEvent && user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && (
+                                    <Pressable style={styles.attendeesButton} onPress={handleOpenAttendees}>
+                                        <ThemedText style={styles.attendeesButtonText}>
+                                            {t('events.attendees.viewButton')}
+                                        </ThemedText>
+                                    </Pressable>
                                 )}
 
                                 {/* Employee Walk-In Registration */}

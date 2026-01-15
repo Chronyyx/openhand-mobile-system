@@ -208,6 +208,18 @@
       "loadingError": "Unable to load registration summary.",
       "retry": "Retry"
     },
+    "attendees": {
+      "title": "Attendees",
+      "viewButton": "View attendees",
+      "total": "{{count}} total",
+      "loading": "Loading attendees...",
+      "empty": "No attendees yet.",
+      "error": "Unable to load attendees.",
+      "retry": "Retry",
+      "ageLabel": "Age",
+      "ageUnknown": "Age unavailable",
+      "accessDenied": "This list is for employees and administrators only."
+    },
     "registrationSuccess": {
       "closingIn": "Closing in {{count}}s"
     },

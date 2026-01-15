@@ -218,7 +218,7 @@
       "retry": "Réessayer",
       "ageLabel": "Age",
       "ageUnknown": "Age indisponible",
-      "accessDenied": "Cette liste est reservee aux employes et aux administrateurs."
+      "accessDenied": "Cette liste est réservée aux employés et aux administrateurs."
     },
     "registrationSuccess": {
       "closingIn": "Fermeture dans {{count}}s"

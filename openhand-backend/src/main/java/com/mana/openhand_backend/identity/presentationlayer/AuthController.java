@@ -223,9 +223,7 @@ public class AuthController {
 
         try {
             sendGridEmailService.sendAccountRegistrationConfirmation(
-                    user.getEmail(),
-                    user.getName()
-            );
+                    user.getEmail(), user.getName());
         } catch (Exception ex) {
             logger.error("Failed to send account registration email to {}: {}", user.getEmail(), ex.getMessage());
         }

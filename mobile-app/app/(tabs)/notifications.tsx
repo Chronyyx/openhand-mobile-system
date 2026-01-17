@@ -15,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { NotificationCard } from '../../components/NotificationCard';
+import { MenuLayout } from '../../components/menu-layout';
 import { useAuth } from '../../context/AuthContext';
 import {
     getNotifications,
@@ -159,104 +160,112 @@ export default function NotificationsScreen() {
         }
     }, [user, t, loadNotifications]);
 
+    let content = null;
+
     if (!user) {
-        return (
+        content = (
             <ThemedView style={styles.container}>
                 <ThemedText style={styles.emptyText}>
                     {t('notifications.notAuthenticated', 'Please log in to view notifications')}
                 </ThemedText>
             </ThemedView>
         );
+    } else {
+        content = (
+            <ThemedView style={styles.container}>
+                {/* Header with unread count and mark all read button */}
+                <View style={styles.header}>
+                    <View style={styles.headerTitle}>
+                        <ThemedText type="title" style={styles.title}>
+                            {t('notifications.title', 'Notifications')}
+                        </ThemedText>
+                        {unreadCount > 0 && (
+                            <View style={styles.badge}>
+                                <ThemedText style={styles.badgeText}>{unreadCount}</ThemedText>
+                            </View>
+                        )}
+                    </View>
+
+                    {unreadCount > 0 && (
+                        <Pressable
+                            onPress={handleMarkAllAsRead}
+                            style={styles.markAllButton}
+                        >
+                            <Ionicons name="checkmark" size={20} color="#0056A8" />
+                            <ThemedText style={styles.markAllText}>
+                                {t('notifications.markAllAsRead', 'Mark all read')}
+                            </ThemedText>
+                        </Pressable>
+                    )}
+                </View>
+
+                {/* Error message */}
+                {error && (
+                    <View style={styles.errorContainer}>
+                        <Ionicons name="alert-circle" size={20} color="#dc3545" />
+                        <ThemedText style={styles.errorText}>{error}</ThemedText>
+                        <Pressable onPress={() => setError(null)}>
+                            <Ionicons name="close" size={20} color="#dc3545" />
+                        </Pressable>
+                    </View>
+                )}
+
+                {/* Loading state */}
+                {loading && !refreshing ? (
+                    <View style={styles.centerContainer}>
+                        <ActivityIndicator size="large" color="#0056A8" />
+                        <ThemedText style={styles.loadingText}>
+                            {t('notifications.loading', 'Loading notifications...')}
+                        </ThemedText>
+                    </View>
+                ) : notifications.length === 0 ? (
+                    /* Empty state */
+                    <View style={styles.centerContainer}>
+                        <Ionicons name="notifications-off-outline" size={64} color="#ccc" />
+                        <ThemedText style={styles.emptyText}>
+                            {t('notifications.empty', 'No notifications yet')}
+                        </ThemedText>
+                        <ThemedText style={styles.emptySubtext}>
+                            {t('notifications.emptySubtext', 'You\'ll receive notifications when you register for events')}
+                        </ThemedText>
+                    </View>
+                ) : (
+                    /* Notifications list */
+                    <FlatList
+                        data={notifications}
+                        keyExtractor={(item) => `${item.id}-${item.isRead}`}
+                        extraData={notifications}
+                        renderItem={({ item }) => (
+                            <NotificationCard
+                                notification={item}
+                                onPress={() => {
+                                    if (!item.isRead) {
+                                        handleMarkAsRead(item);
+                                    }
+                                }}
+                                onMarkAsRead={handleMarkAsRead}
+                                onDelete={handleDeleteNotification}
+                            />
+                        )}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                colors={['#0056A8']}
+                                enabled={true}
+                            />
+                        }
+                        contentContainerStyle={styles.listContent}
+                    />
+                )}
+            </ThemedView>
+        );
     }
 
     return (
-        <ThemedView style={styles.container}>
-            {/* Header with unread count and mark all read button */}
-            <View style={styles.header}>
-                <View style={styles.headerTitle}>
-                    <ThemedText type="title" style={styles.title}>
-                        {t('notifications.title', 'Notifications')}
-                    </ThemedText>
-                    {unreadCount > 0 && (
-                        <View style={styles.badge}>
-                            <ThemedText style={styles.badgeText}>{unreadCount}</ThemedText>
-                        </View>
-                    )}
-                </View>
-
-                {unreadCount > 0 && (
-                    <Pressable
-                        onPress={handleMarkAllAsRead}
-                        style={styles.markAllButton}
-                    >
-                        <Ionicons name="checkmark" size={20} color="#0056A8" />
-                        <ThemedText style={styles.markAllText}>
-                            {t('notifications.markAllAsRead', 'Mark all read')}
-                        </ThemedText>
-                    </Pressable>
-                )}
-            </View>
-
-            {/* Error message */}
-            {error && (
-                <View style={styles.errorContainer}>
-                    <Ionicons name="alert-circle" size={20} color="#dc3545" />
-                    <ThemedText style={styles.errorText}>{error}</ThemedText>
-                    <Pressable onPress={() => setError(null)}>
-                        <Ionicons name="close" size={20} color="#dc3545" />
-                    </Pressable>
-                </View>
-            )}
-
-            {/* Loading state */}
-            {loading && !refreshing ? (
-                <View style={styles.centerContainer}>
-                    <ActivityIndicator size="large" color="#0056A8" />
-                    <ThemedText style={styles.loadingText}>
-                        {t('notifications.loading', 'Loading notifications...')}
-                    </ThemedText>
-                </View>
-            ) : notifications.length === 0 ? (
-                /* Empty state */
-                <View style={styles.centerContainer}>
-                    <Ionicons name="notifications-off-outline" size={64} color="#ccc" />
-                    <ThemedText style={styles.emptyText}>
-                        {t('notifications.empty', 'No notifications yet')}
-                    </ThemedText>
-                    <ThemedText style={styles.emptySubtext}>
-                        {t('notifications.emptySubtext', 'You\'ll receive notifications when you register for events')}
-                    </ThemedText>
-                </View>
-            ) : (
-                /* Notifications list */
-                <FlatList
-                    data={notifications}
-                    keyExtractor={(item) => `${item.id}-${item.isRead}`}
-                    extraData={notifications}
-                    renderItem={({ item }) => (
-                        <NotificationCard
-                            notification={item}
-                            onPress={() => {
-                                if (!item.isRead) {
-                                    handleMarkAsRead(item);
-                                }
-                            }}
-                            onMarkAsRead={handleMarkAsRead}
-                            onDelete={handleDeleteNotification}
-                        />
-                    )}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                            onRefresh={onRefresh}
-                            colors={['#0056A8']}
-                            enabled={true}
-                        />
-                    }
-                    contentContainerStyle={styles.listContent}
-                />
-            )}
-        </ThemedView>
+        <MenuLayout>
+            {content}
+        </MenuLayout>
     );
 }
 

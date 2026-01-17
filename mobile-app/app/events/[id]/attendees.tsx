@@ -10,6 +10,7 @@ import { useLocalSearchParams } from 'expo-router';
 
 import { ThemedText } from '../../../components/themed-text';
 import { ThemedView } from '../../../components/themed-view';
+import { MenuLayout } from '../../../components/menu-layout';
 import { useAuth } from '../../../context/AuthContext';
 import {
     getEventAttendees,
@@ -83,25 +84,23 @@ export default function EventAttendeesScreen() {
         loadAttendees();
     }, [loadAttendees]);
 
+    let content = null;
+
     if (!canView) {
-        return (
+        content = (
             <ThemedView style={styles.centered}>
                 <ThemedText>{t('events.attendees.accessDenied')}</ThemedText>
             </ThemedView>
         );
-    }
-
-    if (loading) {
-        return (
+    } else if (loading) {
+        content = (
             <ThemedView style={styles.centered}>
                 <ActivityIndicator size="large" color="#0056A8" />
                 <ThemedText style={styles.loadingText}>{t('events.attendees.loading')}</ThemedText>
             </ThemedView>
         );
-    }
-
-    if (error) {
-        return (
+    } else if (error) {
+        content = (
             <ThemedView style={styles.centered}>
                 <ThemedText style={styles.errorText}>{error}</ThemedText>
                 <ThemedText style={styles.footerButtonText} onPress={loadAttendees}>
@@ -109,56 +108,62 @@ export default function EventAttendeesScreen() {
                 </ThemedText>
             </ThemedView>
         );
+    } else {
+        const list = attendees?.attendees ?? [];
+        const totalAttendees = attendees?.totalAttendees ?? 0;
+        const eventTitle = eventDetail ? getTranslatedEventTitle(eventDetail, t) : '';
+
+        content = (
+            <ThemedView style={styles.container}>
+                <FlatList
+                    data={list}
+                    keyExtractor={(item: EventAttendee) => item.attendeeId.toString()}
+                    renderItem={({ item }) => (
+                        <View style={styles.attendeeCard}>
+                            <ThemedText style={styles.attendeeName}>
+                                {item.fullName || 'Unknown'}
+                            </ThemedText>
+                            <ThemedText style={styles.attendeeAge}>
+                                {item.age != null
+                                    ? `${t('events.attendees.ageLabel')}: ${item.age}`
+                                    : t('events.attendees.ageUnknown')}
+                            </ThemedText>
+                        </View>
+                    )}
+                    contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#0056A8']}
+                        />
+                    }
+                    ListHeaderComponent={
+                        <View style={styles.attendeesHeader}>
+                            <ThemedText type="title" style={styles.screenTitle}>
+                                {t('events.attendees.title')}
+                            </ThemedText>
+                            {eventTitle ? (
+                                <ThemedText style={styles.attendeesEventTitle}>{eventTitle}</ThemedText>
+                            ) : null}
+                            <ThemedText style={styles.attendeesCount}>
+                                {t('events.attendees.total', { count: totalAttendees })}
+                            </ThemedText>
+                        </View>
+                    }
+                    ListEmptyComponent={
+                        <ThemedText style={styles.emptyText}>
+                            {t('events.attendees.empty')}
+                        </ThemedText>
+                    }
+                />
+            </ThemedView>
+        );
     }
 
-    const list = attendees?.attendees ?? [];
-    const totalAttendees = attendees?.totalAttendees ?? 0;
-    const eventTitle = eventDetail ? getTranslatedEventTitle(eventDetail, t) : '';
-
     return (
-        <ThemedView style={styles.container}>
-            <FlatList
-                data={list}
-                keyExtractor={(item: EventAttendee) => item.attendeeId.toString()}
-                renderItem={({ item }) => (
-                    <View style={styles.attendeeCard}>
-                        <ThemedText style={styles.attendeeName}>
-                            {item.fullName || 'Unknown'}
-                        </ThemedText>
-                        <ThemedText style={styles.attendeeAge}>
-                            {item.age != null
-                                ? `${t('events.attendees.ageLabel')}: ${item.age}`
-                                : t('events.attendees.ageUnknown')}
-                        </ThemedText>
-                    </View>
-                )}
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={['#0056A8']}
-                    />
-                }
-                ListHeaderComponent={
-                    <View style={styles.attendeesHeader}>
-                        <ThemedText type="title" style={styles.screenTitle}>
-                            {t('events.attendees.title')}
-                        </ThemedText>
-                        {eventTitle ? (
-                            <ThemedText style={styles.attendeesEventTitle}>{eventTitle}</ThemedText>
-                        ) : null}
-                        <ThemedText style={styles.attendeesCount}>
-                            {t('events.attendees.total', { count: totalAttendees })}
-                        </ThemedText>
-                    </View>
-                }
-                ListEmptyComponent={
-                    <ThemedText style={styles.emptyText}>
-                        {t('events.attendees.empty')}
-                    </ThemedText>
-                }
-            />
-        </ThemedView>
+        <MenuLayout>
+            {content}
+        </MenuLayout>
     );
 }

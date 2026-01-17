@@ -12,6 +12,7 @@ import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { EventCard } from '../../components/EventCard';
 import { EventDetailModal } from '../../components/EventDetailModal';
+import { MenuLayout } from '../../components/menu-layout';
 
 import {
     getUpcomingEvents,
@@ -320,16 +321,7 @@ export default function EventsDetailScreen() {
         );
     };
 
-    if (loading) {
-        return (
-            <ThemedView style={styles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
-                <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
-            </ThemedView>
-        );
-    }
-
-    return (
+    let content = (
         <ThemedView style={styles.container}>
             <FlatList
                 data={events}
@@ -383,5 +375,20 @@ export default function EventsDetailScreen() {
                 }}
             />
         </ThemedView>
+    );
+
+    if (loading) {
+        content = (
+            <ThemedView style={styles.centered}>
+                <ActivityIndicator size="large" color="#0056A8" />
+                <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
+            </ThemedView>
+        );
+    }
+
+    return (
+        <MenuLayout>
+            {content}
+        </MenuLayout>
     );
 }

@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, StyleSheet, Switch, Text, View } from 'react-
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import { MenuLayout } from '../../components/menu-layout';
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
@@ -90,8 +91,10 @@ export default function NotificationPreferencesScreen() {
     }
   };
 
+  let content = null;
+
   if (!user) {
-    return (
+    content = (
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('settings.notifications.title')}</Text>
@@ -103,10 +106,8 @@ export default function NotificationPreferencesScreen() {
         </View>
       </View>
     );
-  }
-
-  if (!isMember) {
-    return (
+  } else if (!isMember) {
+    content = (
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('settings.notifications.title')}</Text>
@@ -118,51 +119,57 @@ export default function NotificationPreferencesScreen() {
         </View>
       </View>
     );
+  } else {
+    content = (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t('settings.notifications.title')}</Text>
+          <Text style={styles.subtitle}>{t('settings.notifications.subtitle')}</Text>
+        </View>
+
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={BLUE} />
+            <Text style={styles.loadingText}>{t('common.loading')}</Text>
+          </View>
+        ) : (
+          <View style={styles.list}>
+            {error && <Text style={styles.errorText}>{error}</Text>}
+            {sortedPreferences.map((pref) => (
+              <View key={pref.category} style={styles.preferenceCard}>
+                <View style={styles.preferenceRow}>
+                  <View>
+                    <Text style={styles.preferenceTitle}>{labels[pref.category]}</Text>
+                    {pref.isCritical && (
+                      <Text style={styles.preferenceHint}>
+                        {t('settings.notifications.mandatory')}
+                      </Text>
+                    )}
+                  </View>
+                  <Switch
+                    value={pref.enabled || pref.isCritical}
+                    onValueChange={(value) => handleToggle(pref.category, value)}
+                    disabled={pref.isCritical || isSaving}
+                    trackColor={{ false: '#D4DBE7', true: '#8CC3FF' }}
+                    thumbColor={pref.enabled ? BLUE : '#F5F7FB'}
+                    testID={`notification-toggle-${pref.category.toLowerCase()}`}
+                  />
+                </View>
+                {pref.isCritical && (
+                  <Text style={styles.helperText}>{t('settings.notifications.mandatoryHint')}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('settings.notifications.title')}</Text>
-        <Text style={styles.subtitle}>{t('settings.notifications.subtitle')}</Text>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={BLUE} />
-          <Text style={styles.loadingText}>{t('common.loading')}</Text>
-        </View>
-      ) : (
-        <View style={styles.list}>
-          {error && <Text style={styles.errorText}>{error}</Text>}
-          {sortedPreferences.map((pref) => (
-            <View key={pref.category} style={styles.preferenceCard}>
-              <View style={styles.preferenceRow}>
-                <View>
-                  <Text style={styles.preferenceTitle}>{labels[pref.category]}</Text>
-                  {pref.isCritical && (
-                    <Text style={styles.preferenceHint}>
-                      {t('settings.notifications.mandatory')}
-                    </Text>
-                  )}
-                </View>
-                <Switch
-                  value={pref.enabled || pref.isCritical}
-                  onValueChange={(value) => handleToggle(pref.category, value)}
-                  disabled={pref.isCritical || isSaving}
-                  trackColor={{ false: '#D4DBE7', true: '#8CC3FF' }}
-                  thumbColor={pref.enabled ? BLUE : '#F5F7FB'}
-                  testID={`notification-toggle-${pref.category.toLowerCase()}`}
-                />
-              </View>
-              {pref.isCritical && (
-                <Text style={styles.helperText}>{t('settings.notifications.mandatoryHint')}</Text>
-              )}
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
+    <MenuLayout>
+      {content}
+    </MenuLayout>
   );
 }
 

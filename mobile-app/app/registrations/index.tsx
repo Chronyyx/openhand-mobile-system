@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
+import { MenuLayout } from '../../components/menu-layout';
 import { useAuth } from '../../context/AuthContext';
 import {
     getRegistrationHistory,
@@ -183,63 +184,67 @@ export default function MyRegistrationsScreen() {
         [t],
     );
 
+    let content = null;
+
     if (!user) {
-        return (
+        content = (
             <ThemedView style={styles.centered}>
                 <ThemedText>{t('registrations.loginRequired')}</ThemedText>
             </ThemedView>
         );
-    }
-
-    if (loading) {
-        return (
+    } else if (loading) {
+        content = (
             <ThemedView style={styles.centered}>
                 <ActivityIndicator />
                 <ThemedText style={styles.loadingText}>{t('common.loading')}</ThemedText>
             </ThemedView>
         );
-    }
-
-    if (error) {
-        return (
+    } else if (error) {
+        content = (
             <ThemedView style={styles.centered}>
                 <ThemedText style={styles.errorText}>{error}</ThemedText>
+            </ThemedView>
+        );
+    } else {
+        content = (
+            <ThemedView style={styles.container}>
+                <ThemedText type="title" style={styles.screenTitle}>
+                    {t('registrations.title')}
+                </ThemedText>
+                <SectionList
+                    sections={sections}
+                    keyExtractor={(item) => item.registrationId.toString()}
+                    renderItem={renderItem}
+                    renderSectionHeader={({ section }) => (
+                        <View style={styles.sectionHeader}>
+                            <ThemedText type="subtitle" style={styles.sectionTitle}>
+                                {section.title}
+                            </ThemedText>
+                            <ThemedText style={styles.sectionCount}>
+                                {section.data.length}
+                            </ThemedText>
+                        </View>
+                    )}
+                    renderSectionFooter={({ section }) =>
+                        section.data.length === 0 ? (
+                            <ThemedText style={styles.sectionEmptyText}>
+                                {section.emptyText}
+                            </ThemedText>
+                        ) : null
+                    }
+                    contentContainerStyle={styles.listContent}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    }
+                />
             </ThemedView>
         );
     }
 
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText type="title" style={styles.screenTitle}>
-                {t('registrations.title')}
-            </ThemedText>
-            <SectionList
-                sections={sections}
-                keyExtractor={(item) => item.registrationId.toString()}
-                renderItem={renderItem}
-                renderSectionHeader={({ section }) => (
-                    <View style={styles.sectionHeader}>
-                        <ThemedText type="subtitle" style={styles.sectionTitle}>
-                            {section.title}
-                        </ThemedText>
-                        <ThemedText style={styles.sectionCount}>
-                            {section.data.length}
-                        </ThemedText>
-                    </View>
-                )}
-                renderSectionFooter={({ section }) =>
-                    section.data.length === 0 ? (
-                        <ThemedText style={styles.sectionEmptyText}>
-                            {section.emptyText}
-                        </ThemedText>
-                    ) : null
-                }
-                contentContainerStyle={styles.listContent}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            />
-        </ThemedView>
+        <MenuLayout>
+            {content}
+        </MenuLayout>
     );
 }
 

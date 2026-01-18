@@ -176,11 +176,21 @@ class EventAdminControllerIntegrationTest {
     @Test
     @WithMockUser(username = "admin@example.com", roles = "ADMIN")
     void updateEvent_withValidPayload_updatesAndReturns200() throws Exception {
+        LocalDateTime start = LocalDateTime.now()
+                .plusDays(1)
+                .withHour(18)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0);
+        LocalDateTime end = start.plusHours(2);
+        LocalDateTime updatedStart = start.plusDays(30);
+        LocalDateTime updatedEnd = updatedStart.plusHours(3);
+
         Event existing = new Event(
                 "Existing",
                 "Desc",
-                LocalDateTime.of(2026, 1, 1, 18, 0),
-                LocalDateTime.of(2026, 1, 1, 20, 0),
+                start,
+                end,
                 "Loc",
                 "Addr",
                 EventStatus.OPEN,
@@ -189,18 +199,16 @@ class EventAdminControllerIntegrationTest {
                 "GENERAL");
         Event saved = eventRepository.save(existing);
 
-        String payload = """
-                {
-                  "title": "Updated Title",
-                  "description": "Updated Desc",
-                  "startDateTime": "2026-02-01T18:00",
-                  "endDateTime": "2026-02-01T21:00",
-                  "locationName": "New Loc",
-                  "address": "New Addr",
-                  "maxCapacity": 5,
-                  "category": "NEW"
-                }
-                """;
+        String payload = asJsonString(new Object() {
+            public final String title = "Updated Title";
+            public final String description = "Updated Desc";
+            public final String startDateTime = updatedStart.toString();
+            public final String endDateTime = updatedEnd.toString();
+            public final String locationName = "New Loc";
+            public final String address = "New Addr";
+            public final Integer maxCapacity = 5;
+            public final String category = "NEW";
+        });
 
         mockMvc.perform(put("/api/admin/events/{id}", saved.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -241,11 +249,21 @@ class EventAdminControllerIntegrationTest {
     @Test
     @WithMockUser(username = "admin@example.com", roles = "ADMIN")
     void updateEvent_withMaxCapacityLessThanCurrent_returns400() throws Exception {
+        LocalDateTime start = LocalDateTime.now()
+                .plusDays(1)
+                .withHour(18)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0);
+        LocalDateTime end = start.plusHours(2);
+        LocalDateTime updatedStart = start.plusDays(30);
+        LocalDateTime updatedEnd = updatedStart.plusHours(3);
+
         Event existing = new Event(
                 "Existing",
                 "Desc",
-                LocalDateTime.of(2026, 1, 1, 18, 0),
-                LocalDateTime.of(2026, 1, 1, 20, 0),
+                start,
+                end,
                 "Loc",
                 "Addr",
                 EventStatus.OPEN,
@@ -254,17 +272,15 @@ class EventAdminControllerIntegrationTest {
                 "GENERAL");
         Event saved = eventRepository.save(existing);
 
-        String payload = """
-                {
-                  "title": "Updated",
-                  "description": "Updated Desc",
-                  "startDateTime": "2026-02-01T18:00",
-                  "endDateTime": "2026-02-01T21:00",
-                  "locationName": "New Loc",
-                  "address": "New Addr",
-                  "maxCapacity": 2
-                }
-                """;
+        String payload = asJsonString(new Object() {
+            public final String title = "Updated";
+            public final String description = "Updated Desc";
+            public final String startDateTime = updatedStart.toString();
+            public final String endDateTime = updatedEnd.toString();
+            public final String locationName = "New Loc";
+            public final String address = "New Addr";
+            public final Integer maxCapacity = 2;
+        });
 
         mockMvc.perform(put("/api/admin/events/{id}", saved.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -278,11 +294,21 @@ class EventAdminControllerIntegrationTest {
     @Test
     @WithMockUser(username = "admin@example.com", roles = "ADMIN")
     void updateEvent_withEndBeforeStart_returns400() throws Exception {
+        LocalDateTime start = LocalDateTime.now()
+                .plusDays(1)
+                .withHour(18)
+                .withMinute(0)
+                .withSecond(0)
+                .withNano(0);
+        LocalDateTime end = start.plusHours(2);
+        LocalDateTime updatedStart = start.plusDays(30);
+        LocalDateTime updatedEnd = updatedStart.minusHours(1);
+
         Event existing = new Event(
                 "Existing",
                 "Desc",
-                LocalDateTime.of(2026, 1, 1, 18, 0),
-                LocalDateTime.of(2026, 1, 1, 20, 0),
+                start,
+                end,
                 "Loc",
                 "Addr",
                 EventStatus.OPEN,
@@ -291,17 +317,15 @@ class EventAdminControllerIntegrationTest {
                 "GENERAL");
         Event saved = eventRepository.save(existing);
 
-        String payload = """
-                {
-                  "title": "Updated",
-                  "description": "Updated Desc",
-                  "startDateTime": "2026-02-01T18:00",
-                  "endDateTime": "2026-02-01T17:00",
-                  "locationName": "New Loc",
-                  "address": "New Addr",
-                  "maxCapacity": 10
-                }
-                """;
+        String payload = asJsonString(new Object() {
+            public final String title = "Updated";
+            public final String description = "Updated Desc";
+            public final String startDateTime = updatedStart.toString();
+            public final String endDateTime = updatedEnd.toString();
+            public final String locationName = "New Loc";
+            public final String address = "New Addr";
+            public final Integer maxCapacity = 10;
+        });
 
         mockMvc.perform(put("/api/admin/events/{id}", saved.getId())
                         .contentType(MediaType.APPLICATION_JSON)

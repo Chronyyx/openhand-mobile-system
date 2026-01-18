@@ -1,11 +1,14 @@
 package com.mana.openhand_backend.registrations.businesslayer;
 
+import com.mana.openhand_backend.events.businesslayer.EventCompletionService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
+import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
@@ -39,6 +42,15 @@ class RegistrationServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private SendGridEmailService sendGridEmailService;
+
+    @Mock
+    private EventCompletionService eventCompletionService;
+
     @InjectMocks
     private RegistrationServiceImpl registrationService;
 
@@ -49,6 +61,9 @@ class RegistrationServiceImplTest {
     @BeforeEach
     void setUp() {
         now = LocalDateTime.now();
+        lenient()
+                .when(eventCompletionService.ensureCompletedIfEnded(any(Event.class), any(LocalDateTime.class)))
+                .thenReturn(false);
 
         testUser = new User();
         testUser.setEmail("test@example.com");

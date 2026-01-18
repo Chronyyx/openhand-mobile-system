@@ -408,6 +408,31 @@ class RegistrationControllerIntegrationTest {
         @Test
         @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
         @Transactional
+        void getMyRegistrationHistory_marksCompletedEventsAsPast() throws Exception {
+                // Arrange
+                Event completedEvent = createEvent(
+                        "Completed Event",
+                        LocalDateTime.now().plusDays(2),
+                        LocalDateTime.now().plusDays(2).plusHours(2));
+                completedEvent.setStatus(EventStatus.COMPLETED);
+                completedEvent = eventRepository.save(completedEvent);
+
+                Registration registration = new Registration(testUser, completedEvent);
+                registration.setStatus(RegistrationStatus.CONFIRMED);
+                registrationRepository.save(registration);
+
+                // Act & Assert
+                mockMvc.perform(get("/api/registrations/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$", hasSize(1)))
+                        .andExpect(jsonPath("$[0].event.title", equalTo("Completed Event")))
+                        .andExpect(jsonPath("$[0].timeCategory", equalTo("PAST")));
+        }
+
+        @Test
+        @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
+        @Transactional
         void getMyRegistrationHistory_sortsActiveThenPast() throws Exception {
                 // Arrange
                 Event soonEvent = createEvent(

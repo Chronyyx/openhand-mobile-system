@@ -78,7 +78,7 @@ export default function EventsDetailScreen() {
             setError(null);
             if (!refreshing) setLoading(true);
             const data = await getUpcomingEvents();
-            setEvents(data);
+            setEvents(data.filter((event) => event.status !== 'COMPLETED'));
         } catch (err) {
             console.error('Failed to load events', err);
             setError(t('events.errors.loadFailed'));
@@ -208,6 +208,10 @@ export default function EventsDetailScreen() {
      */
     const handleRegister = async () => {
         if (!selectedEvent || !user || isRegistering) return;
+        if (selectedEvent.status === 'COMPLETED') {
+            setRegistrationError(t('events.errors.eventCompleted'));
+            return;
+        }
 
         try {
             setIsRegistering(true);
@@ -239,6 +243,8 @@ export default function EventsDetailScreen() {
                         t('events.errors.eventFull',
                             'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
                     );
+                } else if (errorMessage.toLowerCase().includes('completed')) {
+                    setRegistrationError(t('events.errors.eventCompleted'));
                 } else if (errorMessage.includes('Already Registered')) {
                     // User already has active registration
                     setRegistrationError(

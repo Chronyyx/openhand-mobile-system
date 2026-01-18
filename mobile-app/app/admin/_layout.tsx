@@ -15,7 +15,7 @@ export default function AdminLayout() {
         );
     }
 
-    if (!hasRole(['ROLE_ADMIN'])) {
+    if (!hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
         return <Redirect href="/" />;
     }
 

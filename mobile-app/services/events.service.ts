@@ -1,7 +1,7 @@
 // mobile-app/services/events.service.ts
 import { API_BASE } from '../utils/api';
 
-export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL';
+export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL' | 'COMPLETED';
 
 export type EventSummary = {
     id: number;
@@ -88,4 +88,3 @@ export async function getEventAttendees(eventId: number, token: string): Promise
     });
     return handleResponse<EventAttendeesResponse>(res, "la liste des participants");
 }
-

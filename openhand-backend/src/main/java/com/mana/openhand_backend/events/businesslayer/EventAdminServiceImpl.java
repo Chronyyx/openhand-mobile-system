@@ -24,13 +24,16 @@ public class EventAdminServiceImpl implements EventAdminService {
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
     private final SendGridEmailService sendGridEmailService;
+    private final EventCompletionService eventCompletionService;
 
     public EventAdminServiceImpl(EventRepository eventRepository,
             RegistrationRepository registrationRepository,
-            SendGridEmailService sendGridEmailService) {
+            SendGridEmailService sendGridEmailService,
+            EventCompletionService eventCompletionService) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.sendGridEmailService = sendGridEmailService;
+        this.eventCompletionService = eventCompletionService;
     }
 
     @Override
@@ -73,6 +76,11 @@ public class EventAdminServiceImpl implements EventAdminService {
     @Override    @SuppressWarnings("null")    public Event updateEvent(Long id, CreateEventRequest request) {
         Event existing = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+
+        if (eventCompletionService.ensureCompletedIfEnded(existing, LocalDateTime.now())) {
+            throw new IllegalArgumentException("Completed events cannot be edited.");
+        }
+
         LocalDateTime originalStart = existing.getStartDateTime();
 
         LocalDateTime startDateTime = request.getParsedStartDateTime();

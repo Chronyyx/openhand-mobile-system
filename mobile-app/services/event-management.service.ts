@@ -21,7 +21,7 @@ type ManagedEventResponse = {
     endDateTime: string | null;
     locationName: string;
     address: string;
-    status: 'OPEN' | 'NEARLY_FULL' | 'FULL';
+    status: 'OPEN' | 'NEARLY_FULL' | 'FULL' | 'COMPLETED';
     maxCapacity: number | null;
     currentRegistrations: number | null;
     category?: string | null;
@@ -51,5 +51,17 @@ export const updateEvent = async (
 ): Promise<ManagedEventResponse> => {
     const headers = await getAuthHeaders();
     const response = await axios.put(`${API_BASE}/admin/events/${id}`, payload, { headers });
+    return response.data;
+};
+
+export const getManagedEvents = async (): Promise<ManagedEventResponse[]> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(`${API_BASE}/employee/events`, { headers });
+    return response.data;
+};
+
+export const markEventCompleted = async (id: number): Promise<ManagedEventResponse> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_BASE}/employee/events/${id}/complete`, null, { headers });
     return response.data;
 };

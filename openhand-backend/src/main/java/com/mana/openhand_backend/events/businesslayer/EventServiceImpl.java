@@ -2,6 +2,7 @@ package com.mana.openhand_backend.events.businesslayer;
 
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
+import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.domainclientlayer.EventAttendeeResponseModel;
 import com.mana.openhand_backend.events.domainclientlayer.EventAttendeesResponseModel;
 import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
@@ -12,7 +13,6 @@ import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepos
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import com.mana.openhand_backend.registrations.domainclientlayer.AttendeeResponseModel;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -24,20 +24,29 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
+    private final EventCompletionService eventCompletionService;
 
-    public EventServiceImpl(EventRepository eventRepository, RegistrationRepository registrationRepository) {
+    public EventServiceImpl(EventRepository eventRepository,
+                            RegistrationRepository registrationRepository,
+                            EventCompletionService eventCompletionService) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
+        this.eventCompletionService = eventCompletionService;
     }
 
     @Override
     public List<Event> getUpcomingEvents() {
+        eventCompletionService.refreshCompletedEvents(LocalDateTime.now());
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        List<Event> upcoming = eventRepository.findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(startOfToday);
+        List<Event> upcoming = eventRepository
+                .findByStartDateTimeGreaterThanEqualAndStatusNotOrderByStartDateTimeAsc(
+                        startOfToday,
+                        EventStatus.COMPLETED
+                );
 
-        // Fallback: if no future events, surface past events (e.g., seed data) so the list is never empty
+        // Fallback: if no future events, surface non-completed events (e.g., seed data) so the list is never empty
         if (upcoming.isEmpty()) {
-            return eventRepository.findAll(Sort.by(Sort.Direction.ASC, "startDateTime"));
+            return eventRepository.findByStatusNotOrderByStartDateTimeAsc(EventStatus.COMPLETED);
         }
 
         return upcoming;
@@ -46,8 +55,10 @@ public class EventServiceImpl implements EventService {
     @Override
     @SuppressWarnings("null")
     public Event getEventById(Long id) {
-        return eventRepository.findById(id)
+        Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
+        eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now());
+        return event;
     }
 
     @Override

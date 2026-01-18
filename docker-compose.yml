@@ -30,7 +30,8 @@ services:
       - .env
     environment:
       - DATABASE_URL=jdbc:postgresql://db:5432/openhanddb
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - STARTUP_DELAY=0
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:19000,http://localhost:19006,http://localhost:8081
     depends_on:
       db:
         condition: service_healthy
@@ -64,6 +65,21 @@ services:
       - backend
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  admin-web:
+    container_name: openhand-admin-web
+    build:
+      context: ./admin-web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./admin-web:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8080/api
+    depends_on:
+      - backend
 
 volumes:
   mobile-node-modules:

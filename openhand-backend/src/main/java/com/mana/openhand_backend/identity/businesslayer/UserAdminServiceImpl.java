@@ -5,7 +5,10 @@ import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.utils.InvalidRoleException;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,9 +19,14 @@ import java.util.Set;
 public class UserAdminServiceImpl implements UserAdminService {
 
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
+    private final HttpServletRequest request;
 
-    public UserAdminServiceImpl(UserRepository userRepository) {
+    public UserAdminServiceImpl(UserRepository userRepository, AuditLogService auditLogService,
+            HttpServletRequest request) {
         this.userRepository = userRepository;
+        this.auditLogService = auditLogService;
+        this.request = request;
     }
 
     @Override
@@ -38,8 +46,28 @@ public class UserAdminServiceImpl implements UserAdminService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
+        String oldRoles = String.join(",", user.getRoles());
+        String newRolesStr = String.join(",", normalizedRoles);
+
         user.setRoles(normalizedRoles);
-        return userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+
+        // Audit Log
+        String changedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+        String ip = request.getRemoteAddr();
+        String agent = request.getHeader("User-Agent");
+
+        auditLogService.logRoleChange(
+                user.getId(),
+                user.getEmail(),
+                oldRoles,
+                newRolesStr,
+                changedBy,
+                ip,
+                agent,
+                "ADMIN_CONSOLE");
+
+        return updatedUser;
     }
 
     @Override

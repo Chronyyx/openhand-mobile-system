@@ -63,7 +63,7 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Value("${openhand.app.cors.allowedOrigins}")
+    @Value("${openhand.app.cors.allowedOrigins:http://localhost:3000,http://localhost:8080}")
     private String allowedOrigins;
 
     @Bean
@@ -107,13 +107,22 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refreshtoken").permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Protect Audit Endpoints
                         .requestMatchers("/api/auth/**").authenticated()
                         // TODO: Remove dev testing endpoints when proper profile-based gating is added
                         .requestMatchers("/api/dev/**").permitAll()
                         .requestMatchers("/api/events/**").permitAll()
                         .requestMatchers("/api/registrations/**").authenticated()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // Allow WebSocket handshake
                         .anyRequest().authenticated());
+
+        http.headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                        "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self';"))
+                .contentTypeOptions(contentType -> contentType.disable()) // Replaces X-Content-Type-Options: nosniff
+        );
 
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);

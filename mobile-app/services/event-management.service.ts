@@ -54,6 +54,12 @@ export const updateEvent = async (
     return response.data;
 };
 
+export const cancelEvent = async (id: number): Promise<ManagedEventResponse> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.post(`${API_BASE}/admin/events/${id}/cancel`, {}, { headers });
+    return response.data;
+};
+
 export const getManagedEvents = async (): Promise<ManagedEventResponse[]> => {
     const headers = await getAuthHeaders();
     const response = await axios.get(`${API_BASE}/employee/events`, { headers });

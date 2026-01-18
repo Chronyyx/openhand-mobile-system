@@ -23,6 +23,8 @@ type NavigationMenuProps = {
 
 const BLUE = '#0056A8';
 
+import { useNotifications } from '@/hooks/useNotifications';
+
 export function NavigationMenu({
     visible,
     onClose,
@@ -35,6 +37,8 @@ export function NavigationMenu({
     showMyRegistrations = false,
     t,
 }: NavigationMenuProps) {
+    const { unreadCount } = useNotifications();
+
     return (
         <Modal
             visible={visible}
@@ -86,7 +90,12 @@ export function NavigationMenu({
                             <Ionicons name="calendar" size={20} color={BLUE} />
                             <Text style={styles.menuItemText}>{t('menu.events')}</Text>
                         </View>
-                        <Ionicons name="chevron-forward" size={18} color={BLUE} />
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            {unreadCount > 0 && (
+                                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF3B30' }} />
+                            )}
+                            <Ionicons name="chevron-forward" size={18} color={BLUE} />
+                        </View>
                     </Pressable>
 
                     {showMyRegistrations && onNavigateMyRegistrations && (

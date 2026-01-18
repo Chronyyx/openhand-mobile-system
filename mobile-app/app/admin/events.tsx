@@ -24,13 +24,7 @@ import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { type EventSummary } from '../../services/events.service';
-import {
-    createEvent,
-    updateEvent,
-    getManagedEvents,
-    markEventCompleted,
-    type CreateEventPayload,
-} from '../../services/event-management.service';
+import { createEvent, updateEvent, cancelEvent, getManagedEvents, markEventCompleted, type CreateEventPayload } from '../../services/event-management.service';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 import { getStatusColor, getStatusLabel, getStatusTextColor } from '../../utils/event-status';
 
@@ -359,18 +353,25 @@ export default function AdminEventsScreen() {
     };
 
     const handleMarkCompleted = (event: EventSummary) => {
-        Alert.alert(
-            t('admin.events.completeConfirmTitle'),
-            t('admin.events.completeConfirmMessage'),
-            [
-                { text: t('common.cancel'), style: 'cancel' },
-                {
-                    text: t('admin.events.completeConfirmAction'),
-                    style: 'destructive',
-                    onPress: () => confirmMarkCompleted(event),
-                },
-            ],
-        );
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(t('admin.events.completeConfirmMessage'));
+            if (confirmed) {
+                confirmMarkCompleted(event);
+            }
+        } else {
+            Alert.alert(
+                t('admin.events.completeConfirmTitle'),
+                t('admin.events.completeConfirmMessage'),
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    {
+                        text: t('admin.events.completeConfirmAction'),
+                        style: 'destructive',
+                        onPress: () => confirmMarkCompleted(event),
+                    },
+                ],
+            );
+        }
     };
 
     const openDateTimePicker = (field: 'start' | 'end') => {
@@ -826,6 +827,62 @@ export default function AdminEventsScreen() {
                                                 ) : null}
                                             </View>
                                         </View>
+
+                                        {editingEvent && !saving && (
+                                            <Pressable
+                                                style={({ pressed }) => [
+                                                    styles.cancelEventButton,
+                                                    pressed && styles.cancelEventButtonPressed,
+                                                ]}
+                                                onPress={() => {
+                                                    const performCancel = async () => {
+                                                        try {
+                                                            setSaving(true);
+                                                            await cancelEvent(editingEvent.id);
+                                                            await loadEvents();
+                                                            closeForm();
+                                                            if (Platform.OS === 'web') {
+                                                                window.alert(t('admin.events.cancelSuccess'));
+                                                            } else {
+                                                                Alert.alert(t('common.success'), t('admin.events.cancelSuccess'));
+                                                            }
+                                                        } catch (e) {
+                                                            console.error("Failed to cancel event", e);
+                                                            if (Platform.OS === 'web') {
+                                                                window.alert(t('admin.events.cancelError'));
+                                                            } else {
+                                                                Alert.alert(t('common.error'), t('admin.events.cancelError'));
+                                                            }
+                                                        } finally {
+                                                            setSaving(false);
+                                                        }
+                                                    };
+
+                                                    if (Platform.OS === 'web') {
+                                                        const confirmed = window.confirm(t('admin.events.cancelConfirmMessage'));
+                                                        if (confirmed) {
+                                                            performCancel();
+                                                        }
+                                                    } else {
+                                                        Alert.alert(
+                                                            t('admin.events.cancelConfirmTitle'),
+                                                            t('admin.events.cancelConfirmMessage'),
+                                                            [
+                                                                { text: t('common.no'), style: 'cancel' },
+                                                                {
+                                                                    text: t('common.yes'),
+                                                                    style: 'destructive',
+                                                                    onPress: performCancel
+                                                                }
+                                                            ]
+                                                        );
+                                                    }
+                                                }}
+                                            >
+                                                <Ionicons name="trash-outline" size={18} color="#D32F2F" />
+                                                <Text style={styles.cancelEventButtonText}>{t('admin.events.cancelButton')}</Text>
+                                            </Pressable>
+                                        )}
                                     </ScrollView>
 
                                     <View style={styles.modalActions}>
@@ -837,7 +894,7 @@ export default function AdminEventsScreen() {
                                                 style={({ pressed }) => [
                                                     styles.dangerButton,
                                                     pressed && styles.dangerButtonPressed,
-                                                    completingId && styles.primaryButtonDisabled,
+                                                    completingId !== null && styles.primaryButtonDisabled,
                                                 ]}
                                                 onPress={() => handleMarkCompleted(editingEvent)}
                                                 disabled={completingId !== null || saving}
@@ -905,7 +962,7 @@ export default function AdminEventsScreen() {
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 t={t}
             />
-        </View>
+        </View >
     );
 }
 
@@ -1281,6 +1338,27 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         color: '#FFFFFF',
         fontWeight: '800',
+        fontSize: 14,
+    },
+    cancelEventButton: {
+        marginTop: 24,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        backgroundColor: '#FFEBEE',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#FFCDD2',
+        gap: 8,
+    },
+    cancelEventButtonPressed: {
+        backgroundColor: '#FFCDD2',
+    },
+    cancelEventButtonText: {
+        color: '#D32F2F',
+        fontWeight: '700',
         fontSize: 14,
     },
     dangerButton: {

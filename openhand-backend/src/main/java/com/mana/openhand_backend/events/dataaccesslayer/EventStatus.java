@@ -4,5 +4,6 @@ public enum EventStatus {
     OPEN,
     NEARLY_FULL,
     FULL,
+    CANCELLED,
     COMPLETED
 }

@@ -11,6 +11,8 @@ import com.mana.openhand_backend.notifications.dataaccesslayer.Notification;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType;
 import com.mana.openhand_backend.notifications.utils.NotificationTextGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,22 +22,27 @@ import java.util.List;
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
+
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final NotificationTextGenerator textGenerator;
     private final NotificationPreferenceService preferenceService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public NotificationServiceImpl(NotificationRepository notificationRepository,
-                                  UserRepository userRepository,
-                                  EventRepository eventRepository,
-                                  NotificationTextGenerator textGenerator,
-                                  NotificationPreferenceService preferenceService) {
+            UserRepository userRepository,
+            EventRepository eventRepository,
+            NotificationTextGenerator textGenerator,
+            NotificationPreferenceService preferenceService,
+            org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
         this.eventRepository = eventRepository;
         this.textGenerator = textGenerator;
         this.preferenceService = preferenceService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Override
@@ -46,7 +53,8 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public Notification createNotification(Long userId, Long eventId, String notificationType, String language, String participantName) {
+    public Notification createNotification(Long userId, Long eventId, String notificationType, String language,
+            String participantName) {
         // Verify user exists
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
@@ -66,22 +74,34 @@ public class NotificationServiceImpl implements NotificationService {
         String resolvedEventTitle = EventTitleResolver.resolve(event.getTitle(), language);
 
         // Generate notification text based on type and language using resolved title
-        String textContent = textGenerator.generateText(type, resolvedEventTitle, language, event.getStartDateTime(), participantName);
+        String textContent = textGenerator.generateText(type, resolvedEventTitle, language, event.getStartDateTime(),
+                participantName);
 
         // Create notification entity with ORIGINAL translation key (not resolved)
-        // The frontend will translate the title dynamically based on user's current language
+        // The frontend will translate the title dynamically based on user's current
+        // language
         Notification notification = new Notification(
                 user,
                 event,
                 type,
                 language,
                 textContent,
-                event.getTitle(),  // Pass original translation key, not resolved title
-                participantName
-        );
+                event.getTitle(), // Pass original translation key, not resolved title
+                participantName);
 
         // Save and return
-        return notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
+
+        // Push to WebSocket
+        try {
+            messagingTemplate.convertAndSend("/topic/notifications/" + userId,
+                    com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
+                            .toResponseModel(savedNotification));
+        } catch (Exception e) {
+            logger.error("Failed to push notification via WebSocket: {}", e.getMessage());
+        }
+
+        return savedNotification;
     }
 
     @Override
@@ -105,7 +125,18 @@ public class NotificationServiceImpl implements NotificationService {
         notification.setRead(true);
         notification.setReadAt(LocalDateTime.now());
 
-        return notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
+
+        // Push update to WebSocket
+        try {
+            messagingTemplate.convertAndSend("/topic/notifications/" + savedNotification.getUser().getId(),
+                    com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
+                            .toResponseModel(savedNotification));
+        } catch (Exception e) {
+            logger.error("Failed to push notification update via WebSocket: {}", e.getMessage());
+        }
+
+        return savedNotification;
     }
 
     @Override
@@ -119,7 +150,20 @@ public class NotificationServiceImpl implements NotificationService {
             notification.setReadAt(now);
         }
 
-        notificationRepository.saveAll(unreadNotifications);
+        List<Notification> savedNotifications = notificationRepository.saveAll(unreadNotifications);
+
+        // Push updates to WebSocket (or send a bulk update/event if client supports it)
+        // For now, sending individual updates to ensure client consistency
+        savedNotifications.forEach(n -> {
+            try {
+                messagingTemplate.convertAndSend("/topic/notifications/" + userId,
+                        com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
+                                .toResponseModel(n));
+            } catch (Exception e) {
+                logger.error("Failed to push notification update via WebSocket: {}", e.getMessage());
+            }
+        });
+
     }
 
     @Override

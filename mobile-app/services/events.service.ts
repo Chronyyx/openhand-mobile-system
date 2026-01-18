@@ -1,7 +1,7 @@
 // mobile-app/services/events.service.ts
 import { API_BASE } from '../utils/api';
 
-export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL' | 'COMPLETED';
+export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL' | 'CANCELLED' | 'COMPLETED';
 
 export type EventSummary = {
     id: number;
@@ -14,7 +14,7 @@ export type EventSummary = {
     status: EventStatus;
     maxCapacity: number | null;
     currentRegistrations: number | null;
-    category?: string;
+    category?: string | null;
 };
 
 // If later you have more fields for the detail, you can extend this.

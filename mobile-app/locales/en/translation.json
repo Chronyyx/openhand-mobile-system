@@ -198,10 +198,11 @@
     "loginToRegister": "Log in to register",
     "completedNotice": "This event is completed and archived.",
     "status": {
-      "OPEN": "OPEN",
-      "NEARLY_FULL": "LIMITED SPOTS",
-      "FULL": "FULL",
-      "COMPLETED": "COMPLETED"
+      "OPEN": "Open",
+      "NEARLY_FULL": "Limited Spots",
+      "FULL": "Full",
+      "CANCELLED": "Cancelled",
+      "COMPLETED": "Completed"
     },
     "registrationStatus": {
       "confirmed": "Confirmed",
@@ -330,6 +331,11 @@
       "createSuccessTitle": "Event created",
       "createSuccessMessage": "The event is now visible in the Events page.",
       "createError": "Unable to create the event.",
+      "cancelButton": "Cancel event",
+      "cancelConfirmTitle": "Cancel event?",
+      "cancelConfirmMessage": "Are you sure you want to cancel this event? This action cannot be undone and will notify all participants.",
+      "cancelSuccess": "Event cancelled successfully.",
+      "cancelError": "Unable to cancel the event.",
       "actionsMenuLabel": "More actions",
       "duplicateAction": "Duplicate event",
       "duplicateSuccessTitle": "Event duplicated",

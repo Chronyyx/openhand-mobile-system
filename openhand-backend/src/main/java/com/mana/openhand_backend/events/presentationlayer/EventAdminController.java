@@ -39,8 +39,7 @@ public class EventAdminController {
     @PutMapping("/{id}")
     public EventResponseModel updateEvent(
             @PathVariable Long id,
-            @Valid @RequestBody CreateEventRequest request
-    ) {
+            @Valid @RequestBody CreateEventRequest request) {
         try {
             Event updated = eventAdminService.updateEvent(id, request);
             return EventResponseMapper.toResponseModel(updated);
@@ -48,6 +47,16 @@ public class EventAdminController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/cancel")
+    public EventResponseModel cancelEvent(@PathVariable Long id) {
+        try {
+            Event cancelled = eventAdminService.cancelEvent(id);
+            return EventResponseMapper.toResponseModel(cancelled);
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }
     }
 }

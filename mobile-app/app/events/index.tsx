@@ -174,17 +174,10 @@ export default function EventsScreen() {
         // If an event is in the hidden list but is now active (e.g. DB reset), we should show it.
         if (hiddenEventIds.length > 0) {
             filtered = filtered.filter(e => {
-                if (hiddenEventIds.includes(e.id)) {
-                    // Only hide if it is indeed cancelled
-                    return e.status !== 'CANCELLED';
-                }
-                return true;
+                // If it's in the hidden list AND it's cancelled, keep it hidden.
+                // If the status is no longer cancelled (e.g. reopened), show it even if in the list.
+                return !(hiddenEventIds.includes(e.id) && e.status === 'CANCELLED');
             });
-
-            // Optional: Cleanup hidden list for events that are no longer cancelled?
-            // Doing this inside render/filter loop is bad practice (side effects).
-            // Instead, we can do it in a useEffect or just let the filter handle it dynamically as above.
-            // The filter above solves the user's issue immediately: "Events that become available again are viewable".
         }
 
         // 2. Hide Cancelled Events if User is NOT Registered
@@ -192,9 +185,9 @@ export default function EventsScreen() {
         if (user) {
             filtered = filtered.filter(e => {
                 if (e.status !== 'CANCELLED') return true;
-                // If cancelled, keep only if registered
-                const isRegistered = myRegistrations.some(r => r.eventId === e.id); // Check against ALL statuses to find history
-                return isRegistered;
+                // Only show cancelled events if the user is registered for them.
+                const registration = myRegistrations.find(r => r.eventId === e.id);
+                return !!registration;
             });
         } else {
             // Guest users see NO cancelled events
@@ -236,7 +229,7 @@ export default function EventsScreen() {
     };
 
     const checkUserRegistration = async (eventId: number) => {
-        // Now just checks against already loaded myRegistrations
+        // Checks against loaded myRegistrations. Ensure registrations are fresh if critical.
         if (!user) return;
         const reg = myRegistrations.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
         setUserRegistration(reg || null);

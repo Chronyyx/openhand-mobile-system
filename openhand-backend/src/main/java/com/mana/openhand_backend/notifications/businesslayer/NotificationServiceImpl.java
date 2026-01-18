@@ -11,6 +11,8 @@ import com.mana.openhand_backend.notifications.dataaccesslayer.Notification;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType;
 import com.mana.openhand_backend.notifications.utils.NotificationTextGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ import java.util.List;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
@@ -90,20 +94,11 @@ public class NotificationServiceImpl implements NotificationService {
 
         // Push to WebSocket
         try {
-            // Mapping domain model to response model would be better, but sending entity is
-            // okay for internal use if JSON serializable
-            // Or ideally use a dedicated DTO. For now, sending the entity.
-            // Using
-            // com.mana.openhand_backend.notifications.utils.NotificationResponseMapper if
-            // available/needed
-            // But let's check imports. Just sending the entity might expose user details if
-            // not careful.
-            // Let's rely on Jackson to serialize it correctly or map it locally.
             messagingTemplate.convertAndSend("/topic/notifications/" + userId,
                     com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
                             .toResponseModel(savedNotification));
         } catch (Exception e) {
-            System.err.println("Failed to push notification via WebSocket: " + e.getMessage());
+            logger.error("Failed to push notification via WebSocket: {}", e.getMessage());
         }
 
         return savedNotification;
@@ -138,7 +133,7 @@ public class NotificationServiceImpl implements NotificationService {
                     com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
                             .toResponseModel(savedNotification));
         } catch (Exception e) {
-            System.err.println("Failed to push notification update via WebSocket: " + e.getMessage());
+            logger.error("Failed to push notification update via WebSocket: {}", e.getMessage());
         }
 
         return savedNotification;
@@ -165,9 +160,10 @@ public class NotificationServiceImpl implements NotificationService {
                         com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
                                 .toResponseModel(n));
             } catch (Exception e) {
-                System.err.println("Failed to push notification update via WebSocket: " + e.getMessage());
+                logger.error("Failed to push notification update via WebSocket: {}", e.getMessage());
             }
         });
+
     }
 
     @Override

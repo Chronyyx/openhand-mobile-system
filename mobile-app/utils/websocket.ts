@@ -53,26 +53,22 @@ class WebSocketService {
     }
 
     public subscribe(destination: string, callback: Listener): () => void {
-        // Add listener to the set
         if (!this.listeners.has(destination)) {
             this.listeners.set(destination, new Set());
         }
         this.listeners.get(destination)?.add(callback);
 
         if (this.connected) {
-            // If connected and not yet subscribed at STOMP level, do it
             if (!this.subscriptions.has(destination)) {
                 this.doSubscribe(destination);
             }
         } else {
-            // Queue it
             if (!this.pendingSubscriptions.has(destination)) {
                 this.pendingSubscriptions.set(destination, new Set());
             }
             this.pendingSubscriptions.get(destination)?.add(callback);
         }
 
-        // Return unsubscribe function
         return () => {
             const set = this.listeners.get(destination);
             if (set) {

@@ -93,21 +93,22 @@ export function useNotifications() {
                 const incoming = message as Notification;
 
                 setNotifications(prev => {
+                    let nextState = prev;
                     // Check if exists
                     const exists = prev.some(n => n.id === incoming.id);
                     if (exists) {
                         // Update existing (e.g. read status changed)
-                        return prev.map(n => n.id === incoming.id ? incoming : n);
+                        nextState = prev.map(n => n.id === incoming.id ? incoming : n);
                     } else {
                         // Add new
-                        return [incoming, ...prev];
+                        nextState = [incoming, ...prev];
                     }
-                });
 
-                // Recalculate unread count based on new state
-                setNotifications(currentState => {
-                    setUnreadCount(currentState.filter(n => !n.read).length);
-                    return currentState;
+                    // Update unread count based on NEW state
+                    const count = nextState.filter(n => !n.read).length;
+                    setUnreadCount(count);
+
+                    return nextState;
                 });
             });
 

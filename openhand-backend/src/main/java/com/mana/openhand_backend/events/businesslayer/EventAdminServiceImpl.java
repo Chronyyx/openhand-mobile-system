@@ -145,11 +145,12 @@ public class EventAdminServiceImpl implements EventAdminService {
         List<Registration> registrations = registrationRepository.findByEventId(event.getId());
         List<Registration> cancelledRegistrations = registrations.stream()
                 .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
-                .peek(reg -> {
-                    reg.setStatus(RegistrationStatus.CANCELLED);
-                    registrationRepository.save(reg);
-                })
                 .toList();
+
+        cancelledRegistrations.forEach(reg -> {
+            reg.setStatus(RegistrationStatus.CANCELLED);
+            registrationRepository.save(reg);
+        });
 
         // Notify all registered users (now cancelled)
         notifyCancellation(cancelledEvent, cancelledRegistrations);

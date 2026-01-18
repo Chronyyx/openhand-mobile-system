@@ -23,7 +23,7 @@ import { AppHeader } from '../../components/app-header';
 import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
-import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
+import { type EventSummary } from '../../services/events.service';
 import { createEvent, updateEvent, cancelEvent, getManagedEvents, markEventCompleted, type CreateEventPayload } from '../../services/event-management.service';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 import { getStatusColor, getStatusLabel, getStatusTextColor } from '../../utils/event-status';

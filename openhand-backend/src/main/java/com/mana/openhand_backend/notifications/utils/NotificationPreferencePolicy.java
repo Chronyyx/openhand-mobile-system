@@ -23,8 +23,8 @@ public final class NotificationPreferencePolicy {
         return switch (type) {
             case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT ->
                 NotificationPreferenceCategory.CONFIRMATION;
-            case REMINDER, EVENT_UPDATE -> NotificationPreferenceCategory.REMINDER;
-            case CANCELLATION -> NotificationPreferenceCategory.CANCELLATION;
+            case REMINDER -> NotificationPreferenceCategory.REMINDER;
+            case CANCELLATION, EVENT_UPDATE -> NotificationPreferenceCategory.CANCELLATION;
         };
     }
 

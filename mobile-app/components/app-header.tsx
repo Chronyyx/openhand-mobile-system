@@ -10,18 +10,24 @@ const BLUE = '#0056A8';
 
 import { useNotifications } from '@/hooks/useNotifications';
 
-// ... imports remain the same
+
 
 export function AppHeader({ onMenuPress }: AppHeaderProps) {
     const menuScale = useRef(new Animated.Value(1)).current;
     const { unreadCount } = useNotifications();
 
     const handlePressIn = () => {
-        // ... (rest of function)
+        Animated.spring(menuScale, {
+            toValue: 0.9,
+            useNativeDriver: true,
+        }).start();
     };
 
     const handlePressOut = () => {
-        // ... (rest of function)
+        Animated.spring(menuScale, {
+            toValue: 1,
+            useNativeDriver: true,
+        }).start();
     };
 
     // ... (rest of hook body requires reconstructing or careful replacement)

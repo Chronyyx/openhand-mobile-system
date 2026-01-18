@@ -24,7 +24,15 @@ import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { type EventSummary } from '../../services/events.service';
-import { createEvent, updateEvent, cancelEvent, getManagedEvents, markEventCompleted, type CreateEventPayload } from '../../services/event-management.service';
+import {
+    createEvent,
+    updateEvent,
+    cancelEvent,
+    getManagedEvents,
+    markEventCompleted,
+    deleteArchivedEvent,
+    type CreateEventPayload,
+} from '../../services/event-management.service';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 import { getStatusColor, getStatusLabel, getStatusTextColor } from '../../utils/event-status';
 
@@ -96,6 +104,7 @@ export default function AdminEventsScreen() {
     const { hasRole } = useAuth();
     const isAdmin = hasRole(['ROLE_ADMIN']);
     const canCompleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
+    const canDeleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
 
     const [menuVisible, setMenuVisible] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -108,6 +117,7 @@ export default function AdminEventsScreen() {
     const [saving, setSaving] = useState(false);
     const [completingId, setCompletingId] = useState<number | null>(null);
     const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
     const [title, setTitle] = useState('');
@@ -330,6 +340,55 @@ export default function AdminEventsScreen() {
         }
     };
 
+    const handleDeleteArchived = (event: EventSummary) => {
+        if (deletingId) return;
+
+        const performDelete = async () => {
+            setDeletingId(event.id);
+            setError(null);
+
+            try {
+                await deleteArchivedEvent(event.id);
+                await loadEvents();
+                if (Platform.OS === 'web') {
+                    window.alert(t('admin.events.deleteSuccessMessage'));
+                } else {
+                    Alert.alert(
+                        t('admin.events.deleteSuccessTitle'),
+                        t('admin.events.deleteSuccessMessage'),
+                    );
+                }
+            } catch (e) {
+                console.error('Failed to delete archived event', e);
+                setError(t('admin.events.deleteError'));
+            } finally {
+                setDeletingId(null);
+                setActionMenuFor(null);
+            }
+        };
+
+        setActionMenuFor(null);
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(t('admin.events.deleteConfirmMessage'));
+            if (confirmed) {
+                performDelete();
+            }
+        } else {
+            Alert.alert(
+                t('admin.events.deleteConfirmTitle'),
+                t('admin.events.deleteConfirmMessage'),
+                [
+                    { text: t('common.cancel'), style: 'cancel' },
+                    {
+                        text: t('admin.events.deleteConfirmAction'),
+                        style: 'destructive',
+                        onPress: performDelete,
+                    },
+                ],
+            );
+        }
+    };
+
     const confirmMarkCompleted = async (event: EventSummary) => {
         if (completingId) return;
 
@@ -429,6 +488,7 @@ export default function AdminEventsScreen() {
     const selectedActionEvent = actionMenuFor
         ? events.find((evt) => evt.id === actionMenuFor) ?? null
         : null;
+    const selectedIsArchived = selectedActionEvent?.status === 'COMPLETED';
 
     const isArchived = editingEvent?.status === 'COMPLETED';
     const canEditFields = isAdmin && !isArchived;
@@ -440,6 +500,7 @@ export default function AdminEventsScreen() {
         const statusBackground = getStatusColor(item.status);
         const statusTextColor = getStatusTextColor(item.status);
         const isItemArchived = item.status === 'COMPLETED' || section.key === 'archived';
+        const showActionsMenu = !isItemArchived || canDeleteEvents;
 
         return (
             <View style={[styles.eventCard, isItemArchived && styles.eventCardArchived]}>
@@ -459,7 +520,7 @@ export default function AdminEventsScreen() {
                                 {statusLabel || item.status}
                             </Text>
                         </View>
-                        {!isItemArchived && (
+                        {showActionsMenu && (
                             <Pressable
                                 onPress={() =>
                                     setActionMenuFor((current) => (current === item.id ? null : item.id))
@@ -568,7 +629,7 @@ export default function AdminEventsScreen() {
                                     : t('admin.events.title')}
                             </Text>
                         </View>
-                        {selectedActionEvent && isAdmin ? (
+                        {selectedActionEvent && isAdmin && !selectedIsArchived ? (
                             <Pressable
                                 style={({ pressed }) => [
                                     styles.menuItem,
@@ -587,22 +648,40 @@ export default function AdminEventsScreen() {
                                 ) : null}
                             </Pressable>
                         ) : null}
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.menuItem,
-                                styles.contextItem,
-                                pressed && styles.menuItemPressed,
-                            ]}
-                            onPress={() => {
-                                if (selectedActionEvent) openEdit(selectedActionEvent);
-                                else setActionMenuFor(null);
-                            }}
-                        >
-                            <Ionicons name={isAdmin ? 'create-outline' : 'eye-outline'} size={16} color={ACCENT} />
-                            <Text style={styles.menuItemText}>
-                                {t(isAdmin ? 'admin.events.editAction' : 'admin.events.viewAction')}
-                            </Text>
-                        </Pressable>
+                        {selectedActionEvent && !selectedIsArchived ? (
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuItem,
+                                    styles.contextItem,
+                                    pressed && styles.menuItemPressed,
+                                ]}
+                                onPress={() => openEdit(selectedActionEvent)}
+                            >
+                                <Ionicons name={isAdmin ? 'create-outline' : 'eye-outline'} size={16} color={ACCENT} />
+                                <Text style={styles.menuItemText}>
+                                    {t(isAdmin ? 'admin.events.editAction' : 'admin.events.viewAction')}
+                                </Text>
+                            </Pressable>
+                        ) : null}
+                        {selectedActionEvent && selectedIsArchived && canDeleteEvents ? (
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.menuItem,
+                                    styles.contextItem,
+                                    pressed && styles.menuItemPressed,
+                                ]}
+                                onPress={() => handleDeleteArchived(selectedActionEvent)}
+                                disabled={deletingId !== null}
+                            >
+                                <Ionicons name="trash-outline" size={16} color="#D32F2F" />
+                                <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>
+                                    {t('admin.events.deleteAction')}
+                                </Text>
+                                {deletingId === selectedActionEvent.id ? (
+                                    <ActivityIndicator size="small" color="#D32F2F" />
+                                ) : null}
+                            </Pressable>
+                        ) : null}
                     </View>
                 </View>
             </Modal>
@@ -828,7 +907,7 @@ export default function AdminEventsScreen() {
                                             </View>
                                         </View>
 
-                                        {editingEvent && !saving && (
+                                        {editingEvent && !saving && !isArchived && (
                                             <Pressable
                                                 style={({ pressed }) => [
                                                     styles.cancelEventButton,
@@ -1162,6 +1241,9 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '700',
         flex: 1,
+    },
+    menuItemTextDanger: {
+        color: '#D32F2F',
     },
     contextOverlay: {
         flex: 1,

@@ -9,4 +9,6 @@ public interface EventStaffService {
     List<Event> getEventsForStaff();
 
     Event markEventCompleted(Long eventId);
+
+    void deleteArchivedEvent(Long eventId);
 }

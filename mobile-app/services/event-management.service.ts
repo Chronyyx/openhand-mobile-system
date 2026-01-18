@@ -71,3 +71,8 @@ export const markEventCompleted = async (id: number): Promise<ManagedEventRespon
     const response = await axios.put(`${API_BASE}/employee/events/${id}/complete`, null, { headers });
     return response.data;
 };
+
+export const deleteArchivedEvent = async (id: number): Promise<void> => {
+    const headers = await getAuthHeaders();
+    await axios.delete(`${API_BASE}/employee/events/${id}`, { headers });
+};

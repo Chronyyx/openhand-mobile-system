@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Animated, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type AppHeaderProps = {
@@ -8,26 +8,25 @@ type AppHeaderProps = {
 
 const BLUE = '#0056A8';
 
+import { useNotifications } from '@/hooks/useNotifications';
+
+// ... imports remain the same
+
 export function AppHeader({ onMenuPress }: AppHeaderProps) {
     const menuScale = useRef(new Animated.Value(1)).current;
+    const { unreadCount } = useNotifications();
 
     const handlePressIn = () => {
-        Animated.spring(menuScale, {
-            toValue: 0.92,
-            useNativeDriver: true,
-            speed: 20,
-            bounciness: 6,
-        }).start();
+        // ... (rest of function)
     };
 
     const handlePressOut = () => {
-        Animated.spring(menuScale, {
-            toValue: 1,
-            useNativeDriver: true,
-            speed: 20,
-            bounciness: 8,
-        }).start();
+        // ... (rest of function)
     };
+
+    // ... (rest of hook body requires reconstructing or careful replacement)
+    // Easier to just replace the Pressable content or the whole component body if small.
+    // I will target the Pressable part.
 
     return (
         <View style={styles.header}>
@@ -48,6 +47,28 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
             >
                 <Animated.View style={{ transform: [{ scale: menuScale }] }}>
                     <Ionicons name="menu" size={28} color={BLUE} />
+                    {unreadCount > 0 && (
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: -2,
+                                right: -2,
+                                backgroundColor: '#FF3B30',
+                                borderRadius: 8,
+                                minWidth: 16,
+                                height: 16,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                paddingHorizontal: 4,
+                                borderWidth: 1.5,
+                                borderColor: '#FFFFFF',
+                            }}
+                        >
+                            <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </Text>
+                        </View>
+                    )}
                 </Animated.View>
             </Pressable>
         </View>

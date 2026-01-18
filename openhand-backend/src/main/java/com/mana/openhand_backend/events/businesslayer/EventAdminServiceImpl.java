@@ -4,17 +4,18 @@ import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.presentationlayer.payload.CreateEventRequest;
+import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class EventAdminServiceImpl implements EventAdminService {
@@ -24,16 +25,19 @@ public class EventAdminServiceImpl implements EventAdminService {
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
     private final SendGridEmailService sendGridEmailService;
+    private final NotificationService notificationService;
     private final EventCompletionService eventCompletionService;
 
     public EventAdminServiceImpl(EventRepository eventRepository,
             RegistrationRepository registrationRepository,
             SendGridEmailService sendGridEmailService,
+            NotificationService notificationService,
             EventCompletionService eventCompletionService) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.sendGridEmailService = sendGridEmailService;
         this.eventCompletionService = eventCompletionService;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -67,13 +71,14 @@ public class EventAdminServiceImpl implements EventAdminService {
                 currentRegistrations,
                 request.getCategory() != null && !request.getCategory().isBlank()
                         ? request.getCategory().trim()
-                        : null
-        );
+                        : null);
 
         return eventRepository.save(event);
     }
 
-    @Override    @SuppressWarnings("null")    public Event updateEvent(Long id, CreateEventRequest request) {
+    @Override
+    @SuppressWarnings("null")
+    public Event updateEvent(Long id, CreateEventRequest request) {
         Event existing = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
 
@@ -110,8 +115,7 @@ public class EventAdminServiceImpl implements EventAdminService {
         existing.setCategory(
                 request.getCategory() != null && !request.getCategory().isBlank()
                         ? request.getCategory().trim()
-                        : null
-        );
+                        : null);
         existing.setMaxCapacity(maxCapacity);
         existing.setStatus(determineStatus(maxCapacity, currentCount));
 
@@ -123,6 +127,34 @@ public class EventAdminServiceImpl implements EventAdminService {
         }
 
         return updated;
+    }
+
+    @Override
+    public Event cancelEvent(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
+
+        if (event.getStatus() == EventStatus.CANCELLED) {
+            return event;
+        }
+
+        event.setStatus(EventStatus.CANCELLED);
+        Event cancelledEvent = eventRepository.save(event);
+
+        // Cancel all active registrations
+        List<Registration> registrations = registrationRepository.findByEventId(event.getId());
+        List<Registration> cancelledRegistrations = registrations.stream()
+                .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
+                .peek(reg -> {
+                    reg.setStatus(RegistrationStatus.CANCELLED);
+                    registrationRepository.save(reg);
+                })
+                .toList();
+
+        // Notify all registered users (now cancelled)
+        notifyCancellation(cancelledEvent, cancelledRegistrations);
+
+        return cancelledEvent;
     }
 
     private boolean scheduleChanged(LocalDateTime originalStart, LocalDateTime updatedStart) {
@@ -141,24 +173,69 @@ public class EventAdminServiceImpl implements EventAdminService {
             registrations.stream()
                     .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
                     .forEach(reg -> {
+                        String language = reg.getUser().getPreferredLanguage() != null
+                                ? reg.getUser().getPreferredLanguage()
+                                : "en";
                         try {
-                            String language = reg.getUser().getPreferredLanguage() != null
-                                    ? reg.getUser().getPreferredLanguage()
-                                    : "en";
                             sendGridEmailService.sendCancellationOrUpdate(
                                     reg.getUser().getEmail(),
                                     reg.getUser().getName(),
                                     event.getTitle(),
                                     "Event schedule updated to " + event.getStartDateTime(),
-                                    language
-                            );
+                                    language);
                         } catch (Exception ex) {
                             logger.error("Failed to send schedule update email for registration {}: {}",
                                     reg.getId(), ex.getMessage());
                         }
+
+                        // App Notification
+                        try {
+                            notificationService.createNotification(
+                                    reg.getUser().getId(),
+                                    event.getId(),
+                                    "EVENT_UPDATE",
+                                    language);
+                        } catch (Exception e) {
+                            logger.error("Failed notification for reg {}", reg.getId());
+                        }
                     });
         } catch (Exception ex) {
-            logger.error("Failed to process schedule change notifications for event {}: {}", event.getId(), ex.getMessage());
+            logger.error("Failed to process schedule change notifications for event {}: {}", event.getId(),
+                    ex.getMessage());
+        }
+    }
+
+    private void notifyCancellation(Event event, List<Registration> recipients) {
+        try {
+            recipients.forEach(reg -> {
+                String language = reg.getUser().getPreferredLanguage() != null
+                        ? reg.getUser().getPreferredLanguage()
+                        : "en";
+                // Email
+                try {
+                    sendGridEmailService.sendCancellationOrUpdate(
+                            reg.getUser().getEmail(),
+                            reg.getUser().getName(),
+                            event.getTitle(),
+                            "Event Cancelled",
+                            language);
+                } catch (Exception e) {
+                    logger.error("Failed email for reg {}", reg.getId());
+                }
+
+                // App Notification
+                try {
+                    notificationService.createNotification(
+                            reg.getUser().getId(),
+                            event.getId(),
+                            "CANCELLATION", // NotificationType name
+                            language);
+                } catch (Exception e) {
+                    logger.error("Failed notification for reg {}", reg.getId());
+                }
+            });
+        } catch (Exception ex) {
+            logger.error("Failed to notify cancellation for event {}", event.getId(), ex);
         }
     }
 

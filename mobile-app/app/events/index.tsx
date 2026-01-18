@@ -18,7 +18,10 @@ import { EventCard } from '../../components/EventCard';
 import { EventDetailModal } from '../../components/EventDetailModal';
 import { MenuLayout } from '../../components/menu-layout';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../../utils/event-translations';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useCountdownTimer } from '../../hooks/useCountdownTimer';
+import { useNotifications } from '../../hooks/useNotifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
     getUpcomingEvents,
@@ -37,6 +40,8 @@ export default function EventsScreen() {
     // Cast t to avoid type errors
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
     const { user, hasRole } = useAuth();
+    const router = useRouter();
+    const { notifications, markAllAsRead, markAsRead } = useNotifications();
 
     // Data State
     const [events, setEvents] = useState<EventSummary[]>([]);
@@ -60,6 +65,12 @@ export default function EventsScreen() {
     const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState<string | null>(null);
+
+    // Hidden Events Logic (for cancelled events)
+    const [hiddenEventIds, setHiddenEventIds] = useState<number[]>([]);
+
+    // All User Registrations (for filtering)
+    const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
 
     // Success View State
     const [showSuccessView, setShowSuccessView] = useState(false);
@@ -101,21 +112,108 @@ export default function EventsScreen() {
         loadEvents();
     }, [loadEvents]);
 
+    // Clear notifications when screen is focused
+    useFocusEffect(
+        useCallback(() => {
+            if (user?.token) {
+                markAllAsRead();
+            }
+        }, [user, markAllAsRead])
+    );
+
+    // Load Hidden Events from AsyncStorage
+    useEffect(() => {
+        const loadHidden = async () => {
+            try {
+                const stored = await AsyncStorage.getItem('hiddenEventIds');
+                if (stored) {
+                    setHiddenEventIds(JSON.parse(stored));
+                }
+            } catch (e) {
+                console.error('Failed to load hidden events', e);
+            }
+        };
+        loadHidden();
+    }, []);
+
+    // Save Hidden Events when changed
+    useEffect(() => {
+        const saveHidden = async () => {
+            try {
+                await AsyncStorage.setItem('hiddenEventIds', JSON.stringify(hiddenEventIds));
+            } catch (e) {
+                console.error('Failed to save hidden events', e);
+            }
+        };
+        saveHidden(); // Don't block on empty check, just save
+    }, [hiddenEventIds]);
+
+    // Cleanup stale hidden events (e.g. if ID reused or status changed)
+    useEffect(() => {
+        if (events.length === 0 || hiddenEventIds.length === 0) return;
+
+        // Find visible active events that are currently hidden
+        const activeEventIds = events
+            .filter(e => e.status !== 'CANCELLED')
+            .map(e => e.id);
+
+        const staleIds = hiddenEventIds.filter(id => activeEventIds.includes(id));
+
+        if (staleIds.length > 0) {
+            // Remove them from hidden list
+            setHiddenEventIds(prev => prev.filter(id => !staleIds.includes(id)));
+        }
+    }, [events, hiddenEventIds]);
+
     // Search Filtering
     useEffect(() => {
-        if (searchQuery.trim() === '') {
-            setFilteredEvents(events);
+        // Base filtering logic
+        let filtered = events;
+
+        // 1. Hide Hidden Events (only if they are actually CANCELLED)
+        // If an event is in the hidden list but is now active (e.g. DB reset), we should show it.
+        if (hiddenEventIds.length > 0) {
+            filtered = filtered.filter(e => {
+                if (hiddenEventIds.includes(e.id)) {
+                    // Only hide if it is indeed cancelled
+                    return e.status !== 'CANCELLED';
+                }
+                return true;
+            });
+
+            // Optional: Cleanup hidden list for events that are no longer cancelled?
+            // Doing this inside render/filter loop is bad practice (side effects).
+            // Instead, we can do it in a useEffect or just let the filter handle it dynamically as above.
+            // The filter above solves the user's issue immediately: "Events that become available again are viewable".
+        }
+
+        // 2. Hide Cancelled Events if User is NOT Registered
+        // (Only registered users should see cancelled events)
+        if (user) {
+            filtered = filtered.filter(e => {
+                if (e.status !== 'CANCELLED') return true;
+                // If cancelled, keep only if registered
+                const isRegistered = myRegistrations.some(r => r.eventId === e.id); // Check against ALL statuses to find history
+                return isRegistered;
+            });
         } else {
+            // Guest users see NO cancelled events
+            filtered = filtered.filter(e => e.status !== 'CANCELLED');
+        }
+
+        // 3. Search Query
+        if (searchQuery.trim() !== '') {
             const lowerQuery = searchQuery.toLowerCase().trim();
-            const filtered = events.filter((event: EventSummary) => {
+            filtered = filtered.filter((event: EventSummary) => {
                 const title = getTranslatedEventTitle(event, t).toLowerCase();
                 const desc = (getTranslatedEventDescription(event, t) || '').toLowerCase();
                 const addr = (event.address || '').toLowerCase();
                 return title.includes(lowerQuery) || desc.includes(lowerQuery) || addr.includes(lowerQuery);
             });
-            setFilteredEvents(filtered);
         }
-    }, [searchQuery, events, t]);
+
+        setFilteredEvents(filtered);
+    }, [searchQuery, events, t, hiddenEventIds, myRegistrations, user]);
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -138,15 +236,17 @@ export default function EventsScreen() {
     };
 
     const checkUserRegistration = async (eventId: number) => {
+        // Now just checks against already loaded myRegistrations
         if (!user) return;
-        try {
-            const myRegs = await getMyRegistrations(user.token);
-            const reg = myRegs.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
-            setUserRegistration(reg || null);
-        } catch (e) {
-            console.error('Failed to check user registration', e);
-        }
+        const reg = myRegistrations.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
+        setUserRegistration(reg || null);
     };
+
+    // Load ALL user registrations on mount/focus to support filtering
+    useEffect(() => {
+        if (!user?.token) return;
+        getMyRegistrations(user.token).then(setMyRegistrations).catch(console.error);
+    }, [user?.token, refreshing, showSuccessView]); // Reload when refreshing or after registering
 
     // We need to define closeEventModal first or hoist it, or use it in openEventModal safely.
     // openEventModal uses checkUserRegistration and loadRegistrationSummary
@@ -368,6 +468,20 @@ export default function EventsScreen() {
                 event={item}
                 onPress={openEventModal}
                 t={t}
+                onClose={item.status === 'CANCELLED' ? () => {
+                    setHiddenEventIds(prev => [...prev, item.id]);
+
+                    // Mark associated notification as read to clear badge
+                    const notification = notifications.find(n =>
+                        n.eventId === item.id &&
+                        !n.read &&
+                        (n.type === 'CANCELLATION' || n.type === 'EVENT_UPDATE')
+                    );
+
+                    if (notification) {
+                        markAsRead(notification.id);
+                    }
+                } : undefined}
             />
         );
     };
@@ -454,7 +568,7 @@ export default function EventsScreen() {
                         // Refresh event details to update capacity immediately
                         getEventById(selectedEvent.id)
                             .then(setEventDetail)
-                            .catch(() => {});
+                            .catch(() => { });
                         // Refresh registration summary for admin/employee
                         loadRegistrationSummary(selectedEvent.id);
                     }}
@@ -467,7 +581,7 @@ export default function EventsScreen() {
                         // Fetch latest event details to reflect capacity change right away
                         getEventById(selectedEvent.id)
                             .then(setEventDetail)
-                            .catch(() => {});
+                            .catch(() => { });
                     }}
                 />
             </ThemedView>

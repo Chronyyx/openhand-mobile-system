@@ -9,8 +9,8 @@ import java.util.Set;
 
 public final class NotificationPreferencePolicy {
 
-    private static final Set<NotificationPreferenceCategory> CRITICAL_CATEGORIES =
-            EnumSet.of(NotificationPreferenceCategory.CANCELLATION);
+    private static final Set<NotificationPreferenceCategory> CRITICAL_CATEGORIES = EnumSet
+            .of(NotificationPreferenceCategory.CANCELLATION);
 
     private NotificationPreferencePolicy() {
     }
@@ -21,8 +21,9 @@ public final class NotificationPreferencePolicy {
 
     public static NotificationPreferenceCategory toCategory(NotificationType type) {
         return switch (type) {
-            case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT -> NotificationPreferenceCategory.CONFIRMATION;
-            case REMINDER -> NotificationPreferenceCategory.REMINDER;
+            case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT ->
+                NotificationPreferenceCategory.CONFIRMATION;
+            case REMINDER, EVENT_UPDATE -> NotificationPreferenceCategory.REMINDER;
             case CANCELLATION -> NotificationPreferenceCategory.CANCELLATION;
         };
     }
@@ -35,7 +36,8 @@ public final class NotificationPreferencePolicy {
         };
     }
 
-    public static void applyEnabled(NotificationPreference preference, NotificationPreferenceCategory category, boolean enabled) {
+    public static void applyEnabled(NotificationPreference preference, NotificationPreferenceCategory category,
+            boolean enabled) {
         switch (category) {
             case CONFIRMATION -> preference.setConfirmationEnabled(enabled);
             case REMINDER -> preference.setReminderEnabled(enabled);

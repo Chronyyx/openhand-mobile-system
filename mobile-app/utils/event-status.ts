@@ -9,6 +9,8 @@ export function getStatusLabel(status: string | undefined, t: (k: string) => str
             return t('events.status.FULL');
         case 'COMPLETED':
             return t('events.status.COMPLETED');
+        case 'CANCELLED':
+            return t('events.status.CANCELLED');
         default:
             return status;
     }
@@ -22,6 +24,8 @@ export function getStatusColor(status: string | undefined): string {
             return '#F6B800'; // Yellow
         case 'FULL':
             return '#E0E0E0'; // Light Gray (Grayed out)
+        case 'CANCELLED':
+            return '#FFEBEE'; // Light Red
         case 'COMPLETED':
             return '#ECEFF1'; // Muted Gray
         default:
@@ -37,6 +41,8 @@ export function getStatusTextColor(status: string | undefined): string {
             return '#333333'; // Dark Gray Text (Readable on Yellow)
         case 'FULL':
             return '#757575'; // Dark Gray Text (Disabled look)
+        case 'CANCELLED':
+            return '#D32F2F'; // Red Text
         case 'COMPLETED':
             return '#546E7A'; // Slate Text
         default:

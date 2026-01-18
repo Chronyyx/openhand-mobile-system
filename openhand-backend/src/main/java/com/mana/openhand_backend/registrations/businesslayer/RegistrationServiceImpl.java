@@ -60,24 +60,29 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     /**
-     * Registers a user for an event with atomic capacity checking to prevent race conditions.
+     * Registers a user for an event with atomic capacity checking to prevent race
+     * conditions.
      *
-     * Uses pessimistic locking at the database level to ensure that capacity checks and
-     * registration updates happen atomically. This prevents multiple concurrent registrations
+     * Uses pessimistic locking at the database level to ensure that capacity checks
+     * and
+     * registration updates happen atomically. This prevents multiple concurrent
+     * registrations
      * from exceeding event capacity limits.
      *
      * Flow:
      * 1. Verify user exists
-     * 2. Lock the event row (pessimistic write lock) to prevent concurrent capacity violations
+     * 2. Lock the event row (pessimistic write lock) to prevent concurrent capacity
+     * violations
      * 3. Atomically check if event has capacity
      * 4. If capacity available: create CONFIRMED registration and increment counter
      * 5. If at capacity: create WAITLISTED registration
      * 6. Update event status based on new capacity
      *
-     * @param userId the user attempting to register
+     * @param userId  the user attempting to register
      * @param eventId the event to register for
      * @return the created or reactivated registration
-     * @throws EventCapacityException if event reaches capacity during a race condition
+     * @throws EventCapacityException     if event reaches capacity during a race
+     *                                    condition
      * @throws AlreadyRegisteredException if user already has an active registration
      */
     @Override
@@ -115,7 +120,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
 
         /**
-         * CRITICAL SECTION: Pessimistic lock the event to ensure atomic capacity checking.
+         * CRITICAL SECTION: Pessimistic lock the event to ensure atomic capacity
+         * checking.
          * This prevents the following race condition:
          *
          * Thread A: Check capacity (capacity = 10, current = 9) → can register
@@ -152,7 +158,8 @@ public class RegistrationServiceImpl implements RegistrationService {
             registration.setStatus(RegistrationStatus.WAITLISTED);
             registration.setWaitlistedPosition((int) (waitlistCount + 1));
             registration.setEvent(lockedEvent);
-            // Note: NOT throwing EventCapacityException here. User is placed on waitlist instead.
+            // Note: NOT throwing EventCapacityException here. User is placed on waitlist
+            // instead.
         } else {
             // Space available - confirm immediately
             registration.setStatus(RegistrationStatus.CONFIRMED);
@@ -175,22 +182,9 @@ public class RegistrationServiceImpl implements RegistrationService {
             eventRepository.save(lockedEvent);
         }
 
-        // Save registration and return (event lock is released after transaction commits)
+        // Save registration and return (event lock is released after transaction
+        // commits)
         Registration savedRegistration = registrationRepository.save(registration);
-
-        // Create notification for successful registration confirmation
-        try {
-            String userLanguage = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
-            notificationService.createNotification(
-                    userId,
-                    eventId,
-                    "REGISTRATION_CONFIRMATION",
-                    userLanguage
-            );
-        } catch (Exception e) {
-            // Log but don't throw - notification creation failure shouldn't block registration
-            System.err.println("Failed to create registration confirmation notification: " + e.getMessage());
-        }
 
         // Fire-and-forget external email
         if (savedRegistration.getStatus() == RegistrationStatus.CONFIRMED) {
@@ -272,22 +266,6 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         Registration cancelledRegistration = registrationRepository.save(registration);
 
-        // Create cancellation notification
-        try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-            String userLanguage = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
-            notificationService.createNotification(
-                    userId,
-                    eventId,
-                    "CANCELLATION",
-                    userLanguage
-            );
-        } catch (Exception e) {
-            // Log but don't throw - notification creation failure shouldn't block cancellation
-            System.err.println("Failed to create cancellation notification: " + e.getMessage());
-        }
-
         sendCancellationEmail(registration.getUser(), registration.getEvent(), "Registration cancelled by member.");
 
         return cancelledRegistration;
@@ -361,8 +339,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                     user.getEmail(),
                     user.getName(),
                     resolvedEventTitle,
-                    language
-            );
+                    language);
         } catch (Exception ex) {
             logger.error("Failed to send registration confirmation email for user {} and event {}: {}",
                     user.getId(), event.getId(), ex.getMessage());
@@ -378,8 +355,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                     user.getName(),
                     resolvedEventTitle,
                     details,
-                    language
-            );
+                    language);
         } catch (Exception ex) {
             logger.error("Failed to send cancellation/update email for user {} and event {}: {}",
                     user.getId(), event.getId(), ex.getMessage());

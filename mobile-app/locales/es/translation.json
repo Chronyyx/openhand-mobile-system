@@ -198,10 +198,11 @@
     "loginToRegister": "Inicia sesión para inscribirte",
     "completedNotice": "Este evento está finalizado y archivado.",
     "status": {
-      "OPEN": "ABIERTO",
-      "NEARLY_FULL": "CUPOS LIMITADOS",
-      "FULL": "LLENO",
-      "COMPLETED": "FINALIZADO"
+      "OPEN": "Abierto",
+      "NEARLY_FULL": "Casi lleno",
+      "FULL": "Lleno",
+      "CANCELLED": "Cancelado",
+      "COMPLETED": "Finalizado"
     },
     "registrationStatus": {
       "confirmed": "Confirmado",
@@ -330,6 +331,11 @@
       "createSuccessTitle": "Evento creado",
       "createSuccessMessage": "El evento ahora es visible en la página de Eventos.",
       "createError": "No se pudo crear el evento.",
+      "cancelButton": "Cancelar evento",
+      "cancelConfirmTitle": "¿Cancelar evento?",
+      "cancelConfirmMessage": "¿Estás seguro de que quieres cancelar este evento? Esta acción no se puede deshacer y notificará a todos los participantes.",
+      "cancelSuccess": "Evento cancelado exitosamente.",
+      "cancelError": "No se puede cancelar el evento.",
       "actionsMenuLabel": "Más acciones",
       "duplicateAction": "Duplicar evento",
       "duplicateSuccessTitle": "Evento duplicado",
@@ -420,5 +426,3 @@
     }
   }
 }
-
-

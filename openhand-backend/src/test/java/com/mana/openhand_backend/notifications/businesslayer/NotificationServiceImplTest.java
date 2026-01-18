@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,17 +45,20 @@ class NotificationServiceImplTest {
     @Mock
     private NotificationPreferenceService preferenceService;
 
+    @Mock
+    private SimpMessagingTemplate messagingTemplate;
+
     private NotificationServiceImpl notificationService;
 
     @BeforeEach
-    void setUp() {
+    public void setup() {
         notificationService = new NotificationServiceImpl(
                 notificationRepository,
                 userRepository,
                 eventRepository,
                 textGenerator,
-                preferenceService
-        );
+                preferenceService,
+                messagingTemplate);
     }
 
     @Test
@@ -72,8 +76,10 @@ class NotificationServiceImplTest {
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(mockEvent));
-        when(preferenceService.isNotificationEnabled(userId, NotificationType.REGISTRATION_CONFIRMATION)).thenReturn(true);
-        when(textGenerator.generateText(any(NotificationType.class), anyString(), eq(language), any(LocalDateTime.class), any()))
+        when(preferenceService.isNotificationEnabled(userId, NotificationType.REGISTRATION_CONFIRMATION))
+                .thenReturn(true);
+        when(textGenerator.generateText(any(NotificationType.class), anyString(), eq(language),
+                any(LocalDateTime.class), any()))
                 .thenReturn("You are confirmed for the event: Test Event. Thank you for registering!");
 
         Notification mockNotification = mock(Notification.class);
@@ -87,7 +93,8 @@ class NotificationServiceImplTest {
         verify(userRepository).findById(userId);
         verify(eventRepository).findById(eventId);
         verify(preferenceService).isNotificationEnabled(userId, NotificationType.REGISTRATION_CONFIRMATION);
-        verify(textGenerator).generateText(eq(NotificationType.REGISTRATION_CONFIRMATION), anyString(), eq(language), any(LocalDateTime.class), isNull());
+        verify(textGenerator).generateText(eq(NotificationType.REGISTRATION_CONFIRMATION), anyString(), eq(language),
+                any(LocalDateTime.class), isNull());
         verify(notificationRepository).save(any(Notification.class));
     }
 
@@ -99,9 +106,8 @@ class NotificationServiceImplTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(UserNotFoundException.class, () ->
-                notificationService.createNotification(userId, eventId, "REGISTRATION_CONFIRMATION", "en")
-        );
+        assertThrows(UserNotFoundException.class,
+                () -> notificationService.createNotification(userId, eventId, "REGISTRATION_CONFIRMATION", "en"));
         verify(userRepository).findById(userId);
         verify(eventRepository, never()).findById(any());
         verify(notificationRepository, never()).save(any());
@@ -117,31 +123,32 @@ class NotificationServiceImplTest {
         when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThrows(EventNotFoundException.class, () ->
-                notificationService.createNotification(userId, eventId, "REGISTRATION_CONFIRMATION", "en")
-        );
+        assertThrows(EventNotFoundException.class,
+                () -> notificationService.createNotification(userId, eventId, "REGISTRATION_CONFIRMATION", "en"));
         verify(userRepository).findById(userId);
         verify(eventRepository).findById(eventId);
         verify(notificationRepository, never()).save(any());
     }
 
-//    @Test
-//    void createNotification_invalidNotificationType_throwsIllegalArgumentException() {
-//        // Arrange
-//        Long userId = 1L;
-//        Long eventId = 2L;
-//        User mockUser = mock(User.class);
-//        Event mockEvent = mock(Event.class);
-//        when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-//        when(eventRepository.findById(eventId)).thenReturn(Optional.of(mockEvent));
-//        when(preferenceService.isNotificationEnabled(userId, NotificationType.REGISTRATION_CONFIRMATION)).thenReturn(true);
-//
-//        // Act & Assert
-//        assertThrows(IllegalArgumentException.class, () ->
-//                notificationService.createNotification(userId, eventId, "INVALID_TYPE", "en")
-//        );
-//        verify(notificationRepository, never()).save(any());
-//    }
+    // @Test
+    // void
+    // createNotification_invalidNotificationType_throwsIllegalArgumentException() {
+    // // Arrange
+    // Long userId = 1L;
+    // Long eventId = 2L;
+    // User mockUser = mock(User.class);
+    // Event mockEvent = mock(Event.class);
+    // when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
+    // when(eventRepository.findById(eventId)).thenReturn(Optional.of(mockEvent));
+    // when(preferenceService.isNotificationEnabled(userId,
+    // NotificationType.REGISTRATION_CONFIRMATION)).thenReturn(true);
+    //
+    // // Act & Assert
+    // assertThrows(IllegalArgumentException.class, () ->
+    // notificationService.createNotification(userId, eventId, "INVALID_TYPE", "en")
+    // );
+    // verify(notificationRepository, never()).save(any());
+    // }
 
     @Test
     void createNotification_preferenceDisabled_skipsSavingNotification() {
@@ -253,9 +260,8 @@ class NotificationServiceImplTest {
         when(notificationRepository.findById(notificationId)).thenReturn(Optional.empty());
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                notificationService.markAsRead(notificationId)
-        );
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> notificationService.markAsRead(notificationId));
         assertTrue(exception.getMessage().contains("Notification not found"));
         verify(notificationRepository).findById(notificationId);
         verify(notificationRepository, never()).save(any());
@@ -319,9 +325,8 @@ class NotificationServiceImplTest {
         when(notificationRepository.existsById(notificationId)).thenReturn(false);
 
         // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-                notificationService.deleteNotification(notificationId)
-        );
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> notificationService.deleteNotification(notificationId));
         assertTrue(exception.getMessage().contains("Notification not found"));
         verify(notificationRepository).existsById(notificationId);
         verify(notificationRepository, never()).deleteById(any());

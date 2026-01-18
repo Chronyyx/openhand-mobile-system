@@ -7,4 +7,6 @@ public interface EventAdminService {
     Event createEvent(CreateEventRequest request);
 
     Event updateEvent(Long id, CreateEventRequest request);
+
+    Event cancelEvent(Long id);
 }

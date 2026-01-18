@@ -1,11 +1,14 @@
 import { View, Text, StyleSheet } from "react-native";
+import { MenuLayout } from "../../components/menu-layout";
 
 export default function Gala2025Screen() {
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Gala MANA 2025</Text>
-            <Text>TODO: details + reservation flow.</Text>
-        </View>
+        <MenuLayout>
+            <View style={styles.container}>
+                <Text style={styles.title}>Gala MANA 2025</Text>
+                <Text>TODO: details + reservation flow.</Text>
+            </View>
+        </MenuLayout>
     );
 }
 

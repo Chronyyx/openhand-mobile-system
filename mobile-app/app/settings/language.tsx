@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { MenuLayout } from "../../components/menu-layout";
 
 export default function LanguageSettingsScreen() {
         const { t, i18n } = useTranslation();
@@ -31,50 +32,52 @@ export default function LanguageSettingsScreen() {
         };
 
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
-                <Text style={styles.title}>{t("settings.language.title")}</Text>
-                <Text style={styles.subtitle}>{t("settings.language.subtitle")}</Text>
-            </View>
+        <MenuLayout>
+            <View style={styles.container}>
+                <View style={styles.header}>
+                    <Text style={styles.title}>{t("settings.language.title")}</Text>
+                    <Text style={styles.subtitle}>{t("settings.language.subtitle")}</Text>
+                </View>
 
-            <View style={styles.currentLanguageContainer}>
-                <Ionicons name="globe-outline" size={20} color="#0056A8" />
-                <Text style={styles.currentLanguageLabel}>
-                    {t("settings.language.current")}:
-                </Text>
-                <Text style={styles.currentLanguageValue}>
-                    {languages.find(lang => lang.code === selectedLanguage)?.name}
-                </Text>
-            </View>
+                <View style={styles.currentLanguageContainer}>
+                    <Ionicons name="globe-outline" size={20} color="#0056A8" />
+                    <Text style={styles.currentLanguageLabel}>
+                        {t("settings.language.current")}:
+                    </Text>
+                    <Text style={styles.currentLanguageValue}>
+                        {languages.find(lang => lang.code === selectedLanguage)?.name}
+                    </Text>
+                </View>
 
-            <View style={styles.languageList}>
-                {languages.map((language) => (
-                    <Pressable
-                        key={language.code}
-                        style={[
-                            styles.languageItem,
-                            selectedLanguage === language.code && styles.languageItemSelected,
-                        ]}
-                        onPress={() => handleLanguageChange(language.code)}
-                    >
-                        <View style={styles.languageInfo}>
-                            <Text style={styles.flag}>{language.flag}</Text>
-                            <Text
-                                style={[
-                                    styles.languageName,
-                                    selectedLanguage === language.code && styles.languageNameSelected,
-                                ]}
-                            >
-                                {language.name}
-                            </Text>
-                        </View>
-                        {selectedLanguage === language.code && (
-                            <Ionicons name="checkmark-circle" size={24} color="#0056A8" />
-                        )}
-                    </Pressable>
-                ))}
+                <View style={styles.languageList}>
+                    {languages.map((language) => (
+                        <Pressable
+                            key={language.code}
+                            style={[
+                                styles.languageItem,
+                                selectedLanguage === language.code && styles.languageItemSelected,
+                            ]}
+                            onPress={() => handleLanguageChange(language.code)}
+                        >
+                            <View style={styles.languageInfo}>
+                                <Text style={styles.flag}>{language.flag}</Text>
+                                <Text
+                                    style={[
+                                        styles.languageName,
+                                        selectedLanguage === language.code && styles.languageNameSelected,
+                                    ]}
+                                >
+                                    {language.name}
+                                </Text>
+                            </View>
+                            {selectedLanguage === language.code && (
+                                <Ionicons name="checkmark-circle" size={24} color="#0056A8" />
+                            )}
+                        </Pressable>
+                    ))}
+                </View>
             </View>
-        </View>
+        </MenuLayout>
     );
 }
 const BLUE = "#0056A8";

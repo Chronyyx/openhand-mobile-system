@@ -16,6 +16,7 @@ import { ThemedView } from '../../components/themed-view';
 import { ThemedText } from '../../components/themed-text';
 import { EventCard } from '../../components/EventCard';
 import { EventDetailModal } from '../../components/EventDetailModal';
+import { MenuLayout } from '../../components/menu-layout';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../../utils/event-translations';
 import { useCountdownTimer } from '../../hooks/useCountdownTimer';
 
@@ -366,102 +367,104 @@ export default function EventsScreen() {
     };
 
     return (
-        <ThemedView style={styles.container}>
-            <ThemedText style={styles.screenTitle}>
-                {t('events.title')}
-            </ThemedText>
+        <MenuLayout>
+            <ThemedView style={styles.container}>
+                <ThemedText style={styles.screenTitle}>
+                    {t('events.title')}
+                </ThemedText>
 
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder={t('events.searchPlaceholder')}
-                    placeholderTextColor="#999"
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                />
-                {searchQuery.length > 0 && (
-                    <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                        <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
-                    </Pressable>
+                {/* Search Bar */}
+                <View style={styles.searchContainer}>
+                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder={t('events.searchPlaceholder')}
+                        placeholderTextColor="#999"
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                    />
+                    {searchQuery.length > 0 && (
+                        <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
+                            <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
+                        </Pressable>
+                    )}
+                </View>
+
+                {/* List */}
+                {loading ? (
+                    <View style={styles.centered}>
+                        <ActivityIndicator size="large" color="#0056A8" />
+                        <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
+                    </View>
+                ) : error ? (
+                    <View style={styles.centered}>
+                        <ThemedText style={styles.errorText}>{error}</ThemedText>
+                    </View>
+                ) : (
+                    <FlatList
+                        data={filteredEvents}
+                        renderItem={renderEventItem}
+                        keyExtractor={(item: EventSummary) => item.id.toString()}
+                        contentContainerStyle={styles.listContent}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
+                        }
+                        ListEmptyComponent={
+                            <ThemedText style={styles.emptyText}>
+                                {t('events.noEvents')}
+                            </ThemedText>
+                        }
+                    />
                 )}
-            </View>
 
-            {/* List */}
-            {loading ? (
-                <View style={styles.centered}>
-                    <ActivityIndicator size="large" color="#0056A8" />
-                    <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
-                </View>
-            ) : error ? (
-                <View style={styles.centered}>
-                    <ThemedText style={styles.errorText}>{error}</ThemedText>
-                </View>
-            ) : (
-                <FlatList
-                    data={filteredEvents}
-                    renderItem={renderEventItem}
-                    keyExtractor={(item: EventSummary) => item.id.toString()}
-                    contentContainerStyle={styles.listContent}
-                    refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
-                    }
-                    ListEmptyComponent={
-                        <ThemedText style={styles.emptyText}>
-                            {t('events.noEvents')}
-                        </ThemedText>
-                    }
+                {/* Event Detail Modal */}
+                <EventDetailModal
+                    visible={modalVisible}
+                    onClose={closeEventModal}
+                    selectedEvent={selectedEvent}
+                    eventDetail={eventDetail}
+                    loading={detailsLoading}
+                    error={detailsError}
+                    user={user}
+                    hasRole={hasRole}
+                    t={t}
+
+                    // Registration
+                    userRegistration={userRegistration}
+                    onRegister={handleRegister}
+                    onUnregister={handleUnregister}
+
+                    // Success
+                    showSuccessView={showSuccessView}
+                    countdownValue={countdown}
+                    countdownSeconds={countdownSeconds}
+
+                    // Stats
+                    registrationSummary={registrationSummary}
+                    summaryLoading={summaryLoading}
+                    summaryError={summaryError}
+                    onRetrySummary={() => {
+                        if (!selectedEvent) return;
+                        // Refresh event details to update capacity immediately
+                        getEventById(selectedEvent.id)
+                            .then(setEventDetail)
+                            .catch(() => {});
+                        // Refresh registration summary for admin/employee
+                        loadRegistrationSummary(selectedEvent.id);
+                    }}
+
+                    // Race Condition Prevention Props
+                    isRegistering={isRegistering}
+                    registrationError={registrationError}
+                    onCapacityRefresh={() => {
+                        if (!selectedEvent) return;
+                        // Fetch latest event details to reflect capacity change right away
+                        getEventById(selectedEvent.id)
+                            .then(setEventDetail)
+                            .catch(() => {});
+                    }}
                 />
-            )}
-
-            {/* Event Detail Modal */}
-            <EventDetailModal
-                visible={modalVisible}
-                onClose={closeEventModal}
-                selectedEvent={selectedEvent}
-                eventDetail={eventDetail}
-                loading={detailsLoading}
-                error={detailsError}
-                user={user}
-                hasRole={hasRole}
-                t={t}
-
-                // Registration
-                userRegistration={userRegistration}
-                onRegister={handleRegister}
-                onUnregister={handleUnregister}
-
-                // Success
-                showSuccessView={showSuccessView}
-                countdownValue={countdown}
-                countdownSeconds={countdownSeconds}
-
-                // Stats
-                registrationSummary={registrationSummary}
-                summaryLoading={summaryLoading}
-                summaryError={summaryError}
-                onRetrySummary={() => {
-                    if (!selectedEvent) return;
-                    // Refresh event details to update capacity immediately
-                    getEventById(selectedEvent.id)
-                        .then(setEventDetail)
-                        .catch(() => {});
-                    // Refresh registration summary for admin/employee
-                    loadRegistrationSummary(selectedEvent.id);
-                }}
-
-                // Race Condition Prevention Props
-                isRegistering={isRegistering}
-                registrationError={registrationError}
-                onCapacityRefresh={() => {
-                    if (!selectedEvent) return;
-                    // Fetch latest event details to reflect capacity change right away
-                    getEventById(selectedEvent.id)
-                        .then(setEventDetail)
-                        .catch(() => {});
-                }}
-            />
-        </ThemedView>
+            </ThemedView>
+        </MenuLayout>
     );
 }

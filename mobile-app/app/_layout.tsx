@@ -2,7 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import 'text-encoding'; // Polyfill for STOMP
+
 import '../i18n/config'; // Initialize i18n
 import { useTranslation } from 'react-i18next';
 import { AuthProvider } from '../context/AuthContext';

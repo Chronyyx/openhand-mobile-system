@@ -20,6 +20,8 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
         Animated.spring(menuScale, {
             toValue: 0.9,
             useNativeDriver: true,
+            speed: 20,
+            bounciness: 6,
         }).start();
     };
 
@@ -27,12 +29,12 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
         Animated.spring(menuScale, {
             toValue: 1,
             useNativeDriver: true,
+            speed: 20,
+            bounciness: 8,
         }).start();
     };
 
-    // ... (rest of hook body requires reconstructing or careful replacement)
-    // Easier to just replace the Pressable content or the whole component body if small.
-    // I will target the Pressable part.
+
 
     return (
         <View style={styles.header}>

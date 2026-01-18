@@ -5,6 +5,7 @@ import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.presentationlayer.payload.CreateEventRequest;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
+import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
@@ -40,6 +41,9 @@ class EventAdminServiceImplTest {
 
     @Mock
     private EventCompletionService eventCompletionService;
+
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private EventAdminServiceImpl eventAdminService;
@@ -118,8 +122,7 @@ class EventAdminServiceImplTest {
                 EventStatus.OPEN,
                 50,
                 currentRegistrations,
-                "GENERAL"
-        );
+                "GENERAL");
         return event;
     }
 
@@ -220,8 +223,7 @@ class EventAdminServiceImplTest {
                 eq("Member"),
                 eq("Updated"),
                 contains("Event schedule updated"),
-                eq("en")
-        );
+                eq("en"));
     }
 
     @Test
@@ -253,15 +255,13 @@ class EventAdminServiceImplTest {
                 eq("First"),
                 eq(event.getTitle()),
                 contains("Event schedule updated"),
-                eq("en")
-        );
+                eq("en"));
         verify(sendGridEmailService).sendCancellationOrUpdate(
                 eq("second@example.com"),
                 eq("Second"),
                 eq(event.getTitle()),
                 contains("Event schedule updated"),
-                eq("en")
-        );
+                eq("en"));
     }
 
     @Test
@@ -300,5 +300,46 @@ class EventAdminServiceImplTest {
         assertEquals(EventStatus.FULL, full);
         assertEquals(EventStatus.NEARLY_FULL, nearlyFull);
         assertEquals(EventStatus.OPEN, open);
+    }
+
+    @Test
+    void cancelEvent_cancelsEventAndRegistrationsAndNotifies() {
+        Event event = existingEvent(2);
+        ReflectionTestUtils.setField(event, "id", 1L);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
+        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User user = new User();
+        user.setId(10L);
+        user.setEmail("user@example.com");
+        user.setName("User");
+
+        Registration active = new Registration(user, event);
+        active.setStatus(RegistrationStatus.CONFIRMED);
+
+        // Mock registrations
+        when(registrationRepository.findByEventId(1L)).thenReturn(List.of(active));
+        when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Event cancelledEvents = eventAdminService.cancelEvent(1L);
+
+        assertEquals(EventStatus.CANCELLED, cancelledEvents.getStatus());
+        assertEquals(RegistrationStatus.CANCELLED, active.getStatus());
+
+        verify(eventRepository).save(event);
+        verify(registrationRepository).save(active);
+
+        // Verify notifications
+        verify(sendGridEmailService).sendCancellationOrUpdate(
+                eq("user@example.com"),
+                eq("User"),
+                eq("Existing"),
+                eq("Event Cancelled"),
+                eq("en"));
+        verify(notificationService).createNotification(
+                eq(10L),
+                eq(1L),
+                eq("CANCELLATION"),
+                eq("en"));
     }
 }

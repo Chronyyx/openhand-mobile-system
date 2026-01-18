@@ -36,8 +36,8 @@ public class EventAdminServiceImpl implements EventAdminService {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.sendGridEmailService = sendGridEmailService;
-        this.eventCompletionService = eventCompletionService;
         this.notificationService = notificationService;
+        this.eventCompletionService = eventCompletionService;
     }
 
     @Override
@@ -130,6 +130,7 @@ public class EventAdminServiceImpl implements EventAdminService {
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public Event cancelEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id " + id));
@@ -147,10 +148,8 @@ public class EventAdminServiceImpl implements EventAdminService {
                 .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
                 .toList();
 
-        cancelledRegistrations.forEach(reg -> {
-            reg.setStatus(RegistrationStatus.CANCELLED);
-            registrationRepository.save(reg);
-        });
+        cancelledRegistrations.forEach(reg -> reg.setStatus(RegistrationStatus.CANCELLED));
+        registrationRepository.saveAll(cancelledRegistrations);
 
         // Notify all registered users (now cancelled)
         notifyCancellation(cancelledEvent, cancelledRegistrations);
@@ -197,7 +196,7 @@ public class EventAdminServiceImpl implements EventAdminService {
                                     "EVENT_UPDATE",
                                     language);
                         } catch (Exception e) {
-                            logger.error("Failed notification for reg {}", reg.getId());
+                            logger.error("Failed notification for reg {}: {}", reg.getId(), e.getMessage());
                         }
                     });
         } catch (Exception ex) {
@@ -221,7 +220,7 @@ public class EventAdminServiceImpl implements EventAdminService {
                             "Event Cancelled",
                             language);
                 } catch (Exception e) {
-                    logger.error("Failed email for reg {}", reg.getId());
+                    logger.error("Failed email for reg {}: {}", reg.getId(), e.getMessage());
                 }
 
                 // App Notification
@@ -232,7 +231,7 @@ public class EventAdminServiceImpl implements EventAdminService {
                             "CANCELLATION", // NotificationType name
                             language);
                 } catch (Exception e) {
-                    logger.error("Failed notification for reg {}", reg.getId());
+                    logger.error("Failed notification for reg {}: {}", reg.getId(), e.getMessage());
                 }
             });
         } catch (Exception ex) {

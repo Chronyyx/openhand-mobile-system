@@ -11,7 +11,7 @@ import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/eve
 type EventCardProps = {
     event: EventSummary;
     onPress: (event: EventSummary) => void;
-    t: any;
+    t: (key: string, options?: any) => string;
     onClose?: () => void;
 };
 
@@ -20,12 +20,13 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
     const isCancelled = event.status === 'CANCELLED';
 
     return (
-        <View style={[globalStyles.card, isCancelled && { opacity: 0.8, backgroundColor: '#f9f9f9' }, { position: 'relative' }]}>
+        <View style={[globalStyles.card, isCancelled && styles.cardCancelled, { position: 'relative' }]}>
             {isCancelled && onClose && (
                 <Pressable
                     onPress={onClose}
-                    style={{ position: 'absolute', top: 8, right: 8, zIndex: 10, padding: 4 }}
+                    style={styles.closeButton}
                     hitSlop={10}
+                    accessibilityLabel="Hide cancelled event"
                 >
                     <Ionicons name="close-circle" size={24} color="#666" />
                 </Pressable>
@@ -107,5 +108,16 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontWeight: '700',
         fontSize: 10,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        zIndex: 10,
+        padding: 4
+    },
+    cardCancelled: {
+        opacity: 0.8,
+        backgroundColor: '#f9f9f9',
     }
 });

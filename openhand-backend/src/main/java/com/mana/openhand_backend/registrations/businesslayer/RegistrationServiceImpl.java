@@ -186,7 +186,11 @@ public class RegistrationServiceImpl implements RegistrationService {
         // commits)
         Registration savedRegistration = registrationRepository.save(registration);
 
-        // Fire-and-forget external email
+        // Note: In-app notifications for registration confirmation are handled outside
+        // this service
+        // (e.g., via event listeners). This method is responsible for persisting the
+        // registration
+        // and triggering the email notification only.
         if (savedRegistration.getStatus() == RegistrationStatus.CONFIRMED) {
             sendRegistrationConfirmationEmail(user, lockedEvent);
         }
@@ -266,6 +270,11 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         Registration cancelledRegistration = registrationRepository.save(registration);
 
+        // Note: In-app notifications for registration cancellations are now handled
+        // outside this service
+        // (e.g., via event listeners). This method is responsible for persisting the
+        // cancellation
+        // and triggering the email notification only.
         sendCancellationEmail(registration.getUser(), registration.getEvent(), "Registration cancelled by member.");
 
         return cancelledRegistration;

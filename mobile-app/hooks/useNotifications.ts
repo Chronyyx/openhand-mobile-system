@@ -75,6 +75,7 @@ export function useNotifications() {
         }
     }, [user, notifications]);
 
+
     useEffect(() => {
         let mounted = true;
 
@@ -93,16 +94,11 @@ export function useNotifications() {
                 const incoming = message as Notification;
 
                 setNotifications(prev => {
-                    let nextState = prev;
                     // Check if exists
                     const exists = prev.some(n => n.id === incoming.id);
-                    if (exists) {
-                        // Update existing (e.g. read status changed)
-                        nextState = prev.map(n => n.id === incoming.id ? incoming : n);
-                    } else {
-                        // Add new
-                        nextState = [incoming, ...prev];
-                    }
+                    const nextState = exists
+                        ? prev.map(n => n.id === incoming.id ? incoming : n)
+                        : [incoming, ...prev];
 
                     // Update unread count based on NEW state
                     const count = nextState.filter(n => !n.read).length;
@@ -111,17 +107,15 @@ export function useNotifications() {
                     return nextState;
                 });
             });
-
-            return () => {
-                mounted = false;
-                unsubscribe();
-            };
         }
 
         return () => {
             mounted = false;
         };
-    }, [user, fetchNotifications]);
+        // Removed fetchNotifications from dependency array to avoid potential loops if the function identity is unstable.
+        // We fundamentally depend on 'user' (specifically user.token and user.id).
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.token, user?.id]);
 
     return {
         notifications,

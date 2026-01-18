@@ -11,14 +11,14 @@ class WebSocketService {
     private listeners: Map<string, Set<Listener>> = new Map();
     // Map destination -> StompSubscription
     private subscriptions: Map<string, StompSubscription> = new Map();
-    // Queue for subscriptions before connection
-    private pendingSubscriptions: Map<string, Set<Listener>> = new Map();
+
 
     constructor() {
         // Strip '/api' from the end of the API URL if present to get the root base URL
         const baseUrl = process.env.EXPO_PUBLIC_API_URL?.replace(/\/api\/?$/, '');
+        const brokerURL = baseUrl ? baseUrl.replace('http', 'ws') + '/ws' : undefined;
         this.client = new Client({
-            brokerURL: baseUrl?.replace('http', 'ws') + '/ws',
+            brokerURL,
             forceBinaryWSFrames: true,
             appendMissingNULLonIncoming: true,
             onConnect: this.onConnect,
@@ -63,10 +63,7 @@ class WebSocketService {
                 this.doSubscribe(destination);
             }
         } else {
-            if (!this.pendingSubscriptions.has(destination)) {
-                this.pendingSubscriptions.set(destination, new Set());
-            }
-            this.pendingSubscriptions.get(destination)?.add(callback);
+            // Just add to listeners map, onConnect will handle standard subscription
         }
 
         return () => {

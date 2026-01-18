@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
     ActivityIndicator,
     FlatList,
@@ -30,14 +30,17 @@ import {
     type EventSummary,
     type EventDetail,
     type RegistrationSummary,
+    type EventStatus,
 } from '../../services/events.service';
 import { registerForEvent, cancelRegistration, getMyRegistrations, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
 
 import { styles } from '../../styles/events.styles';
 
+const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
+const NEARLY_FULL_THRESHOLD = 0.8;
+
 export default function EventsScreen() {
-    // Cast t to avoid type errors
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
     const { user, hasRole } = useAuth();
     const router = useRouter();
@@ -58,26 +61,23 @@ export default function EventsScreen() {
     const [detailsLoading, setDetailsLoading] = useState(false);
     const [detailsError, setDetailsError] = useState<string | null>(null);
 
-    // Registration User State
+    // Registration State
     const [userRegistration, setUserRegistration] = useState<Registration | null>(null);
+    const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
+    const [isRegistering, setIsRegistering] = useState(false);
+    const [registrationError, setRegistrationError] = useState<string | null>(null);
 
     // Admin/Employee Stats
     const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState<string | null>(null);
 
-    // Hidden Events Logic (for cancelled events)
+    // Hidden Events Logic
     const [hiddenEventIds, setHiddenEventIds] = useState<number[]>([]);
-
-    // All User Registrations (for filtering)
-    const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
+    const prevEventStatuses = useRef<Record<number, string>>({});
 
     // Success View State
     const [showSuccessView, setShowSuccessView] = useState(false);
-
-    // Registration Request State - CRITICAL for preventing race conditions
-    const [isRegistering, setIsRegistering] = useState(false);
-    const [registrationError, setRegistrationError] = useState<string | null>(null);
 
     // Countdown Hook
     const {
@@ -92,129 +92,67 @@ export default function EventsScreen() {
         }
     });
 
+    const isAdmin = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
+
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
+
+    const calculateEventStatus = (currentRegistrations: number, maxCapacity?: number): EventStatus => {
+        if (!maxCapacity) return 'OPEN';
+        if (currentRegistrations >= maxCapacity) return 'FULL';
+        if (currentRegistrations >= maxCapacity * NEARLY_FULL_THRESHOLD) return 'NEARLY_FULL';
+        return 'OPEN';
+    };
+
+    const updateEventCapacity = (event: EventSummary | EventDetail, delta: number) => {
+        const updated = {
+            ...event,
+            currentRegistrations: (event.currentRegistrations || 0) + delta
+        };
+
+        if (updated.maxCapacity && delta !== 0) {
+            updated.status = calculateEventStatus(updated.currentRegistrations, updated.maxCapacity);
+        }
+
+        return updated;
+    };
+
+    // ========================================
+    // DATA LOADING
+    // ========================================
 
     const loadEvents = useCallback(async () => {
         try {
             setError(null);
             const data = await getUpcomingEvents();
-            setEvents(data.filter((event) => event.status !== 'COMPLETED'));
-            setFilteredEvents(data);
+            const activeEvents = data.filter((event) => event.status !== 'COMPLETED');
+            setEvents(activeEvents);
         } catch (e) {
             console.error('Failed to load events', e);
             setError(t('events.loadError'));
         } finally {
             setLoading(false);
-            // setRefreshing(false); // Removed redundant call
         }
     }, [t]);
 
-    useEffect(() => {
-        loadEvents();
-    }, [loadEvents]);
-
-    // Clear notifications when screen is focused
-    useFocusEffect(
-        useCallback(() => {
-            if (user?.token) {
-                markAllAsRead();
-            }
-        }, [user, markAllAsRead])
-    );
-
-    // Load Hidden Events from AsyncStorage
-    useEffect(() => {
-        const loadHidden = async () => {
-            try {
-                const stored = await AsyncStorage.getItem('hiddenEventIds');
-                if (stored) {
-                    setHiddenEventIds(JSON.parse(stored));
-                }
-            } catch (e) {
-                console.error('Failed to load hidden events', e);
-            }
-        };
-        loadHidden();
-    }, []);
-
-    // Save Hidden Events when changed
-    useEffect(() => {
-        const saveHidden = async () => {
-            try {
-                await AsyncStorage.setItem('hiddenEventIds', JSON.stringify(hiddenEventIds));
-            } catch (e) {
-                console.error('Failed to save hidden events', e);
-            }
-        };
-        saveHidden(); // Don't block on empty check, just save
-    }, [hiddenEventIds]);
-
-    // Cleanup stale hidden events (e.g. if ID reused or status changed)
-    useEffect(() => {
-        if (events.length === 0 || hiddenEventIds.length === 0) return;
-
-        // Find visible active events that are currently hidden
-        const activeEventIds = events
-            .filter(e => e.status !== 'CANCELLED')
-            .map(e => e.id);
-
-        const staleIds = hiddenEventIds.filter(id => activeEventIds.includes(id));
-
-        if (staleIds.length > 0) {
-            // Remove them from hidden list
-            setHiddenEventIds(prev => prev.filter(id => !staleIds.includes(id)));
-        }
-    }, [events, hiddenEventIds]);
-
-    // Search Filtering
-    useEffect(() => {
-        // Base filtering logic
-        let filtered = events;
-
-        // 1. Hide Hidden Events (only if they are actually CANCELLED)
-        // If an event is in the hidden list but is now active (e.g. DB reset), we should show it.
-        if (hiddenEventIds.length > 0) {
-            filtered = filtered.filter(e => {
-                // If it's in the hidden list AND it's cancelled, keep it hidden.
-                // If the status is no longer cancelled (e.g. reopened), show it even if in the list.
-                return !(hiddenEventIds.includes(e.id) && e.status === 'CANCELLED');
-            });
+    const loadMyRegistrations = useCallback(async () => {
+        if (!user?.token) {
+            setMyRegistrations([]);
+            return;
         }
 
-        // 2. Hide Cancelled Events if User is NOT Registered
-        // (Only registered users should see cancelled events)
-        if (user) {
-            filtered = filtered.filter(e => {
-                if (e.status !== 'CANCELLED') return true;
-                // Only show cancelled events if the user is registered for them.
-                const registration = myRegistrations.find(r => r.eventId === e.id);
-                return !!registration;
-            });
-        } else {
-            // Guest users see NO cancelled events
-            filtered = filtered.filter(e => e.status !== 'CANCELLED');
+        try {
+            const regs = await getMyRegistrations(user.token);
+            setMyRegistrations(regs);
+        } catch (e) {
+            console.error('Failed to load registrations', e);
         }
+    }, [user?.token]);
 
-        // 3. Search Query
-        if (searchQuery.trim() !== '') {
-            const lowerQuery = searchQuery.toLowerCase().trim();
-            filtered = filtered.filter((event: EventSummary) => {
-                const title = getTranslatedEventTitle(event, t).toLowerCase();
-                const desc = (getTranslatedEventDescription(event, t) || '').toLowerCase();
-                const addr = (event.address || '').toLowerCase();
-                return title.includes(lowerQuery) || desc.includes(lowerQuery) || addr.includes(lowerQuery);
-            });
-        }
+    const loadRegistrationSummary = useCallback(async (eventId: number) => {
+        if (!isAdmin) return;
 
-        setFilteredEvents(filtered);
-    }, [searchQuery, events, t, hiddenEventIds, myRegistrations, user]);
-
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await loadEvents();
-        setRefreshing(false);
-    };
-
-    const loadRegistrationSummary = async (eventId: number) => {
         setSummaryLoading(true);
         setSummaryError(null);
         try {
@@ -226,48 +164,176 @@ export default function EventsScreen() {
         } finally {
             setSummaryLoading(false);
         }
+    }, [isAdmin, t]);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([loadEvents(), loadMyRegistrations()]);
+        setRefreshing(false);
     };
 
-    const checkUserRegistration = async (eventId: number) => {
-        // Checks against loaded myRegistrations. Ensure registrations are fresh if critical.
-        if (!user) return;
-        const reg = myRegistrations.find((r: Registration) => r.eventId === eventId && r.status !== 'CANCELLED');
-        setUserRegistration(reg || null);
-    };
+    // ========================================
+    // HIDDEN EVENTS MANAGEMENT
+    // ========================================
 
-    // Load ALL user registrations on mount/focus to support filtering
+    const loadHiddenEvents = useCallback(async () => {
+        try {
+            const stored = await AsyncStorage.getItem(HIDDEN_EVENTS_KEY);
+            if (stored) {
+                setHiddenEventIds(JSON.parse(stored));
+            }
+        } catch (e) {
+            console.error('Failed to load hidden events', e);
+        }
+    }, []);
+
+    const saveHiddenEvents = useCallback(async (ids: number[]) => {
+        try {
+            await AsyncStorage.setItem(HIDDEN_EVENTS_KEY, JSON.stringify(ids));
+        } catch (e) {
+            console.error('Failed to save hidden events', e);
+        }
+    }, []);
+
+    const hideEvent = useCallback((eventId: number) => {
+        setHiddenEventIds(prev => {
+            const newIds = [...prev, eventId];
+            saveHiddenEvents(newIds);
+            return newIds;
+        });
+
+        // Mark associated notification as read
+        const notification = notifications.find(n =>
+            n.eventId === eventId &&
+            !n.read &&
+            (n.type === 'CANCELLATION' || n.type === 'EVENT_UPDATE')
+        );
+        if (notification) {
+            markAsRead(notification.id);
+        }
+    }, [notifications, markAsRead, saveHiddenEvents]);
+
+    const unhideEvent = useCallback((eventId: number) => {
+        setHiddenEventIds(prev => {
+            const newIds = prev.filter(id => id !== eventId);
+            saveHiddenEvents(newIds);
+            return newIds;
+        });
+    }, [saveHiddenEvents]);
+
+    // Auto-unhide events that change status
     useEffect(() => {
-        if (!user?.token) return;
-        getMyRegistrations(user.token).then(setMyRegistrations).catch(console.error);
-    }, [user?.token, refreshing, showSuccessView]); // Reload when refreshing or after registering
+        if (events.length === 0) return;
 
-    // We need to define closeEventModal first or hoist it, or use it in openEventModal safely.
-    // openEventModal uses checkUserRegistration and loadRegistrationSummary
+        const idsToUnhide: number[] = [];
+        const currentStatuses: Record<number, string> = {};
 
-    const resetCountdownState = () => {
-        resetCountdown();
-    };
+        events.forEach(event => {
+            currentStatuses[event.id] = event.status;
 
-    const openEventModal = async (event: EventSummary) => {
+            if (!hiddenEventIds.includes(event.id)) return;
+
+            // Unhide if event becomes active
+            if (event.status !== 'CANCELLED') {
+                idsToUnhide.push(event.id);
+                return;
+            }
+
+            // Unhide if event just transitioned to cancelled
+            const prevStatus = prevEventStatuses.current[event.id];
+            if (prevStatus && prevStatus !== 'CANCELLED') {
+                idsToUnhide.push(event.id);
+            }
+        });
+
+        prevEventStatuses.current = currentStatuses;
+
+        if (idsToUnhide.length > 0) {
+            const uniqueIds = [...new Set(idsToUnhide)];
+            setHiddenEventIds(prev => {
+                const newIds = prev.filter(id => !uniqueIds.includes(id));
+                saveHiddenEvents(newIds);
+                return newIds;
+            });
+        }
+    }, [events, hiddenEventIds, saveHiddenEvents]);
+
+    // ========================================
+    // EVENT FILTERING
+    // ========================================
+
+    useEffect(() => {
+        let filtered = events;
+
+        // Filter hidden cancelled events (unless they have unread notifications)
+        if (hiddenEventIds.length > 0) {
+            filtered = filtered.filter(event => {
+                if (!hiddenEventIds.includes(event.id)) return true;
+                if (event.status !== 'CANCELLED') return true;
+
+                // Show if there's an unread notification
+                const hasUnread = notifications.some(n =>
+                    n.eventId === event.id &&
+                    !n.read &&
+                    (n.type === 'CANCELLATION' || n.type === 'EVENT_UPDATE')
+                );
+
+                return hasUnread;
+            });
+        }
+
+        // Filter cancelled events (only show to registered users)
+        if (user) {
+            filtered = filtered.filter(event => {
+                if (event.status !== 'CANCELLED') return true;
+                return myRegistrations.some(r => r.eventId === event.id);
+            });
+        } else {
+            filtered = filtered.filter(event => event.status !== 'CANCELLED');
+        }
+
+        // Search filter
+        if (searchQuery.trim()) {
+            const lowerQuery = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(event => {
+                const title = getTranslatedEventTitle(event, t).toLowerCase();
+                const desc = (getTranslatedEventDescription(event, t) || '').toLowerCase();
+                const addr = (event.address || '').toLowerCase();
+                return title.includes(lowerQuery) ||
+                    desc.includes(lowerQuery) ||
+                    addr.includes(lowerQuery);
+            });
+        }
+
+        setFilteredEvents(filtered);
+    }, [searchQuery, events, hiddenEventIds, myRegistrations, user, notifications, t]);
+
+    // ========================================
+    // MODAL MANAGEMENT
+    // ========================================
+
+    const openEventModal = useCallback(async (event: EventSummary) => {
         setSelectedEvent(event);
         setModalVisible(true);
         setDetailsLoading(true);
         setDetailsError(null);
         setShowSuccessView(false);
-        resetCountdownState();
+        setRegistrationError(null);
+        resetCountdown();
 
-        // Initial check
-        checkUserRegistration(event.id);
+        // Check user registration
+        const reg = myRegistrations.find(r =>
+            r.eventId === event.id && r.status !== 'CANCELLED'
+        );
+        setUserRegistration(reg || null);
 
-        // Load details
+        // Load event details
         try {
-            // 1. Get Details
             const detail = await getEventById(event.id);
             setEventDetail(detail);
 
-            // 2. Get Summary (Admin only)
-            if (user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
-                loadRegistrationSummary(event.id);
+            if (isAdmin) {
+                await loadRegistrationSummary(event.id);
             }
         } catch (err) {
             console.error('Failed to load event details', err);
@@ -275,9 +341,9 @@ export default function EventsScreen() {
         } finally {
             setDetailsLoading(false);
         }
-    };
+    }, [myRegistrations, isAdmin, loadRegistrationSummary, resetCountdown, t]);
 
-    const closeEventModal = () => {
+    const closeEventModal = useCallback(() => {
         setModalVisible(false);
         setSelectedEvent(null);
         setEventDetail(null);
@@ -286,198 +352,169 @@ export default function EventsScreen() {
         setShowSuccessView(false);
         setIsRegistering(false);
         setRegistrationError(null);
-    };
+    }, []);
 
-    /**
-     * RACE CONDITION PREVENTION: Request Debouncing
-     * 
-     * This handler implements client-side request debouncing to prevent race conditions.
-     * Even though the backend has pessimistic locking, we prevent unnecessary concurrent
-     * requests from the client side by:
-     * 
-     * 1. Setting isRegistering=true immediately, which disables the register button
-     * 2. Only allowing one registration request at a time
-     * 3. Properly handling HTTP 409 conflicts from concurrent attempts
-     * 
-     * Flow:
-     * - User clicks register → isRegistering becomes true → button disabled
-     * - Backend locks event and atomically checks capacity
-     * - If successful: show success view
-     * - If 409 conflict (event full): show waitlist message
-     * - If other error: show error alert
-     */
-    const handleRegister = async () => {
+    // ========================================
+    // REGISTRATION HANDLERS
+    // ========================================
+
+    const handleRegister = useCallback(async () => {
         if (!selectedEvent || !user || isRegistering) return;
+
         if (selectedEvent.status === 'COMPLETED') {
             setRegistrationError(t('events.errors.eventCompleted'));
             return;
         }
 
-        try {
-            setIsRegistering(true);
-            setRegistrationError(null);
+        setIsRegistering(true);
+        setRegistrationError(null);
 
+        try {
             const newReg = await registerForEvent(selectedEvent.id, user.token);
 
+            setUserRegistration(newReg);
+            unhideEvent(selectedEvent.id);
+
             if (newReg.status === 'CONFIRMED') {
-                setUserRegistration(newReg);
                 setShowSuccessView(true);
                 startCountdown();
             } else if (newReg.status === 'WAITLISTED') {
                 setRegistrationError(
-                    t('events.errors.eventFull',
-                        `L'événement est complet. Vous êtes en position ${newReg.waitlistedPosition} sur la liste d'attente.`)
+                    t('alerts.registerWaitlistMessage', { position: newReg.waitlistedPosition })
                 );
-                setUserRegistration(newReg);
             }
 
-            // Refresh list
-            onRefresh();
-
-            // Refresh summary if admin
-            if (hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
-                loadRegistrationSummary(selectedEvent.id);
-            }
+            // Refresh data
+            await Promise.all([
+                onRefresh(),
+                isAdmin && selectedEvent ? loadRegistrationSummary(selectedEvent.id) : Promise.resolve()
+            ]);
 
         } catch (e: any) {
-            setIsRegistering(false);
+            const errorMessage = e.errorData?.message || e.message;
 
-            // Handle different error scenarios
             if (e.status === 409) {
-                // HTTP 409 Conflict - either already registered or capacity exceeded
-                const errorMessage = e.errorData?.message || e.message;
-
                 if (errorMessage.includes('capacity')) {
-                    // Event reached capacity - user placed on waitlist
-                    setRegistrationError(
-                        t('events.errors.eventFull',
-                            'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
-                    );
+                    setRegistrationError(t('events.errors.eventFull'));
                 } else if (errorMessage.toLowerCase().includes('completed')) {
                     setRegistrationError(t('events.errors.eventCompleted'));
                 } else if (errorMessage.includes('Already Registered')) {
-                    // User already has active registration
-                    setRegistrationError(
-                        t('events.errors.alreadyRegistered',
-                            'Vous êtes déjà inscrit(e) à cet événement.')
-                    );
+                    setRegistrationError(t('events.errors.alreadyRegistered'));
                 } else {
                     setRegistrationError(errorMessage);
                 }
 
-                // Refresh registrations to show current state
-                const myRegs = await getMyRegistrations(user.token);
-                const reg = myRegs.find((r: Registration) => r.eventId === selectedEvent.id && r.status !== 'CANCELLED');
-                setUserRegistration(reg || null);
+                // Refresh current registration state
+                try {
+                    const regs = await getMyRegistrations(user.token);
+                    const reg = regs.find(r =>
+                        r.eventId === selectedEvent.id && r.status !== 'CANCELLED'
+                    );
+                    setUserRegistration(reg || null);
+                } catch (err) {
+                    console.error('Failed to refresh registrations', err);
+                }
             } else {
-                // Other errors (network, server, etc.)
-                const errorMessage = e.errorData?.message || e.message;
-                setRegistrationError(
-                    t('events.errors.registrationFailed',
-                        'Inscription échouée. Veuillez réessayer.')
-                );
+                setRegistrationError(t('events.errors.registrationFailed'));
                 console.error('Registration error:', errorMessage);
             }
         } finally {
             setIsRegistering(false);
         }
-    };
+    }, [selectedEvent, user, isRegistering, isAdmin, t, unhideEvent, startCountdown, onRefresh, loadRegistrationSummary]);
 
-    const handleUnregister = async () => {
+    const handleUnregister = useCallback(async () => {
         if (!selectedEvent || !userRegistration || !user) return;
-        try {
-            setIsRegistering(true);
-            setRegistrationError(null);
 
+        setIsRegistering(true);
+        setRegistrationError(null);
+
+        try {
             await cancelRegistration(selectedEvent.id, user.token);
 
-            // Manually update selectedEvent state to reflect changes immediately
-            const updatedEvent = {
-                ...selectedEvent,
-                currentRegistrations: (selectedEvent.currentRegistrations || 0) - 1
-            };
+            // Update local state optimistically
+            const updatedEvent = updateEventCapacity(selectedEvent, -1);
+            setSelectedEvent(updatedEvent as EventSummary);
 
-            // Client-side status update
-            if (updatedEvent.maxCapacity) {
-                if (updatedEvent.currentRegistrations < updatedEvent.maxCapacity) {
-                    // Check if it should be NEARLY_FULL or OPEN
-                    // Logic: If >= 80%, NEARLY_FULL, else OPEN
-                    // Also handle if it WAS Full, now it might be NEARLY_FULL or OPEN
-                    updatedEvent.status = updatedEvent.currentRegistrations >= updatedEvent.maxCapacity * 0.8
-                        ? 'NEARLY_FULL'
-                        : 'OPEN';
-                }
-                // Implicitly, if it's still >= maxCapacity (impossible if we just decremented), it stays FULL?
-                // But we decremented, so it MUST be < maxCapacity if it was FULL (unless capacity was 0?)
-                // Just to be safe, if for some reason current >= max, it should be FULL
-                if (updatedEvent.currentRegistrations >= updatedEvent.maxCapacity) {
-                    updatedEvent.status = 'FULL';
-                }
-            }
-            setSelectedEvent(updatedEvent);
-
-            // Also update eventDetail if it exists
             if (eventDetail && eventDetail.id === selectedEvent.id) {
-                const updatedDetail = {
-                    ...eventDetail,
-                    currentRegistrations: (eventDetail.currentRegistrations || 0) - 1
-                };
-                if (updatedDetail.maxCapacity) {
-                    if (updatedDetail.currentRegistrations < updatedDetail.maxCapacity) {
-                        updatedDetail.status = updatedDetail.currentRegistrations >= updatedDetail.maxCapacity * 0.8
-                            ? 'NEARLY_FULL'
-                            : 'OPEN';
-                    } else {
-                        updatedDetail.status = 'FULL';
-                    }
-                }
-                setEventDetail(updatedDetail as any);
+                const updatedDetail = updateEventCapacity(eventDetail, -1);
+                setEventDetail(updatedDetail as EventDetail);
             }
 
             setUserRegistration(null);
-            setShowSuccessView(false); // If undoing
+            setShowSuccessView(false);
             resetCountdown();
 
             Alert.alert(t('events.success.unregistered'));
-            onRefresh();
-            // Refresh summary if admin
-            if (hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
-                loadRegistrationSummary(selectedEvent.id);
-            }
+
+            // Refresh data
+            await Promise.all([
+                onRefresh(),
+                isAdmin && selectedEvent ? loadRegistrationSummary(selectedEvent.id) : Promise.resolve()
+            ]);
+
         } catch (e) {
-            console.error(e);
-            setRegistrationError(
-                t('events.errors.unregisterFailed',
-                    'Annulation échouée. Veuillez réessayer.')
-            );
+            console.error('Unregister error:', e);
+            setRegistrationError(t('events.errors.unregisterFailed'));
         } finally {
             setIsRegistering(false);
         }
-    };
+    }, [selectedEvent, userRegistration, user, eventDetail, isAdmin, t, resetCountdown, onRefresh, loadRegistrationSummary]);
 
-    const renderEventItem = ({ item }: ListRenderItemInfo<EventSummary>) => {
-        return (
-            <EventCard
-                event={item}
-                onPress={openEventModal}
-                t={t}
-                onClose={item.status === 'CANCELLED' ? () => {
-                    setHiddenEventIds(prev => [...prev, item.id]);
+    // ========================================
+    // LIFECYCLE HOOKS
+    // ========================================
 
-                    // Mark associated notification as read to clear badge
-                    const notification = notifications.find(n =>
-                        n.eventId === item.id &&
-                        !n.read &&
-                        (n.type === 'CANCELLATION' || n.type === 'EVENT_UPDATE')
-                    );
+    useEffect(() => {
+        loadEvents();
+        loadHiddenEvents();
+    }, [loadEvents, loadHiddenEvents]);
 
-                    if (notification) {
-                        markAsRead(notification.id);
-                    }
-                } : undefined}
-            />
-        );
-    };
+    useEffect(() => {
+        loadMyRegistrations();
+    }, [loadMyRegistrations, refreshing, showSuccessView]);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (user?.token) {
+                markAllAsRead();
+            }
+        }, [user, markAllAsRead])
+    );
+
+    // ========================================
+    // RENDER FUNCTIONS
+    // ========================================
+
+    const renderEventItem = ({ item }: ListRenderItemInfo<EventSummary>) => (
+        <EventCard
+            event={item}
+            onPress={openEventModal}
+            t={t}
+            onClose={item.status === 'CANCELLED' ? () => hideEvent(item.id) : undefined}
+        />
+    );
+
+    const handleRefreshCapacity = useCallback(() => {
+        if (!selectedEvent) return;
+
+        getEventById(selectedEvent.id)
+            .then(setEventDetail)
+            .catch(err => console.error('Failed to refresh capacity', err));
+    }, [selectedEvent]);
+
+    const handleRetrySummary = useCallback(() => {
+        if (!selectedEvent) return;
+
+        Promise.all([
+            getEventById(selectedEvent.id).then(setEventDetail),
+            loadRegistrationSummary(selectedEvent.id)
+        ]).catch(err => console.error('Failed to retry summary', err));
+    }, [selectedEvent, loadRegistrationSummary]);
+
+    // ========================================
+    // RENDER
+    // ========================================
 
     return (
         <MenuLayout>
@@ -520,7 +557,11 @@ export default function EventsScreen() {
                         keyExtractor={(item: EventSummary) => item.id.toString()}
                         contentContainerStyle={styles.listContent}
                         refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
+                            <RefreshControl
+                                refreshing={refreshing}
+                                onRefresh={onRefresh}
+                                colors={['#0056A8']}
+                            />
                         }
                         ListEmptyComponent={
                             <ThemedText style={styles.emptyText}>
@@ -541,41 +582,19 @@ export default function EventsScreen() {
                     user={user}
                     hasRole={hasRole}
                     t={t}
-
-                    // Registration
                     userRegistration={userRegistration}
                     onRegister={handleRegister}
                     onUnregister={handleUnregister}
-
-                    // Success
                     showSuccessView={showSuccessView}
                     countdownValue={countdown}
                     countdownSeconds={countdownSeconds}
-
-                    // Stats
                     registrationSummary={registrationSummary}
                     summaryLoading={summaryLoading}
                     summaryError={summaryError}
-                    onRetrySummary={() => {
-                        if (!selectedEvent) return;
-                        // Refresh event details to update capacity immediately
-                        getEventById(selectedEvent.id)
-                            .then(setEventDetail)
-                            .catch(() => { });
-                        // Refresh registration summary for admin/employee
-                        loadRegistrationSummary(selectedEvent.id);
-                    }}
-
-                    // Race Condition Prevention Props
+                    onRetrySummary={handleRetrySummary}
                     isRegistering={isRegistering}
                     registrationError={registrationError}
-                    onCapacityRefresh={() => {
-                        if (!selectedEvent) return;
-                        // Fetch latest event details to reflect capacity change right away
-                        getEventById(selectedEvent.id)
-                            .then(setEventDetail)
-                            .catch(() => { });
-                    }}
+                    onCapacityRefresh={handleRefreshCapacity}
                 />
             </ThemedView>
         </MenuLayout>

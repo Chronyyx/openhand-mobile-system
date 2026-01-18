@@ -853,6 +853,7 @@ export default function AdminEventsScreen() {
                                                             } else {
                                                                 Alert.alert(t('common.error'), t('admin.events.cancelError'));
                                                             }
+                                                        } finally {
                                                             setSaving(false);
                                                         }
                                                     };

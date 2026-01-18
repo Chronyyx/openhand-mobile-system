@@ -294,11 +294,24 @@ public class RegistrationServiceImpl implements RegistrationService {
     }
 
     private RegistrationTimeCategory resolveTimeCategory(Registration registration, LocalDateTime now) {
-        if (registration.getEvent() == null || registration.getEvent().getStartDateTime() == null) {
+        if (registration.getEvent() == null) {
             return RegistrationTimeCategory.PAST;
         }
 
-        return registration.getEvent().getStartDateTime().isAfter(now)
+        Event event = registration.getEvent();
+        if (event.getStatus() == EventStatus.COMPLETED) {
+            return RegistrationTimeCategory.PAST;
+        }
+
+        if (event.getEndDateTime() != null && !event.getEndDateTime().isAfter(now)) {
+            return RegistrationTimeCategory.PAST;
+        }
+
+        if (event.getStartDateTime() == null) {
+            return RegistrationTimeCategory.PAST;
+        }
+
+        return event.getStartDateTime().isAfter(now)
                 ? RegistrationTimeCategory.ACTIVE
                 : RegistrationTimeCategory.PAST;
     }

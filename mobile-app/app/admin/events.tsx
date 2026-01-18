@@ -1297,6 +1297,8 @@ const styles = StyleSheet.create({
     dangerButtonText: {
         color: '#FFFFFF',
         fontWeight: '800',
-        fontSize: 12,
+        fontSize: 14,
+        textAlign: 'center',
+        width: '100%',
     },
 });

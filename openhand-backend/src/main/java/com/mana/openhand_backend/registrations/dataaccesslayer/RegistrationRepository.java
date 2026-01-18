@@ -21,6 +21,8 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
 
     List<Registration> findByEventId(Long eventId);
 
+    void deleteByEventId(Long eventId);
+
     boolean existsByUserIdAndEventId(Long userId, Long eventId);
 
     long countByEventIdAndStatus(Long eventId, RegistrationStatus status);
@@ -41,4 +43,3 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     @Query("SELECT e FROM Event e WHERE e.id = :eventId")
     Optional<Event> findEventByIdForUpdate(@Param("eventId") Long eventId);
 }
-

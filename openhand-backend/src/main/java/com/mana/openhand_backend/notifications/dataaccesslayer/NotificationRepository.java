@@ -22,6 +22,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * Find notifications by event and type (useful for checking if notification already exists)
      */
     List<Notification> findByEventIdAndNotificationType(Long eventId, NotificationType notificationType);
+
+    void deleteByEventId(Long eventId);
     
     /**
      * Find unread notifications for a user

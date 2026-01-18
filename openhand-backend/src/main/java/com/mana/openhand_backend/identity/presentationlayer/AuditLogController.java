@@ -3,7 +3,6 @@ package com.mana.openhand_backend.identity.presentationlayer;
 import com.mana.openhand_backend.identity.businesslayer.AuditLogService;
 import com.mana.openhand_backend.identity.dataaccesslayer.AuditLog;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,17 +36,20 @@ public class AuditLogController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) String type,
+            @RequestParam(required = false) Boolean skipLog,
             Pageable pageable,
             HttpServletRequest request) {
 
         // Log access ("Audit the auditor")
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = (auth != null) ? auth.getName() : "UNKNOWN";
-        String ip = request.getRemoteAddr();
-        String agent = request.getHeader(HttpHeaders.USER_AGENT);
-        
-        // Pass the search term as context so we know what they were looking for
-        auditLogService.logAccess(username, ip, agent, search);
+        if (skipLog == null || !skipLog) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = (auth != null) ? auth.getName() : "UNKNOWN";
+            String ip = request.getRemoteAddr();
+            String agent = request.getHeader(HttpHeaders.USER_AGENT);
+
+            // Pass the search term as context so we know what they were looking for
+            auditLogService.logAccess(username, ip, agent, search, type);
+        }
 
         return ResponseEntity.ok(auditLogService.getAuditLogs(search, from, to, type, pageable));
     }

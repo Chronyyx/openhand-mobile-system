@@ -58,16 +58,25 @@ public class AuditLogServiceImpl implements AuditLogService {
     }
 
     @Override
-    public void logAccess(String username, String ipAddress, String userAgent, String searchContext) {
+    public void logAccess(String username, String ipAddress, String userAgent, String searchContext, String type) {
         // "Audit the auditor" - log that someone accessed the logs
         // We track this as a special "ACCESS" event
         // If there was a search, we log what they looked for in the 'affectedUser'
         // column or context
 
-        String contextInfo = (searchContext != null && !searchContext.isEmpty()) ? "Searched: " + searchContext
-                : "Viewed Logs";
+        String baseAction = "Viewed Logs";
+        if ("CHANGES".equals(type)) {
+            baseAction = "Viewed User Changes";
+        } else if ("ACCESS".equals(type)) {
+            baseAction = "Viewed Admin Access Logs";
+        }
 
-        AuditLog log = new AuditLog(null, contextInfo, "N/A", "N/A", username, LocalDateTime.now(), ipAddress,
+        String contextInfo = (searchContext != null && !searchContext.isEmpty())
+                ? "Searched " + (type != null && type.equals("CHANGES") ? "User Changes" : "Admin Access Logs") + ": "
+                        + searchContext
+                : baseAction;
+
+        AuditLog log = new AuditLog(null, contextInfo, null, null, username, LocalDateTime.now(), ipAddress,
                 userAgent, "AUDIT_ACCESS");
         auditLogRepository.save(log);
     }
@@ -82,8 +91,7 @@ public class AuditLogServiceImpl implements AuditLogService {
                         cb.like(cb.lower(root.get("affectedUserEmail")), likePattern),
                         cb.like(cb.lower(root.get("changedBy")), likePattern),
                         cb.like(cb.lower(root.get("newRole")), likePattern),
-                        cb.like(cb.lower(root.get("previousRole")), likePattern)
-                ));
+                        cb.like(cb.lower(root.get("previousRole")), likePattern)));
             }
 
             if (from != null) {

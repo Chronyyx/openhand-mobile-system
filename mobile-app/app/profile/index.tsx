@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/app-header';
@@ -101,7 +101,7 @@ export default function ProfileScreen() {
                     <View style={styles.settingsCard}>
                         <Pressable
                             style={styles.settingsItem}
-                            onPress={() => router.push('/settings/notifications')}
+                            onPress={() => router.push('/settings/notifications' as Href)}
                         >
                             <View style={styles.settingsItemLeft}>
                                 <Ionicons name="notifications-outline" size={20} color={ACCENT} />

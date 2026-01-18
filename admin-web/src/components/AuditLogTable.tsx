@@ -249,8 +249,8 @@ const AuditLogTable: React.FC<AuditLogTableProps> = ({ token, logout }) => {
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200 text-xs uppercase text-gray-500 font-semibold tracking-wider">
                                 <th className="px-6 py-4">Timestamp</th>
-                                <th className="px-6 py-4">Changed By</th>
-                                <th className="px-6 py-4">{activeTab === 'ACCESS' ? 'Activity' : 'Affected User'}</th>
+                                <th className="px-6 py-4">{activeTab === 'ACCESS' ? 'Viewed By' : 'Changed By'}</th>
+                                <th className="px-6 py-4">{activeTab === 'ACCESS' ? 'Log Type' : 'Affected User'}</th>
                                 {activeTab === 'CHANGES' && <th className="px-6 py-4">Change</th>}
                                 <th className="px-6 py-4">Source</th>
                             </tr>
@@ -265,11 +265,13 @@ const AuditLogTable: React.FC<AuditLogTableProps> = ({ token, logout }) => {
                             ) : (
                                 logs.map((log) => (
                                     <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
-                                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap font-mono">{new Date(log.changedAt).toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-600 whitespace-nowrap font-mono">{new Date(log.changedAt.endsWith('Z') ? log.changedAt : log.changedAt + 'Z').toLocaleString()}</td>
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900">{log.changedBy}</td>
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {activeTab === 'ACCESS' ? (
-                                                <span className="font-medium text-gray-700">{log.affectedUserEmail}</span>
+                                                <span className="font-medium text-gray-700">
+                                                    {log.affectedUserEmail === 'Viewed Logs' ? 'Admin Access' : log.affectedUserEmail}
+                                                </span>
                                             ) : (
                                                 log.affectedUserEmail !== 'N/A' ? log.affectedUserEmail : '-'
                                             )}

@@ -14,5 +14,5 @@ public interface AuditLogService {
 
     String exportAuditLogsToCsv(String search, LocalDate from, LocalDate to, String type);
 
-    void logAccess(String username, String ipAddress, String userAgent, String searchContext);
+    void logAccess(String username, String ipAddress, String userAgent, String searchContext, String type);
 }

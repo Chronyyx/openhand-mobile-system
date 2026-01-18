@@ -319,7 +319,7 @@ class EventAdminServiceImplTest {
 
         // Mock registrations
         when(registrationRepository.findByEventId(1L)).thenReturn(List.of(active));
-        when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(registrationRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Event cancelledEvents = eventAdminService.cancelEvent(1L);
 
@@ -327,7 +327,7 @@ class EventAdminServiceImplTest {
         assertEquals(RegistrationStatus.CANCELLED, active.getStatus());
 
         verify(eventRepository).save(event);
-        verify(registrationRepository).save(active);
+        verify(registrationRepository).saveAll(any());
 
         // Verify notifications
         verify(sendGridEmailService).sendCancellationOrUpdate(

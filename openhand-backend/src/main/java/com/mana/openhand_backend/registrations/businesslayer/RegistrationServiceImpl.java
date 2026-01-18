@@ -3,6 +3,7 @@ package com.mana.openhand_backend.registrations.businesslayer;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
+import com.mana.openhand_backend.events.businesslayer.EventCompletionService;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.events.utils.EventTitleResolver;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
@@ -17,6 +18,7 @@ import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHis
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationTimeCategory;
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
 import com.mana.openhand_backend.registrations.utils.EventCapacityException;
+import com.mana.openhand_backend.registrations.utils.EventCompletedException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
 import com.mana.openhand_backend.registrations.utils.RegistrationHistoryResponseMapper;
 import org.slf4j.Logger;
@@ -41,17 +43,20 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final SendGridEmailService sendGridEmailService;
+    private final EventCompletionService eventCompletionService;
 
     public RegistrationServiceImpl(RegistrationRepository registrationRepository,
             EventRepository eventRepository,
             UserRepository userRepository,
             NotificationService notificationService,
-            SendGridEmailService sendGridEmailService) {
+            SendGridEmailService sendGridEmailService,
+            EventCompletionService eventCompletionService) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.sendGridEmailService = sendGridEmailService;
+        this.eventCompletionService = eventCompletionService;
     }
 
     /**
@@ -123,6 +128,11 @@ public class RegistrationServiceImpl implements RegistrationService {
          */
         Event lockedEvent = registrationRepository.findEventByIdForUpdate(eventId)
                 .orElseThrow(() -> new EventNotFoundException(eventId));
+
+        LocalDateTime now = LocalDateTime.now();
+        if (eventCompletionService.ensureCompletedIfEnded(lockedEvent, now)) {
+            throw new EventCompletedException(eventId);
+        }
 
         // Now we hold an exclusive lock on the event row. Safe to check and update.
         Integer currentRegs = lockedEvent.getCurrentRegistrations();
@@ -232,9 +242,13 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .orElseThrow(() -> new RuntimeException(
                         "Registration not found for user " + userId + " and event " + eventId));
 
+        Event event = registration.getEvent();
+        if (event != null && eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now())) {
+            throw new EventCompletedException(eventId);
+        }
+
         // If this was a confirmed registration, update event capacity
         if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
-            Event event = registration.getEvent();
             if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
                 event.setCurrentRegistrations(event.getCurrentRegistrations() - 1);
 

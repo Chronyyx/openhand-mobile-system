@@ -2,6 +2,7 @@ package com.mana.openhand_backend.registrations.presentationlayer;
 
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
 import com.mana.openhand_backend.registrations.utils.EventCapacityException;
+import com.mana.openhand_backend.registrations.utils.EventCompletedException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,18 @@ public class RegistrationExceptionHandler {
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("status", HttpStatus.CONFLICT.value());
         errorResponse.put("error", "Event Capacity Exceeded");
+        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("eventId", ex.getEventId());
+        errorResponse.put("timestamp", LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(EventCompletedException.class)
+    public ResponseEntity<Map<String, Object>> handleEventCompletedException(EventCompletedException ex) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", HttpStatus.CONFLICT.value());
+        errorResponse.put("error", "Event Completed");
         errorResponse.put("message", ex.getMessage());
         errorResponse.put("eventId", ex.getEventId());
         errorResponse.put("timestamp", LocalDateTime.now());

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
@@ -29,6 +29,7 @@ export default function AdminUsersScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { hasRole } = useAuth();
+    const isAdmin = hasRole(['ROLE_ADMIN']);
 
     const [users, setUsers] = useState<ManagedUser[]>([]);
     const [loading, setLoading] = useState(true);
@@ -52,8 +53,14 @@ export default function AdminUsersScreen() {
     );
 
     useEffect(() => {
-        loadUsers();
-    }, []);
+        if (isAdmin) {
+            loadUsers();
+        }
+    }, [isAdmin]);
+
+    if (!isAdmin) {
+        return <Redirect href="/admin/events" />;
+    }
 
     const loadUsers = async () => {
         setLoading(true);
@@ -304,7 +311,7 @@ export default function AdminUsersScreen() {
                 onNavigateEvents={handleNavigateEvents}
                 onNavigateProfile={handleNavigateProfile}
                 onNavigateDashboard={handleNavigateDashboard}
-                showDashboard={hasRole(['ROLE_ADMIN'])}
+                showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 t={t}
             />
         </View>

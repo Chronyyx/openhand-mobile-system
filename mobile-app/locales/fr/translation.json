@@ -189,16 +189,19 @@
       "detailsFailed": "Impossible de charger les détails de l'événement.",
       "summaryFailed": "Impossible de charger le récapitulatif des inscriptions.",
       "eventFull": "L'événement est complet. Vous avez été ajouté(e) à la liste d'attente.",
+      "eventCompleted": "Cet événement est terminé et n'accepte plus d'inscriptions.",
       "alreadyRegistered": "Vous êtes déjà inscrit à cet événement.",
       "inactiveMember": "Vous êtes inactif(ve) et ne pouvez pas vous inscrire à de nouveaux événements. Veuillez contacter un administrateur.",
       "registrationFailed": "L'inscription a échoué. Veuillez réessayer.",
       "unregisterFailed": "Impossible d'annuler l'inscription. Veuillez réessayer."
     },
     "loginToRegister": "Connectez-vous pour vous inscrire",
+    "completedNotice": "Cet événement est terminé et archivé.",
     "status": {
       "OPEN": "OUVERT",
       "NEARLY_FULL": "PLACES LIMITÉES",
-      "FULL": "COMPLET"
+      "FULL": "COMPLET",
+      "COMPLETED": "TERMINÉ"
     },
     "registrationStatus": {
       "confirmed": "Confirmé",
@@ -306,6 +309,7 @@
     "dashboard": {
       "title": "Tableau de bord administrateur",
       "subtitle": "Gérez les rôles et les accès de votre communauté.",
+      "subtitleStaff": "Gérez les événements à venir et archivés.",
       "management": "Gestion",
       "adminOnly": "Admin",
       "users": "Utilisateurs",
@@ -316,6 +320,10 @@
     "events": {
       "title": "Événements",
       "subtitle": "Créez des événements à venir visibles dans l’application.",
+      "upcomingSection": "Événements à venir",
+      "archivedSection": "Événements archivés",
+      "archivedEmpty": "Aucun événement archivé pour le moment.",
+      "archivedHint": "Les événements archivés sont en lecture seule.",
       "createButton": "Créer un événement",
       "createTitle": "Créer un nouvel événement",
       "createSubmit": "Créer",
@@ -328,11 +336,20 @@
       "duplicateSuccessMessage": "Une copie de cet événement a été créée.",
       "duplicateError": "Impossible de dupliquer l’événement.",
       "editAction": "Modifier l’événement",
+      "viewAction": "Voir l’événement",
       "editTitle": "Modifier l’événement",
+      "viewTitle": "Détails de l’événement",
       "updateSubmit": "Mettre à jour",
       "updateSuccessTitle": "Événement mis à jour",
       "updateSuccessMessage": "Les changements sont enregistrés et visibles dans l'application.",
       "updateError": "Impossible de mettre à jour l’événement.",
+      "completeAction": "Marquer comme terminé",
+      "completeConfirmTitle": "Marquer cet événement comme terminé ?",
+      "completeConfirmMessage": "Cela archivera l’événement et empêchera toute modification.",
+      "completeConfirmAction": "Marquer terminé",
+      "completeSuccessTitle": "Événement terminé",
+      "completeSuccessMessage": "Cet événement est maintenant archivé.",
+      "completeError": "Impossible de marquer l’événement comme terminé.",
       "capacityTooLow": "La capacité ne peut pas être inférieure aux inscriptions actuelles.",
       "loadError": "Impossible de charger les événements.",
       "empty": "Aucun événement à venir trouvé.",
@@ -403,8 +420,5 @@
     }
   }
 }
-
-
-
 
 

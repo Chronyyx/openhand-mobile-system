@@ -189,16 +189,19 @@
       "detailsFailed": "No se pudieron cargar los detalles del evento.",
       "summaryFailed": "No se pudo cargar el resumen de inscripciones.",
       "eventFull": "El evento está lleno. Has sido agregado a la lista de espera.",
+      "eventCompleted": "Este evento ya finalizó y no acepta inscripciones.",
       "alreadyRegistered": "Ya estás registrado para este evento.",
       "inactiveMember": "Está inactivo y no puede registrarse en nuevos eventos. Por favor, contacte con un administrador.",
       "registrationFailed": "El registro falló. Por favor, intenta nuevamente.",
       "unregisterFailed": "No se pudo cancelar la inscripción. Por favor, intenta nuevamente."
     },
     "loginToRegister": "Inicia sesión para inscribirte",
+    "completedNotice": "Este evento está finalizado y archivado.",
     "status": {
       "OPEN": "ABIERTO",
       "NEARLY_FULL": "CUPOS LIMITADOS",
-      "FULL": "LLENO"
+      "FULL": "LLENO",
+      "COMPLETED": "FINALIZADO"
     },
     "registrationStatus": {
       "confirmed": "Confirmado",
@@ -306,6 +309,7 @@
     "dashboard": {
       "title": "Panel de control del administrador",
       "subtitle": "Gestiona los roles y accesos de tu comunidad.",
+      "subtitleStaff": "Gestiona los eventos próximos y archivados.",
       "management": "Gestión",
       "adminOnly": "Admin",
       "users": "Usuarios",
@@ -316,6 +320,10 @@
     "events": {
       "title": "Eventos",
       "subtitle": "Crea eventos próximos visibles en la app.",
+      "upcomingSection": "Eventos próximos",
+      "archivedSection": "Eventos archivados",
+      "archivedEmpty": "No hay eventos archivados aún.",
+      "archivedHint": "Los eventos archivados son de solo lectura.",
       "createButton": "Crear evento",
       "createTitle": "Crear un nuevo evento",
       "createSubmit": "Crear",
@@ -328,11 +336,20 @@
       "duplicateSuccessMessage": "Se creó una copia de este evento.",
       "duplicateError": "No se pudo duplicar el evento.",
       "editAction": "Editar evento",
+      "viewAction": "Ver evento",
       "editTitle": "Editar evento",
+      "viewTitle": "Detalles del evento",
       "updateSubmit": "Actualizar",
       "updateSuccessTitle": "Evento actualizado",
       "updateSuccessMessage": "Los cambios se guardaron y ya son visibles en la app.",
       "updateError": "No se pudo actualizar el evento.",
+      "completeAction": "Marcar como finalizado",
+      "completeConfirmTitle": "¿Marcar este evento como finalizado?",
+      "completeConfirmMessage": "Esto archivará el evento y evitará más ediciones.",
+      "completeConfirmAction": "Marcar finalizado",
+      "completeSuccessTitle": "Evento finalizado",
+      "completeSuccessMessage": "Este evento ahora está archivado.",
+      "completeError": "No se pudo marcar el evento como finalizado.",
       "capacityTooLow": "La capacidad no puede ser menor que las inscripciones actuales.",
       "loadError": "No se pudieron cargar los eventos.",
       "empty": "No se encontraron próximos eventos.",
@@ -403,8 +420,5 @@
     }
   }
 }
-
-
-
 
 

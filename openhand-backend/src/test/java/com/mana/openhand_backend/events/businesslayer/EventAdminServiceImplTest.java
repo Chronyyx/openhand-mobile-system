@@ -38,6 +38,9 @@ class EventAdminServiceImplTest {
     @Mock
     private SendGridEmailService sendGridEmailService;
 
+    @Mock
+    private EventCompletionService eventCompletionService;
+
     @InjectMocks
     private EventAdminServiceImpl eventAdminService;
 

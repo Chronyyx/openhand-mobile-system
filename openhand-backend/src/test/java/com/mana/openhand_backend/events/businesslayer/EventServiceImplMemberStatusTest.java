@@ -32,6 +32,9 @@ class EventServiceImplMemberStatusTest {
     @Mock
     private RegistrationRepository registrationRepository;
 
+    @Mock
+    private EventCompletionService eventCompletionService;
+
     @InjectMocks
     private EventServiceImpl eventService;
 

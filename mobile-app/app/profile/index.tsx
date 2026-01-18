@@ -127,7 +127,7 @@ export default function ProfileScreen() {
                 onNavigateProfile={() => setMenuVisible(false)}
                 onNavigateMyRegistrations={handleNavigateMyRegistrations}
                 showMyRegistrations={!!user}
-                showDashboard={hasRole(['ROLE_ADMIN'])}
+                showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 onNavigateDashboard={handleNavigateDashboard}
                 t={t}
             />

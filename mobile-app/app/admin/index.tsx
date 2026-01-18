@@ -14,6 +14,7 @@ export default function AdminDashboardScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { hasRole } = useAuth();
+    const isAdmin = hasRole(['ROLE_ADMIN']);
     const [menuVisible, setMenuVisible] = React.useState(false);
 
     const handleNavigateHome = () => {
@@ -42,33 +43,39 @@ export default function AdminDashboardScreen() {
                     </View>
                     <View style={{ flex: 1 }}>
                         <Text style={styles.title}>{t('admin.dashboard.title')}</Text>
-                        <Text style={styles.subtitle}>{t('admin.dashboard.subtitle')}</Text>
+                        <Text style={styles.subtitle}>
+                            {t(isAdmin ? 'admin.dashboard.subtitle' : 'admin.dashboard.subtitleStaff')}
+                        </Text>
                     </View>
                 </View>
 
                 <View style={styles.sectionHeader}>
                     <Text style={styles.sectionLabel}>{t('admin.dashboard.management')}</Text>
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{t('admin.dashboard.adminOnly')}</Text>
-                    </View>
+                    {isAdmin && (
+                        <View style={styles.badge}>
+                            <Text style={styles.badgeText}>{t('admin.dashboard.adminOnly')}</Text>
+                        </View>
+                    )}
                 </View>
 
-                <Pressable
-                    style={({ pressed }) => [
-                        styles.card,
-                        pressed && styles.cardPressed,
-                    ]}
-                    onPress={() => router.push('/admin/users')}
-                >
-                    <View style={styles.cardIcon}>
-                        <Ionicons name="people-circle" size={26} color={ACCENT} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.cardTitle}>{t('admin.dashboard.users')}</Text>
-                        <Text style={styles.cardDescription}>{t('admin.dashboard.usersDescription')}</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color={ACCENT} />
-                </Pressable>
+                {isAdmin && (
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.card,
+                            pressed && styles.cardPressed,
+                        ]}
+                        onPress={() => router.push('/admin/users')}
+                    >
+                        <View style={styles.cardIcon}>
+                            <Ionicons name="people-circle" size={26} color={ACCENT} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.cardTitle}>{t('admin.dashboard.users')}</Text>
+                            <Text style={styles.cardDescription}>{t('admin.dashboard.usersDescription')}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                    </Pressable>
+                )}
 
                 <Pressable
                     style={({ pressed }) => [
@@ -95,7 +102,7 @@ export default function AdminDashboardScreen() {
                 onNavigateEvents={handleNavigateEvents}
                 onNavigateProfile={() => { setMenuVisible(false); router.push('/profile'); }}
                 onNavigateDashboard={handleNavigateDashboard}
-                showDashboard={hasRole(['ROLE_ADMIN'])}
+                showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 t={t}
             />
         </View>

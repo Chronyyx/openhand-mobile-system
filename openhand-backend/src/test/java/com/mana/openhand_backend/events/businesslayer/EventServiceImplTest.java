@@ -3,8 +3,12 @@ package com.mana.openhand_backend.events.businesslayer;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.domainclientlayer.RegistrationSummaryResponseModel;
+import com.mana.openhand_backend.events.domainclientlayer.EventAttendeesResponseModel;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
+import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
+import com.mana.openhand_backend.identity.dataaccesslayer.User;
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -176,5 +180,118 @@ class EventServiceImplTest {
         assertNull(summary.getMaxCapacity());
         assertNull(summary.getRemainingSpots());
         assertNull(summary.getPercentageFull());
+    }
+
+    @Test
+    void getRegistrationSummary_mapsMemberStatusAndRequestedAtDefaults() {
+        Event event = new Event(
+                "Event",
+                "Desc",
+                LocalDateTime.now().plusDays(1),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                1,
+                null
+        );
+        when(eventRepository.findById(4L)).thenReturn(Optional.of(event));
+        when(registrationRepository.countByEventIdAndStatus(4L, RegistrationStatus.WAITLISTED))
+                .thenReturn(0L);
+
+        User user = new User();
+        user.setId(1L);
+        user.setName("Member");
+        user.setEmail("member@example.com");
+        user.setMemberStatus(null);
+
+        Registration registration = new Registration(user, event);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+        registration.setRequestedAt(null);
+        registration.setConfirmedAt(null);
+
+        when(registrationRepository.findByEventIdAndStatusIn(
+                eq(4L),
+                eq(List.of(RegistrationStatus.CONFIRMED, RegistrationStatus.WAITLISTED))))
+                .thenReturn(List.of(registration));
+
+        RegistrationSummaryResponseModel summary = eventService.getRegistrationSummary(4L);
+
+        assertEquals(1, summary.getAttendees().size());
+        assertEquals("ACTIVE", summary.getAttendees().get(0).getMemberStatus());
+        assertNull(summary.getAttendees().get(0).getRequestedAt());
+    }
+
+    @Test
+    void getRegistrationSummary_includesExplicitMemberStatus() {
+        Event event = new Event(
+                "Event",
+                "Desc",
+                LocalDateTime.now().plusDays(1),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                1,
+                null
+        );
+        when(eventRepository.findById(5L)).thenReturn(Optional.of(event));
+        when(registrationRepository.countByEventIdAndStatus(5L, RegistrationStatus.WAITLISTED))
+                .thenReturn(0L);
+
+        User user = new User();
+        user.setId(2L);
+        user.setName("Member");
+        user.setEmail("member@example.com");
+        user.setMemberStatus(MemberStatus.INACTIVE);
+
+        Registration registration = new Registration(user, event);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+        registration.setRequestedAt(LocalDateTime.now());
+
+        when(registrationRepository.findByEventIdAndStatusIn(
+                eq(5L),
+                eq(List.of(RegistrationStatus.CONFIRMED, RegistrationStatus.WAITLISTED))))
+                .thenReturn(List.of(registration));
+
+        RegistrationSummaryResponseModel summary = eventService.getRegistrationSummary(5L);
+
+        assertEquals("INACTIVE", summary.getAttendees().get(0).getMemberStatus());
+    }
+
+    @Test
+    void getEventAttendees_filtersNullAttendees() {
+        Event event = new Event(
+                "Event",
+                "Desc",
+                LocalDateTime.now().plusDays(1),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                1,
+                null
+        );
+        when(eventRepository.findById(6L)).thenReturn(Optional.of(event));
+
+        User user = new User();
+        user.setId(3L);
+        user.setName("Member");
+
+        Registration valid = new Registration(user, event);
+        valid.setStatus(RegistrationStatus.CONFIRMED);
+
+        Registration invalid = new Registration(null, event);
+        invalid.setStatus(RegistrationStatus.CONFIRMED);
+
+        when(registrationRepository.findByEventIdAndStatusNot(6L, RegistrationStatus.CANCELLED))
+                .thenReturn(List.of(valid, invalid));
+
+        EventAttendeesResponseModel result = eventService.getEventAttendees(6L);
+
+        assertEquals(1, result.getAttendees().size());
     }
 }

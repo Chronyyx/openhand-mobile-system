@@ -13,10 +13,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -79,6 +81,38 @@ class EventStaffServiceImplTest {
 
         verifyNoInteractions(notificationRepository, registrationRepository);
         verify(eventRepository, never()).delete(any(Event.class));
+    }
+
+    @Test
+    void getEventsForStaff_refreshesAndSorts() {
+        Event event = buildEvent(EventStatus.OPEN);
+        when(eventRepository.findAll(eq(org.springframework.data.domain.Sort.by(
+                org.springframework.data.domain.Sort.Direction.ASC, "startDateTime"))))
+                .thenReturn(List.of(event));
+
+        List<Event> result = eventStaffService.getEventsForStaff();
+
+        assertEquals(1, result.size());
+        verify(eventCompletionService).refreshCompletedEvents(any(LocalDateTime.class));
+    }
+
+    @Test
+    void markEventCompleted_whenMissing_throwsNotFound() {
+        when(eventRepository.findById(10L)).thenReturn(Optional.empty());
+
+        assertThrows(EventNotFoundException.class, () -> eventStaffService.markEventCompleted(10L));
+    }
+
+    @Test
+    void markEventCompleted_delegatesToCompletionService() {
+        Event event = buildEvent(EventStatus.OPEN);
+        when(eventRepository.findById(10L)).thenReturn(Optional.of(event));
+        when(eventCompletionService.markCompleted(event)).thenReturn(event);
+
+        Event result = eventStaffService.markEventCompleted(10L);
+
+        assertEquals(event, result);
+        verify(eventCompletionService).markCompleted(event);
     }
 
     private Event buildEvent(EventStatus status) {

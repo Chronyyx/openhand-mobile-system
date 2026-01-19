@@ -292,6 +292,94 @@ class NotificationTextGeneratorTest {
         assertTrue(result.contains(eventTitle));
     }
 
+    @Test
+    void generateText_eventUpdateInFrench_withNullDate_usesTbd() {
+        String eventTitle = "Programme";
+        String language = "fr";
+
+        String result = textGenerator.generateText(
+                NotificationType.EVENT_UPDATE,
+                eventTitle,
+                language,
+                null
+        );
+
+        assertNotNull(result);
+        assertTrue(result.contains(eventTitle));
+        assertTrue(result.contains("TBD"));
+    }
+
+    @Test
+    void generateText_eventUpdateInSpanish_withDate_includesEventTitle() {
+        String eventTitle = "Programa";
+        String language = "es";
+        LocalDateTime eventStartDateTime = LocalDateTime.of(2025, 7, 10, 9, 0);
+
+        String result = textGenerator.generateText(
+                NotificationType.EVENT_UPDATE,
+                eventTitle,
+                language,
+                eventStartDateTime
+        );
+
+        assertNotNull(result);
+        assertTrue(result.contains(eventTitle));
+    }
+
+    @Test
+    void generateText_employeeRegisteredWithNullName_usesFallback() {
+        String eventTitle = "Orientation";
+        String language = "en";
+
+        String result = textGenerator.generateText(
+                NotificationType.EMPLOYEE_REGISTERED_PARTICIPANT,
+                eventTitle,
+                language,
+                null,
+                null
+        );
+
+        assertNotNull(result);
+        assertTrue(result.contains(eventTitle));
+        assertTrue(result.contains("participant"));
+    }
+
+    @Test
+    void generateText_employeeRegisteredInFrench_includesParticipant() {
+        String eventTitle = "Orientation";
+        String language = "fr";
+
+        String result = textGenerator.generateText(
+                NotificationType.EMPLOYEE_REGISTERED_PARTICIPANT,
+                eventTitle,
+                language,
+                null,
+                "Alice"
+        );
+
+        assertNotNull(result);
+        assertTrue(result.contains(eventTitle));
+        assertTrue(result.contains("Alice"));
+    }
+
+    @Test
+    void generateText_employeeRegisteredInSpanish_includesParticipant() {
+        String eventTitle = "Orientacion";
+        String language = "es";
+
+        String result = textGenerator.generateText(
+                NotificationType.EMPLOYEE_REGISTERED_PARTICIPANT,
+                eventTitle,
+                language,
+                null,
+                "Luis"
+        );
+
+        assertNotNull(result);
+        assertTrue(result.contains(eventTitle));
+        assertTrue(result.contains("Luis"));
+    }
+
     private static void assertNotEquals(String unexpected, String actual) {
         if (unexpected.equals(actual)) {
             throw new AssertionError("Values should not be equal: " + unexpected);

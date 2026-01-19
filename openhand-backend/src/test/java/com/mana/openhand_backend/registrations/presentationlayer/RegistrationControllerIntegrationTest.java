@@ -58,7 +58,6 @@ class RegistrationControllerIntegrationTest {
         private LocalDateTime eventEnd;
 
         @BeforeEach
-        @Transactional
         void setUp() {
                 eventStart = LocalDateTime.now().plusDays(1);
                 eventEnd = LocalDateTime.now().plusDays(2);
@@ -495,5 +494,23 @@ class RegistrationControllerIntegrationTest {
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", hasSize(1)))
                         .andExpect(jsonPath("$[0].status", equalTo("CANCELLED")));
+        }
+
+        @Test
+        @WithMockUser(username = "testuser@example.com", roles = "MEMBER")
+        @Transactional
+        void getMyRegistrationHistory_withInvalidFilter_returnsBadRequest() throws Exception {
+                mockMvc.perform(get("/api/registrations/me")
+                                .param("filter", "unknown")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @Transactional
+        void getMyRegistrationHistory_withoutAuthentication_returnsUnauthorized() throws Exception {
+                mockMvc.perform(get("/api/registrations/me")
+                                .contentType(MediaType.APPLICATION_JSON))
+                        .andExpect(status().isUnauthorized());
         }
 }

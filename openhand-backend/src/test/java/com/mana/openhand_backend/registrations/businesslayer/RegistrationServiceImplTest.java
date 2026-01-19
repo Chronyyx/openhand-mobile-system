@@ -7,12 +7,16 @@ import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.utils.EventNotFoundException;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
+import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryFilter;
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
+import com.mana.openhand_backend.registrations.utils.EventCompletedException;
+import com.mana.openhand_backend.registrations.utils.InactiveMemberException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -154,6 +158,45 @@ class RegistrationServiceImplTest {
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> registrationService.registerForEvent(999L, 1L));
+        verify(registrationRepository, never()).save(any(Registration.class));
+    }
+
+    @Test
+    void registerForEvent_whenUserInactive_shouldThrowInactiveMemberException() {
+        testUser.setMemberStatus(MemberStatus.INACTIVE);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        assertThrows(InactiveMemberException.class, () -> registrationService.registerForEvent(1L, 1L));
+        verify(registrationRepository, never()).save(any(Registration.class));
+    }
+
+    @Test
+    void registerForEvent_whenExistingCancelled_reactivatesRegistration() {
+        Registration existing = new Registration(testUser, testEvent);
+        existing.setStatus(RegistrationStatus.CANCELLED);
+        existing.setCancelledAt(now.minusDays(1));
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.of(existing));
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
+        when(registrationRepository.save(any(Registration.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Registration result = registrationService.registerForEvent(1L, 1L);
+
+        assertEquals(RegistrationStatus.CONFIRMED, result.getStatus());
+        assertNull(result.getCancelledAt());
+        assertNotNull(result.getRequestedAt());
+    }
+
+    @Test
+    void registerForEvent_whenEventCompleted_shouldThrowEventCompletedException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
+        when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(testEvent));
+        when(eventCompletionService.ensureCompletedIfEnded(any(Event.class), any(LocalDateTime.class))).thenReturn(true);
+
+        assertThrows(EventCompletedException.class, () -> registrationService.registerForEvent(1L, 1L));
         verify(registrationRepository, never()).save(any(Registration.class));
     }
 
@@ -481,6 +524,43 @@ class RegistrationServiceImplTest {
         assertTrue(result.isEmpty());
     }
 
+    @Test
+    void getUserRegistrationHistory_filtersActiveOnly() {
+        Event futureEvent = new Event(
+                "Future",
+                "Desc",
+                LocalDateTime.now().plusDays(2),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                0,
+                "General");
+        Event pastEvent = new Event(
+                "Past",
+                "Desc",
+                LocalDateTime.now().minusDays(2),
+                null,
+                "Loc",
+                "Addr",
+                EventStatus.OPEN,
+                10,
+                0,
+                "General");
+
+        Registration active = new Registration(testUser, futureEvent);
+        active.setStatus(RegistrationStatus.CONFIRMED);
+        Registration past = new Registration(testUser, pastEvent);
+        past.setStatus(RegistrationStatus.CONFIRMED);
+
+        when(registrationRepository.findByUserIdWithEvent(1L)).thenReturn(List.of(active, past));
+
+        List<?> result = registrationService.getUserRegistrationHistory(1L, RegistrationHistoryFilter.ACTIVE);
+
+        assertEquals(1, result.size());
+    }
+
     // ========== cancelRegistration Tests ==========
 
     @Test
@@ -516,6 +596,19 @@ class RegistrationServiceImplTest {
         assertNotNull(result.getCancelledAt());
         assertEquals(0, testEvent.getCurrentRegistrations());
         verify(eventRepository).save(testEvent);
+    }
+
+    @Test
+    void cancelRegistration_whenEventCompleted_shouldThrowEventCompletedException() {
+        Registration registration = new Registration(testUser, testEvent);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+        registration.setEvent(testEvent);
+
+        when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.of(registration));
+        when(eventCompletionService.ensureCompletedIfEnded(any(Event.class), any(LocalDateTime.class))).thenReturn(true);
+
+        assertThrows(EventCompletedException.class, () -> registrationService.cancelRegistration(1L, 1L));
+        verify(registrationRepository, never()).save(any(Registration.class));
     }
 
     @Test

@@ -205,4 +205,16 @@ class EmployeeRegistrationControllerTest {
         assertNotNull(response);
         verify(registrationService).registerForEvent(2L, 1L);
     }
+
+    @Test
+    void registerParticipant_whenUnexpectedRuntimeException_shouldPropagate() {
+        EmployeeRegistrationRequestModel request = new EmployeeRegistrationRequestModel(2L, 1L);
+
+        when(registrationService.registerForEvent(2L, 1L))
+                .thenThrow(new RuntimeException("Database unavailable"));
+
+        assertThrows(RuntimeException.class,
+                () -> employeeRegistrationController.registerParticipant(request, authentication));
+        verifyNoInteractions(notificationService);
+    }
 }

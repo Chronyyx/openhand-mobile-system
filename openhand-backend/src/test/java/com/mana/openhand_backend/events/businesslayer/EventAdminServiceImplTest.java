@@ -96,6 +96,17 @@ class EventAdminServiceImplTest {
     }
 
     @Test
+    void createEvent_withNoCapacity_allowsNullCapacity() {
+        CreateEventRequest request = buildRequest("Title", "2026-01-01T20:00", null, "GENERAL");
+        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Event result = eventAdminService.createEvent(request);
+
+        assertNull(result.getMaxCapacity());
+        verify(eventRepository).save(any(Event.class));
+    }
+
+    @Test
     void createEvent_withEndBeforeStart_throwsException() {
         CreateEventRequest request = buildRequest("Title", "2026-01-01T17:00", 10, "GENERAL");
 
@@ -145,12 +156,57 @@ class EventAdminServiceImplTest {
     }
 
     @Test
+    void updateEvent_whenCompleted_throwsException() {
+        CreateEventRequest request = buildRequest("Title", "2026-01-01T20:00", 10, "GENERAL");
+        Event existing = existingEvent(3);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(eventCompletionService.ensureCompletedIfEnded(eq(existing), any(LocalDateTime.class))).thenReturn(true);
+
+        assertThrows(IllegalArgumentException.class, () -> eventAdminService.updateEvent(1L, request));
+        verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
     void updateEvent_withMaxCapacityLessThanCurrent_throwsException() {
         CreateEventRequest request = buildRequest("Title", "2026-01-01T20:00", 2, "GENERAL");
         when(eventRepository.findById(1L)).thenReturn(Optional.of(existingEvent(3)));
 
         assertThrows(IllegalArgumentException.class, () -> eventAdminService.updateEvent(1L, request));
         verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void updateEvent_withNonPositiveCapacity_throwsException() {
+        CreateEventRequest request = buildRequest("Title", "2026-01-01T20:00", 0, "GENERAL");
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(existingEvent(0)));
+
+        assertThrows(IllegalArgumentException.class, () -> eventAdminService.updateEvent(1L, request));
+        verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void updateEvent_withNullCategory_setsNull() {
+        CreateEventRequest request = buildRequest("Updated", "2026-01-02T20:00", 10, null);
+        Event existing = existingEvent(1);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Event updated = eventAdminService.updateEvent(1L, request);
+
+        assertNull(updated.getCategory());
+    }
+
+    @Test
+    void updateEvent_withNullCurrentRegistrations_defaultsToZero() {
+        CreateEventRequest request = buildRequest("Updated", "2026-01-02T20:00", 10, "GENERAL");
+        Event existing = existingEvent(0);
+        existing.setCurrentRegistrations(null);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Event updated = eventAdminService.updateEvent(1L, request);
+
+        assertEquals(EventStatus.OPEN, updated.getStatus());
     }
 
     @Test
@@ -341,5 +397,70 @@ class EventAdminServiceImplTest {
                 eq(1L),
                 eq("CANCELLATION"),
                 eq("en"));
+    }
+
+    @Test
+    void cancelEvent_whenAlreadyCancelled_returnsWithoutUpdates() {
+        Event event = existingEvent(1);
+        event.setStatus(EventStatus.CANCELLED);
+        ReflectionTestUtils.setField(event, "id", 2L);
+        when(eventRepository.findById(2L)).thenReturn(Optional.of(event));
+
+        Event result = eventAdminService.cancelEvent(2L);
+
+        assertEquals(EventStatus.CANCELLED, result.getStatus());
+        verifyNoInteractions(registrationRepository);
+    }
+
+    @Test
+    void notifyScheduleChange_handlesNotificationFailures() {
+        Event event = existingEvent(1);
+        ReflectionTestUtils.setField(event, "id", 7L);
+
+        User user = new User();
+        user.setEmail("member@example.com");
+        user.setName("Member");
+        user.setId(11L);
+        Registration registration = new Registration(user, event);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+
+        when(registrationRepository.findByEventId(7L)).thenReturn(List.of(registration));
+        doThrow(new RuntimeException("notify failed"))
+                .when(notificationService)
+                .createNotification(anyLong(), anyLong(), any(), any());
+
+        ReflectionTestUtils.invokeMethod(eventAdminService, "notifyScheduleChange", event);
+
+        verify(notificationService).createNotification(eq(11L), eq(7L), eq("EVENT_UPDATE"), eq("en"));
+    }
+
+    @Test
+    void notifyCancellation_handlesEmailAndNotificationFailures() {
+        Event event = existingEvent(1);
+        ReflectionTestUtils.setField(event, "id", 8L);
+
+        User user = new User();
+        user.setEmail("member@example.com");
+        user.setName("Member");
+        user.setId(12L);
+        Registration registration = new Registration(user, event);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+
+        doThrow(new RuntimeException("email failed"))
+                .when(sendGridEmailService)
+                .sendCancellationOrUpdate(any(), any(), any(), any(), any());
+        doThrow(new RuntimeException("notify failed"))
+                .when(notificationService)
+                .createNotification(anyLong(), anyLong(), any(), any());
+
+        ReflectionTestUtils.invokeMethod(eventAdminService, "notifyCancellation", event, List.of(registration));
+
+        verify(sendGridEmailService).sendCancellationOrUpdate(
+                eq("member@example.com"),
+                eq("Member"),
+                eq("Existing"),
+                eq("Event Cancelled"),
+                eq("en"));
+        verify(notificationService).createNotification(eq(12L), eq(8L), eq("CANCELLATION"), eq("en"));
     }
 }

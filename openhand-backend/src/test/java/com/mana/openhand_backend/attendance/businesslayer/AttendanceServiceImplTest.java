@@ -122,7 +122,7 @@ class AttendanceServiceImplTest {
         assertEquals(20.0, update.getOccupancyPercent());
         assertNotNull(registration.getCheckedInAt());
 
-        verify(messagingTemplate).convertAndSend(eq("/topic/attendance/events"), any());
-        verify(messagingTemplate).convertAndSend(eq("/topic/attendance/events/1"), any());
+        verify(messagingTemplate).convertAndSend(eq("/topic/attendance/events"), any(Object.class));
+        verify(messagingTemplate).convertAndSend(eq("/topic/attendance/events/1"), any(Object.class));
     }
 }

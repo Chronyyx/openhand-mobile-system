@@ -13,8 +13,10 @@ type NavigationMenuProps = {
     onClose: () => void;
     onNavigateHome: () => void;
     onNavigateEvents: () => void;
+    onNavigateAttendance?: () => void;
     onNavigateProfile?: () => void;
     onNavigateMyRegistrations?: () => void;
+    showAttendance?: boolean;
     showDashboard?: boolean;
     onNavigateDashboard?: () => void;
     showMyRegistrations?: boolean;
@@ -30,8 +32,10 @@ export function NavigationMenu({
     onClose,
     onNavigateHome,
     onNavigateEvents,
+    onNavigateAttendance,
     onNavigateProfile,
     onNavigateMyRegistrations,
+    showAttendance = false,
     showDashboard = false,
     onNavigateDashboard,
     showMyRegistrations = false,
@@ -97,6 +101,23 @@ export function NavigationMenu({
                             <Ionicons name="chevron-forward" size={18} color={BLUE} />
                         </View>
                     </Pressable>
+
+                    {showAttendance && onNavigateAttendance && (
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.menuItem,
+                                styles.menuItemElevated,
+                                pressed && styles.menuItemPressed,
+                            ]}
+                            onPress={onNavigateAttendance}
+                        >
+                            <View style={styles.menuItemLeft}>
+                                <Ionicons name="checkbox" size={20} color={BLUE} />
+                                <Text style={styles.menuItemText}>{t('menu.attendance')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={BLUE} />
+                        </Pressable>
+                    )}
 
                     {showMyRegistrations && onNavigateMyRegistrations && (
                         <Pressable

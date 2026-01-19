@@ -103,6 +103,11 @@ export default function AdminUsersScreen() {
         router.push('/events');
     };
 
+    const handleNavigateAttendance = () => {
+        setMenuVisible(false);
+        router.push('/admin/attendance');
+    };
+
     const handleNavigateDashboard = () => {
         setMenuVisible(false);
         router.push('/admin');
@@ -309,8 +314,10 @@ export default function AdminUsersScreen() {
                 onClose={() => setMenuVisible(false)}
                 onNavigateHome={handleNavigateHome}
                 onNavigateEvents={handleNavigateEvents}
+                onNavigateAttendance={handleNavigateAttendance}
                 onNavigateProfile={handleNavigateProfile}
                 onNavigateDashboard={handleNavigateDashboard}
+                showAttendance={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 t={t}
             />

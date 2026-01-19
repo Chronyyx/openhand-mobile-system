@@ -40,6 +40,11 @@ export default function ProfileScreen() {
         router.push('/admin');
     };
 
+    const handleNavigateAttendance = () => {
+        setMenuVisible(false);
+        router.push('/admin/attendance');
+    };
+
     const handlePickImage = async () => {
         if (!user || uploading) return;
 
@@ -97,9 +102,11 @@ export default function ProfileScreen() {
                     onClose={() => setMenuVisible(false)}
                     onNavigateHome={handleNavigateHome}
                     onNavigateEvents={handleNavigateEvents}
+                    onNavigateAttendance={handleNavigateAttendance}
                     onNavigateProfile={() => setMenuVisible(false)}
                     onNavigateMyRegistrations={handleNavigateMyRegistrations}
                     showMyRegistrations={false}
+                    showAttendance={false}
                     showDashboard={false}
                     onNavigateDashboard={handleNavigateDashboard}
                     t={t}
@@ -198,9 +205,11 @@ export default function ProfileScreen() {
                 onClose={() => setMenuVisible(false)}
                 onNavigateHome={handleNavigateHome}
                 onNavigateEvents={handleNavigateEvents}
+                onNavigateAttendance={handleNavigateAttendance}
                 onNavigateProfile={() => setMenuVisible(false)}
                 onNavigateMyRegistrations={handleNavigateMyRegistrations}
                 showMyRegistrations={!!user}
+                showAttendance={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 onNavigateDashboard={handleNavigateDashboard}
                 t={t}

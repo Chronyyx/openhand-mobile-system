@@ -58,4 +58,5 @@ public class EventStaffServiceImpl implements EventStaffService {
         registrationRepository.deleteByEventId(eventId);
         eventRepository.delete(event);
     }
+
 }

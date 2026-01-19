@@ -29,7 +29,17 @@
     "age": "Âge",
     "details": "Détails du profil",
     "edit": "Modifier le profil",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "addPhoto": "Ajouter une photo de profil",
+    "changePhoto": "Changer la photo de profil",
+    "uploadFailedTitle": "Televersement echoue",
+    "uploadFailedMessage": "Impossible de televerser la photo. Veuillez reessayer.",
+    "invalidImageTitle": "Image invalide",
+    "invalidImageMessage": "Veuillez choisir une image PNG, JPG ou WebP.",
+    "fileTooLargeTitle": "Fichier trop volumineux",
+    "fileTooLargeMessage": "Veuillez choisir une image de moins de 5 Mo.",
+    "permissionDeniedTitle": "Autorisation requise",
+    "permissionDeniedMessage": "Autorisez l'acces aux photos pour choisir une image."
   },
   "home": {
     "browseEvents": "Parcourir les événements",

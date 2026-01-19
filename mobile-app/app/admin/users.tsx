@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Image,
     Modal,
     Pressable,
     StyleSheet,
@@ -14,6 +15,7 @@ import { Redirect, useRouter } from 'expo-router';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
+import { resolvePublicUrl } from '../../utils/api';
 
 import {
     fetchAllUsers,
@@ -133,11 +135,21 @@ export default function AdminUsersScreen() {
 
     const renderRoleLabel = (role: string) => roleLabels[role as keyof typeof roleLabels] ?? role;
 
-    const renderUserItem = ({ item }: { item: ManagedUser }) => (
+    const renderUserItem = ({ item }: { item: ManagedUser }) => {
+        const avatarUrl = resolvePublicUrl(item.profileImageUrl);
+
+        return (
         <View style={styles.userCard}>
             <View style={styles.userHeader}>
                 <View style={styles.userAvatar}>
-                    <Ionicons name="person" size={18} color={ACCENT} />
+                    {avatarUrl ? (
+                        <Image
+                            source={{ uri: avatarUrl }}
+                            style={styles.userAvatarImage}
+                        />
+                    ) : (
+                        <Ionicons name="person" size={18} color={ACCENT} />
+                    )}
                 </View>
                 <View style={{ flex: 1 }}>
                     {item.name ? <Text style={styles.userNameList}>{item.name}</Text> : null}
@@ -162,7 +174,8 @@ export default function AdminUsersScreen() {
                 </Pressable>
             </View>
         </View>
-    );
+        );
+    };
 
     return (
         <View style={styles.container}>
@@ -405,6 +418,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#F0F6FF',
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
+    },
+    userAvatarImage: {
+        width: '100%',
+        height: '100%',
     },
     userNameList: {
         fontSize: 15,

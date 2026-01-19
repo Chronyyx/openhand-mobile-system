@@ -74,3 +74,12 @@ export const API_BASE = resolveApiBase();
 if (__DEV__) {
     console.log(`[API] Using base URL: ${API_BASE}`);
 }
+
+export const resolvePublicUrl = (path?: string | null): string | null => {
+    if (!path) return null;
+    if (/^https?:\/\//i.test(path)) return path;
+
+    const base = API_BASE.replace(/\/api\/?$/, '');
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return `${base}${normalizedPath}`;
+};

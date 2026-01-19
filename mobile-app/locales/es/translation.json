@@ -29,7 +29,17 @@
     "age": "Edad",
     "details": "Detalles del perfil",
     "edit": "Editar Perfil",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "addPhoto": "Agregar foto de perfil",
+    "changePhoto": "Cambiar foto de perfil",
+    "uploadFailedTitle": "Carga fallida",
+    "uploadFailedMessage": "No pudimos cargar la foto. Intenta de nuevo.",
+    "invalidImageTitle": "Imagen invalida",
+    "invalidImageMessage": "Elige una imagen PNG, JPG o WebP.",
+    "fileTooLargeTitle": "Archivo demasiado grande",
+    "fileTooLargeMessage": "Elige una imagen menor de 5 MB.",
+    "permissionDeniedTitle": "Permiso requerido",
+    "permissionDeniedMessage": "Permite acceso a fotos para elegir una imagen."
   },
   "home": {
     "browseEvents": "Explorar eventos",

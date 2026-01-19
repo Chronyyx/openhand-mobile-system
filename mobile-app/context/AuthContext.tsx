@@ -9,6 +9,7 @@ export interface User {
     email: string;
     roles: string[];
     name: string;
+    profileImageUrl?: string | null;
     phoneNumber: string;
     gender: string;
     age: number;
@@ -20,6 +21,7 @@ interface AuthContextProps {
     signIn: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
     signUp: (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => Promise<void>;
+    updateUser: (updates: Partial<User>) => Promise<void>;
     hasRole: (roles: string[]) => boolean;
 }
 
@@ -29,6 +31,7 @@ const AuthContext = createContext<AuthContextProps>({
     signIn: async () => { },
     signOut: async () => { },
     signUp: async () => { },
+    updateUser: async () => { },
     hasRole: () => false,
 });
 
@@ -71,6 +74,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await AuthService.register(email, password, roles, name, phoneNumber, gender, numericAge);
     };
 
+    const updateUser = async (updates: Partial<User>) => {
+        if (!user) return;
+        const nextUser = { ...user, ...updates };
+        setUser(nextUser);
+        await AuthService.setCurrentUser(nextUser);
+    };
+
     const hasRole = (allowedRoles: string[]) => {
         if (!user || !user.roles) {
             console.log('[AuthContext] hasRole: user or roles missing', { user: !!user, roles: user?.roles });
@@ -103,6 +113,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 signIn,
                 signOut,
                 signUp,
+                updateUser,
                 hasRole,
             }}
         >

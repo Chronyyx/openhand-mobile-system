@@ -119,6 +119,9 @@ public class AuthController {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
+        String profileImageUrl = userRepository.findByEmail(userDetails.getEmail())
+                .map(User::getProfileImageUrl)
+                .orElse(null);
 
         String userAgent = request.getHeader("User-Agent");
         if (userAgent == null) {
@@ -133,6 +136,7 @@ public class AuthController {
                 userDetails.getUsername(),
                 roles,
                 userDetails.getName(),
+                profileImageUrl,
                 userDetails.getPhoneNumber(),
                 userDetails.getGender(),
                 userDetails.getAge()));

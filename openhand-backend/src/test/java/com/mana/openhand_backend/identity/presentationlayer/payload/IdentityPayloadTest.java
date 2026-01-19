@@ -52,7 +52,7 @@ class IdentityPayloadTest {
     void testJwtResponse() {
         List<String> roles = Collections.singletonList("ROLE_USER");
         JwtResponse response = new JwtResponse("access", "refresh", 1L, "user@test.com", roles, "Test User",
-                "1234567890", "MALE", 30);
+                "/uploads/profile-pictures/test.jpg", "1234567890", "MALE", 30);
 
         // Test Setters if they exist
         response.setToken("access2");
@@ -61,6 +61,7 @@ class IdentityPayloadTest {
         response.setEmail("user2@test.com");
         response.setRoles(Collections.singletonList("ROLE_ADMIN"));
         response.setType("Bearer");
+        response.setProfileImageUrl("/uploads/profile-pictures/updated.jpg");
 
         assertEquals("access2", response.getToken());
         assertEquals("refresh2", response.getRefreshToken());
@@ -68,6 +69,7 @@ class IdentityPayloadTest {
         assertEquals("user2@test.com", response.getEmail());
         assertEquals(Collections.singletonList("ROLE_ADMIN"), response.getRoles());
         assertEquals("Bearer", response.getType());
+        assertEquals("/uploads/profile-pictures/updated.jpg", response.getProfileImageUrl());
     }
 
     @Test

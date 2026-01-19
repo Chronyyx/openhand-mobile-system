@@ -29,7 +29,17 @@
     "age": "Age",
     "details": "Profile Details",
     "edit": "Edit Profile",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "addPhoto": "Add profile picture",
+    "changePhoto": "Change profile picture",
+    "uploadFailedTitle": "Upload failed",
+    "uploadFailedMessage": "We couldn't upload your photo. Please try again.",
+    "invalidImageTitle": "Invalid image",
+    "invalidImageMessage": "Please select a PNG, JPG, or WebP image.",
+    "fileTooLargeTitle": "File too large",
+    "fileTooLargeMessage": "Please choose an image smaller than 5 MB.",
+    "permissionDeniedTitle": "Permission needed",
+    "permissionDeniedMessage": "Allow photo access to choose a profile picture."
   },
   "home": {
     "browseEvents": "Browse Events",

@@ -109,6 +109,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // Protect Audit Endpoints
                         .requestMatchers("/api/auth/**").authenticated()
+                        .requestMatchers("/uploads/profile-pictures/**").permitAll()
                         // TODO: Remove dev testing endpoints when proper profile-based gating is added
                         .requestMatchers("/api/dev/**").permitAll()
                         .requestMatchers("/api/events/**").permitAll()

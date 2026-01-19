@@ -82,6 +82,8 @@ class AuthControllerTest {
 
                 when(userDetails.getId()).thenReturn(1L);
                 when(userDetails.getUsername()).thenReturn("user@example.com");
+                when(userDetails.getEmail()).thenReturn("user@example.com");
+                when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(new User()));
 
                 RefreshToken refreshToken = new RefreshToken();
                 refreshToken.setToken("refresh-token");
@@ -303,6 +305,8 @@ class AuthControllerTest {
                 when(authentication.getPrincipal()).thenReturn(userDetails);
                 when(userDetails.getId()).thenReturn(1L);
                 when(userDetails.getUsername()).thenReturn("user@example.com");
+                when(userDetails.getEmail()).thenReturn("user@example.com");
+                when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
 
                 RefreshToken refreshToken = new RefreshToken();
                 refreshToken.setToken("refresh");
@@ -354,6 +358,8 @@ class AuthControllerTest {
                                 .thenReturn(authentication);
                 when(authentication.getPrincipal()).thenReturn(userDetails);
                 when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
+                when(userDetails.getEmail()).thenReturn("user@example.com");
+                when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(new User()));
                 // return a non-null collection
                 Collection<? extends GrantedAuthority> authorities = Collections
                                 .singletonList((GrantedAuthority) () -> "ROLE_MEMBER");

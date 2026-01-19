@@ -17,12 +17,14 @@ class JwtResponseTest {
         String email = "user@example.com";
         List<String> roles = List.of("ROLE_MEMBER", "ROLE_ADMIN");
         String name = "Test";
+        String profileImageUrl = "/uploads/profile-pictures/test.png";
         String phoneNumber = "123";
         String gender = "MALE";
         Integer age = 25;
 
         // act
-        JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, phoneNumber, gender, age);
+        JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, profileImageUrl,
+                phoneNumber, gender, age);
 
         // assert
         assertEquals(token, response.getToken());
@@ -31,6 +33,7 @@ class JwtResponseTest {
         assertEquals(email, response.getEmail());
         assertEquals(roles, response.getRoles());
         assertEquals(name, response.getName());
+        assertEquals(profileImageUrl, response.getProfileImageUrl());
         assertEquals(phoneNumber, response.getPhoneNumber());
         assertEquals(gender, response.getGender());
         assertEquals(age, response.getAge());
@@ -40,7 +43,8 @@ class JwtResponseTest {
 
     @Test
     void setters_updateFieldsCorrectly() {
-        JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n", "p", "g", 1);
+        JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n",
+                "/uploads/profile-pictures/old.png", "p", "g", 1);
 
         response.setToken("new-token");
         response.setRefreshToken("new-refresh-token");
@@ -49,6 +53,7 @@ class JwtResponseTest {
         response.setEmail("new@example.com");
         response.setRoles(List.of("ROLE_X"));
         response.setName("New Name");
+        response.setProfileImageUrl("/uploads/profile-pictures/new.png");
         response.setPhoneNumber("999");
         response.setGender("FEMALE");
         response.setAge(99);
@@ -60,6 +65,7 @@ class JwtResponseTest {
         assertEquals("new@example.com", response.getEmail());
         assertEquals(List.of("ROLE_X"), response.getRoles());
         assertEquals("New Name", response.getName());
+        assertEquals("/uploads/profile-pictures/new.png", response.getProfileImageUrl());
         assertEquals("999", response.getPhoneNumber());
         assertEquals("FEMALE", response.getGender());
         assertEquals(99, response.getAge());

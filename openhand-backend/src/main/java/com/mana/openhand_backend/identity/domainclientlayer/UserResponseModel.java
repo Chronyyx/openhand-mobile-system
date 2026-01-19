@@ -12,18 +12,20 @@ public class UserResponseModel {
     private Set<String> roles;
 
     private String name;
+    private String profileImageUrl;
     private String phoneNumber;
     private String gender;
     private Integer age;
     private String memberStatus;
     private LocalDateTime statusChangedAt;
 
-    public UserResponseModel(Long id, String email, Set<String> roles, String name, String phoneNumber, String gender,
-            Integer age, String memberStatus, LocalDateTime statusChangedAt) {
+    public UserResponseModel(Long id, String email, Set<String> roles, String name, String profileImageUrl,
+            String phoneNumber, String gender, Integer age, String memberStatus, LocalDateTime statusChangedAt) {
         this.id = id;
         this.email = email;
         this.roles = roles;
         this.name = name;
+        this.profileImageUrl = profileImageUrl;
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.age = age;
@@ -37,6 +39,7 @@ public class UserResponseModel {
                 user.getEmail(),
                 new HashSet<>(user.getRoles()),
                 user.getName(),
+                user.getProfileImageUrl(),
                 user.getPhoneNumber(),
                 user.getGender() != null ? user.getGender().name() : null,
                 user.getAge(),
@@ -50,6 +53,14 @@ public class UserResponseModel {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public String getPhoneNumber() {

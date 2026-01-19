@@ -26,6 +26,8 @@ public class User {
 
     private String name;
 
+    private String profileImageUrl;
+
     @Column(unique = true)
     private String phoneNumber;
 
@@ -55,6 +57,14 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
+    }
+
+    public void setProfileImageUrl(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 
     public String getPhoneNumber() {

@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Image, ActivityIndicator, Alert } from 'react-native';
 import { useRouter, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
+import { uploadProfilePicture } from '../../services/profile.service';
+import { resolvePublicUrl } from '../../utils/api';
 
 const ACCENT = '#0056A8';
 const SURFACE = '#F5F7FB';
@@ -13,8 +16,9 @@ const SURFACE = '#F5F7FB';
 export default function ProfileScreen() {
     const router = useRouter();
     const { t } = useTranslation();
-    const { user, signOut, hasRole } = useAuth();
+    const { user, signOut, hasRole, updateUser } = useAuth();
     const [menuVisible, setMenuVisible] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     const handleNavigateHome = () => {
         setMenuVisible(false);
@@ -34,6 +38,48 @@ export default function ProfileScreen() {
     const handleNavigateDashboard = () => {
         setMenuVisible(false);
         router.push('/admin');
+    };
+
+    const handlePickImage = async () => {
+        if (!user || uploading) return;
+
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert(t('profile.permissionDeniedTitle'), t('profile.permissionDeniedMessage'));
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            quality: 0.8,
+        });
+
+        if (result.canceled || !result.assets?.length) return;
+
+        const asset = result.assets[0];
+        setUploading(true);
+        try {
+            const response = await uploadProfilePicture(
+                asset.uri,
+                asset.mimeType,
+                asset.fileName,
+                user.token,
+                user.type,
+            );
+            await updateUser({ profileImageUrl: response.profileImageUrl ?? null });
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Upload failed';
+            if (message.includes('Invalid image')) {
+                Alert.alert(t('profile.invalidImageTitle'), t('profile.invalidImageMessage'));
+            } else if (message.includes('File too large')) {
+                Alert.alert(t('profile.fileTooLargeTitle'), t('profile.fileTooLargeMessage'));
+            } else {
+                Alert.alert(t('profile.uploadFailedTitle'), t('profile.uploadFailedMessage'));
+            }
+        } finally {
+            setUploading(false);
+        }
     };
 
     if (!user) {
@@ -62,6 +108,8 @@ export default function ProfileScreen() {
         );
     }
 
+    const avatarUrl = resolvePublicUrl(user.profileImageUrl);
+
     return (
         <View style={styles.container}>
             <AppHeader onMenuPress={() => setMenuVisible(true)} />
@@ -77,8 +125,34 @@ export default function ProfileScreen() {
                 <View style={styles.card}>
                     <View style={styles.avatarContainer}>
                         <View style={styles.avatar}>
-                            <Ionicons name="person" size={40} color={ACCENT} />
+                            {avatarUrl ? (
+                                <Image
+                                    source={{ uri: avatarUrl }}
+                                    style={styles.avatarImage}
+                                />
+                            ) : (
+                                <Ionicons name="person" size={40} color={ACCENT} />
+                            )}
                         </View>
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.photoButton,
+                                pressed && styles.photoButtonPressed,
+                            ]}
+                            onPress={handlePickImage}
+                            disabled={uploading}
+                        >
+                            {uploading ? (
+                                <ActivityIndicator color="#FFFFFF" />
+                            ) : (
+                                <>
+                                    <Ionicons name="camera-outline" size={16} color="#FFFFFF" />
+                                    <Text style={styles.photoButtonText}>
+                                        {user.profileImageUrl ? t('profile.changePhoto') : t('profile.addPhoto')}
+                                    </Text>
+                                </>
+                            )}
+                        </Pressable>
                         <Text style={styles.userName}>{user.name || user.email}</Text>
                         <Text style={styles.userEmail}>{user.email}</Text>
                         <View style={styles.rolesRow}>
@@ -203,6 +277,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
     },
     userName: {
         fontSize: 20,
@@ -219,6 +298,24 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
+    },
+    photoButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: ACCENT,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 18,
+        marginBottom: 12,
+    },
+    photoButtonPressed: {
+        opacity: 0.85,
+    },
+    photoButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+        fontSize: 12,
     },
     rolePill: {
         backgroundColor: '#F0F6FF',

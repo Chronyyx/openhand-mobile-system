@@ -33,6 +33,7 @@ class UserResponseModelTest {
         User user = new User("member@example.com", "pwd", new HashSet<>(Set.of("ROLE_MEMBER")));
         user.setId(25L);
         user.setName("Member");
+        user.setProfileImageUrl("/uploads/profile-pictures/test.png");
         user.setPhoneNumber("555-1234");
         user.setGender(Gender.MALE);
         user.setAge(42);
@@ -40,6 +41,7 @@ class UserResponseModelTest {
         UserResponseModel model = UserResponseModel.fromEntity(user);
 
         assertEquals("Member", model.getName());
+        assertEquals("/uploads/profile-pictures/test.png", model.getProfileImageUrl());
         assertEquals("555-1234", model.getPhoneNumber());
         assertEquals("MALE", model.getGender());
         assertEquals(42, model.getAge());
@@ -47,13 +49,14 @@ class UserResponseModelTest {
 
     @Test
     void setters_shouldUpdateFields() {
-        UserResponseModel model = new UserResponseModel(1L, "user@example.com", new HashSet<>(), null, null, null, null, null, null);
+        UserResponseModel model = new UserResponseModel(1L, "user@example.com", new HashSet<>(), null, null, null, null, null, null, null);
         LocalDateTime changedAt = LocalDateTime.of(2024, 1, 2, 3, 4);
 
         model.setId(2L);
         model.setEmail("updated@example.com");
         model.setRoles(Set.of("ROLE_ADMIN"));
         model.setName("Updated");
+        model.setProfileImageUrl("/uploads/profile-pictures/new.png");
         model.setPhoneNumber("555-7890");
         model.setGender("FEMALE");
         model.setAge(30);
@@ -64,6 +67,7 @@ class UserResponseModelTest {
         assertEquals("updated@example.com", model.getEmail());
         assertEquals(Set.of("ROLE_ADMIN"), model.getRoles());
         assertEquals("Updated", model.getName());
+        assertEquals("/uploads/profile-pictures/new.png", model.getProfileImageUrl());
         assertEquals("555-7890", model.getPhoneNumber());
         assertEquals("FEMALE", model.getGender());
         assertEquals(30, model.getAge());

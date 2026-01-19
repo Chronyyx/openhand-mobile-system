@@ -9,6 +9,7 @@ export type ManagedUser = {
     email: string;
     roles: string[];
     name: string;
+    profileImageUrl?: string | null;
     phoneNumber: string;
     gender: string;
     age: number;

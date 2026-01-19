@@ -27,8 +27,8 @@ public class EmployeeRegistrationController {
     private final UserRepository userRepository;
 
     public EmployeeRegistrationController(RegistrationService registrationService,
-                                          NotificationService notificationService,
-                                          UserRepository userRepository) {
+            NotificationService notificationService,
+            UserRepository userRepository) {
         this.registrationService = registrationService;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
@@ -37,7 +37,7 @@ public class EmployeeRegistrationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RegistrationResponseModel registerParticipant(@RequestBody EmployeeRegistrationRequestModel request,
-                                                         Authentication authentication) {
+            Authentication authentication) {
         Registration registration;
         try {
             registration = registrationService.registerForEvent(request.getUserId(), request.getEventId());
@@ -67,8 +67,8 @@ public class EmployeeRegistrationController {
                     request.getEventId(),
                     "EMPLOYEE_REGISTERED_PARTICIPANT",
                     language,
-                    participant.getName()
-            );
+                    participant.getName());
+
         } catch (Exception e) {
             // Do not block registration flow on notification failures
             System.err.println("Failed to notify actor about registration: " + e.getMessage());

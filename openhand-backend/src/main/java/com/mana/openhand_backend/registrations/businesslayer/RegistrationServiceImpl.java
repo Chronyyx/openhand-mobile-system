@@ -193,6 +193,14 @@ public class RegistrationServiceImpl implements RegistrationService {
         // and triggering the email notification only.
         if (savedRegistration.getStatus() == RegistrationStatus.CONFIRMED) {
             sendRegistrationConfirmationEmail(user, lockedEvent);
+
+            // Create in-app notification for the participant
+            String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            notificationService.createNotification(
+                    user.getId(),
+                    eventId,
+                    "REGISTRATION_CONFIRMATION",
+                    language);
         }
 
         return savedRegistration;

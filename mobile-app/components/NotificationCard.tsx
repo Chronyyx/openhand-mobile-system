@@ -99,7 +99,7 @@ export function NotificationCard({
         <Pressable onPress={() => onPress(notification)}>
             <ThemedView style={[styles.container, !notification.isRead && styles.unreadContainer]}>
                 {/* Unread indicator dot */}
-                {!notification.isRead && <View style={styles.unreadDot} />}
+
 
                 {/* Left icon */}
                 <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(notification.notificationType) }]}>
@@ -115,13 +115,19 @@ export function NotificationCard({
                     <ThemedText
                         type="subtitle"
                         numberOfLines={1}
-                        style={[styles.eventTitle, !notification.isRead && styles.eventTitleBold]}
+                        style={[
+                            styles.eventTitle,
+                            !notification.isRead && styles.eventTitleBold
+                        ]}
                     >
                         {displayedEventTitle}
                     </ThemedText>
                     <ThemedText
                         numberOfLines={2}
-                        style={styles.notificationText}
+                        style={[
+                            styles.notificationText,
+                            notification.isRead && styles.notificationTextRead
+                        ]}
                     >
                         {displayedNotificationText}
                     </ThemedText>
@@ -147,6 +153,9 @@ export function NotificationCard({
                         <Ionicons name="trash-outline" size={20} color="#dc3545" />
                     </Pressable>
                 </View>
+
+                {/* Unread indicator dot - Moved to top right absolute position */}
+                {!notification.isRead && <View style={styles.unreadDot} />}
             </ThemedView>
         </Pressable>
     );
@@ -164,17 +173,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F7FB',
         borderLeftWidth: 4,
         borderLeftColor: 'transparent',
+        // Ensure relative positioning for the absolute dot
+        position: 'relative',
     },
     unreadContainer: {
         backgroundColor: '#E6F4FE',
         borderLeftColor: '#0056A8',
     },
     unreadDot: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#0056A8',
-        marginRight: 8,
+        backgroundColor: '#dc3545', // Red color
     },
     iconContainer: {
         width: 48,
@@ -187,21 +200,25 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 1,
         justifyContent: 'center',
+        paddingRight: 16, // Add padding to avoid overlap with dot if needed, though dot is top-right
     },
     eventTitle: {
         fontSize: 14,
-        fontWeight: '600',
+        fontWeight: '400', // Normal weight for read items
         marginBottom: 4,
         color: '#333',
     },
     eventTitleBold: {
-        fontWeight: '700',
+        fontWeight: '700', // Bold for unread
     },
     notificationText: {
         fontSize: 13,
         color: '#666',
         marginBottom: 4,
         lineHeight: 18,
+    },
+    notificationTextRead: {
+        color: '#999', // Lighter color for read items
     },
     timeText: {
         fontSize: 11,

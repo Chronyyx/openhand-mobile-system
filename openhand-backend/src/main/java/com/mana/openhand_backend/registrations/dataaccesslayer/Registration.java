@@ -33,6 +33,8 @@ public class Registration {
 
     private LocalDateTime cancelledAt;
 
+    private LocalDateTime checkedInAt;
+
     private Integer waitlistedPosition;
 
     protected Registration() {
@@ -103,6 +105,14 @@ public class Registration {
 
     public void setCancelledAt(LocalDateTime cancelledAt) {
         this.cancelledAt = cancelledAt;
+    }
+
+    public LocalDateTime getCheckedInAt() {
+        return checkedInAt;
+    }
+
+    public void setCheckedInAt(LocalDateTime checkedInAt) {
+        this.checkedInAt = checkedInAt;
     }
 
     public Integer getWaitlistedPosition() {

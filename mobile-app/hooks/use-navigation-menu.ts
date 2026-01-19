@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export type NavigationMenuOptions = {
     showMyRegistrations?: boolean;
+    showAttendance?: boolean;
     showDashboard?: boolean;
     showProfile?: boolean;
 };
@@ -43,6 +44,7 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
     );
 
     const showMyRegistrations = options.showMyRegistrations ?? Boolean(user);
+    const showAttendance = options.showAttendance ?? hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
     const showDashboard = options.showDashboard ?? hasRole(['ROLE_ADMIN']);
     const showProfile = options.showProfile !== false;
 
@@ -55,6 +57,8 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
             onNavigateProfile: showProfile ? () => navigate('/profile') : undefined,
             onNavigateMyRegistrations: showMyRegistrations ? () => navigate('/registrations') : undefined,
             showMyRegistrations,
+            showAttendance,
+            onNavigateAttendance: showAttendance ? () => navigate('/admin/attendance') : undefined,
             showDashboard,
             onNavigateDashboard: showDashboard ? () => navigate('/admin') : undefined,
             t,
@@ -63,6 +67,7 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
             closeMenu,
             menuVisible,
             navigate,
+            showAttendance,
             showDashboard,
             showMyRegistrations,
             showProfile,

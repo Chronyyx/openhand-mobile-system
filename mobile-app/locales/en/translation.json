@@ -17,6 +17,7 @@
     "quickAccess": "Quick access",
     "home": "Home",
     "events": "Events",
+    "attendance": "Live Attendance",
     "myRegistrations": "My Registrations",
     "dashboard": "Dashboard",
     "profile": "Profile",
@@ -266,6 +267,42 @@
       "gala": "Recognition evening for MANA's intercultural heritage.",
       "distribution_mardi": "Solidarity food distribution for the community.",
       "formation_mediateur": "Training session for intercultural mediators."
+    }
+  },
+  "attendance": {
+    "title": "Live Attendance",
+    "subtitle": "Track arrivals and occupancy as events unfold.",
+    "loading": "Loading attendance...",
+    "loadError": "Unable to load attendance dashboard.",
+    "retry": "Retry",
+    "empty": "No events found.",
+    "searchPlaceholder": "Search events...",
+    "accessDenied": "This dashboard is for employees and administrators only.",
+    "fields": {
+      "registered": "Registered",
+      "checkedIn": "Checked in",
+      "occupancy": "Occupancy"
+    },
+    "occupancy": {
+      "value": "{{checkedIn}}/{{capacity}} ({{percent}}%)",
+      "unlimited": "{{count}} checked in"
+    },
+    "actions": {
+      "viewAttendees": "View attendees",
+      "checkIn": "Check in",
+      "undoCheckIn": "Undo check-in"
+    },
+    "attendees": {
+      "title": "Attendees",
+      "loading": "Loading attendees...",
+      "loadError": "Unable to load attendees.",
+      "searchPlaceholder": "Search by name or email",
+      "empty": "No attendees found.",
+      "unknownName": "Unknown attendee",
+      "checkedIn": "Checked in",
+      "notCheckedIn": "Not checked in",
+      "registeredCount": "{{count}} registered",
+      "checkedInCount": "{{count}} checked in"
     }
   },
   "registrations": {

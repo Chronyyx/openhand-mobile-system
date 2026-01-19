@@ -17,6 +17,7 @@
     "quickAccess": "Accès rapide",
     "home": "Accueil",
     "events": "Événements",
+    "attendance": "Présences en direct",
     "myRegistrations": "Mes inscriptions",
     "dashboard": "Tableau de bord",
     "profile": "Profil",
@@ -266,6 +267,42 @@
       "gala": "Soirée de reconnaissance du patrimoine interculturel MANA.",
       "distribution_mardi": "Distribution alimentaire solidaire pour la communauté.",
       "formation_mediateur": "Séance de formation pour les médiateurs interculturels."
+    }
+  },
+  "attendance": {
+    "title": "Présences en direct",
+    "subtitle": "Suivez les arrivées et l'occupation en temps réel.",
+    "loading": "Chargement des présences...",
+    "loadError": "Impossible de charger le tableau de bord des présences.",
+    "retry": "Réessayer",
+    "empty": "Aucun événement trouvé.",
+    "searchPlaceholder": "Rechercher des événements...",
+    "accessDenied": "Ce tableau de bord est réservé aux employés et aux administrateurs.",
+    "fields": {
+      "registered": "Inscrits",
+      "checkedIn": "Présents",
+      "occupancy": "Occupation"
+    },
+    "occupancy": {
+      "value": "{{checkedIn}}/{{capacity}} ({{percent}} %)",
+      "unlimited": "{{count}} présents"
+    },
+    "actions": {
+      "viewAttendees": "Voir les participants",
+      "checkIn": "Enregistrer l'arrivée",
+      "undoCheckIn": "Annuler l'arrivée"
+    },
+    "attendees": {
+      "title": "Participants",
+      "loading": "Chargement des participants...",
+      "loadError": "Impossible de charger les participants.",
+      "searchPlaceholder": "Rechercher par nom ou courriel",
+      "empty": "Aucun participant trouvé.",
+      "unknownName": "Participant inconnu",
+      "checkedIn": "Présent",
+      "notCheckedIn": "Non présent",
+      "registeredCount": "{{count}} inscrits",
+      "checkedInCount": "{{count}} présents"
     }
   },
   "registrations": {

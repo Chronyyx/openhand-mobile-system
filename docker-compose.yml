@@ -72,7 +72,7 @@ services:
       context: ./admin-web
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - ./admin-web:/app
       - /app/node_modules

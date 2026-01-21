@@ -39,5 +39,5 @@ jobs:
       - name: Build and Deploy
         run: |
           docker compose down
-          # Only start the Database and the Backend (Not mobile-app or admin-web)
-          docker compose up -d --build --remove-orphans backend db
+          # Start the Database, Backend, AND Admin Web
+          docker compose up -d --build --remove-orphans backend db admin-web

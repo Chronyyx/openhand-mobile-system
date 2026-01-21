@@ -63,7 +63,7 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Value("${openhand.app.cors.allowedOrigins:http://localhost:3000,http://localhost:8080}")
+    @Value("${openhand.app.cors.allowedOrigins:http://localhost:3000,http://localhost:8080,http://localhost:8081}")
     private String allowedOrigins;
 
     @Bean

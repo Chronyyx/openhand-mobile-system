@@ -55,6 +55,9 @@ class AuthControllerRegistrationTest {
     @MockBean
     private SendGridEmailService sendGridEmailService;
 
+    @MockBean
+    private com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetTokenRepository passwordResetTokenRepository;
+
     @Test
     void register_allowsBlankPhoneAndDoesNotBlockOnEmailFailure() throws Exception {
         SignupRequest request = new SignupRequest();
@@ -71,8 +74,8 @@ class AuthControllerRegistrationTest {
                 .sendAccountRegistrationConfirmation(anyString(), anyString());
 
         mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         verify(userRepository, never()).existsByPhoneNumber(anyString());

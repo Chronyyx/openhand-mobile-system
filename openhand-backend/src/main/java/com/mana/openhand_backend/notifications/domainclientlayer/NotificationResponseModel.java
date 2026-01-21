@@ -9,8 +9,8 @@ public class NotificationResponseModel {
     private String eventTitle;
     private String notificationType;
     private String textContent;
-    @JsonProperty("isRead")
     private boolean isRead;
+
     private String createdAt;
     private String readAt;
     private String eventStartDateTime;
@@ -19,23 +19,24 @@ public class NotificationResponseModel {
     public NotificationResponseModel() {
     }
 
-    public NotificationResponseModel(Long id, Long eventId, String eventTitle, 
-                                     String notificationType, String textContent, 
-                                     boolean isRead, String createdAt, String readAt) {
+    public NotificationResponseModel(Long id, Long eventId, String eventTitle,
+            String notificationType, String textContent,
+            boolean isRead, String createdAt, String readAt) {
         this(id, eventId, eventTitle, notificationType, textContent, isRead, createdAt, readAt, null, null);
     }
 
-    public NotificationResponseModel(Long id, Long eventId, String eventTitle, 
-                                     String notificationType, String textContent, 
-                                     boolean isRead, String createdAt, String readAt,
-                                     String eventStartDateTime) {
-        this(id, eventId, eventTitle, notificationType, textContent, isRead, createdAt, readAt, eventStartDateTime, null);
+    public NotificationResponseModel(Long id, Long eventId, String eventTitle,
+            String notificationType, String textContent,
+            boolean isRead, String createdAt, String readAt,
+            String eventStartDateTime) {
+        this(id, eventId, eventTitle, notificationType, textContent, isRead, createdAt, readAt, eventStartDateTime,
+                null);
     }
 
-    public NotificationResponseModel(Long id, Long eventId, String eventTitle, 
-                                     String notificationType, String textContent, 
-                                     boolean isRead, String createdAt, String readAt,
-                                     String eventStartDateTime, String participantName) {
+    public NotificationResponseModel(Long id, Long eventId, String eventTitle,
+            String notificationType, String textContent,
+            boolean isRead, String createdAt, String readAt,
+            String eventStartDateTime, String participantName) {
         this.id = id;
         this.eventId = eventId;
         this.eventTitle = eventTitle;
@@ -89,6 +90,7 @@ public class NotificationResponseModel {
         this.textContent = textContent;
     }
 
+    @JsonProperty("isRead")
     public boolean isRead() {
         return isRead;
     }

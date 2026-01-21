@@ -17,13 +17,20 @@ import java.util.Map;
  * Global exception handler for registration-related HTTP requests.
  * Provides consistent error responses with appropriate HTTP status codes.
  */
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class RegistrationExceptionHandler {
 
     /**
-     * Handles EventCapacityException - thrown when an event reaches capacity during registration.
-     * This indicates a race condition scenario where the event became full between checks.
-     * Returns HTTP 409 Conflict to inform the client that the registration was not successful
+     * Handles EventCapacityException - thrown when an event reaches capacity during
+     * registration.
+     * This indicates a race condition scenario where the event became full between
+     * checks.
+     * Returns HTTP 409 Conflict to inform the client that the registration was not
+     * successful
      * and to retry or handle appropriately (often placing user on waitlist).
      */
     @ExceptionHandler(EventCapacityException.class)
@@ -67,7 +74,8 @@ public class RegistrationExceptionHandler {
     }
 
     /**
-     * Handles RegistrationNotFoundException - thrown when a registration cannot be found.
+     * Handles RegistrationNotFoundException - thrown when a registration cannot be
+     * found.
      * Returns HTTP 404 Not Found.
      */
     @ExceptionHandler(RegistrationNotFoundException.class)

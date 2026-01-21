@@ -40,7 +40,7 @@ const Login: React.FC<LoginProps> = ({ setToken }) => {
                         <Lock className="w-8 h-8 text-blue-600" />
                     </div>
                 </div>
-                <h3 className="text-2xl font-bold text-center text-gray-800">Admin Login</h3>
+                <h3 className="text-2xl font-bold text-center text-gray-800">CI/CD WORKS!</h3>
                 <p className="mt-2 text-center text-sm text-gray-500">Access the secure audit logs</p>
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">

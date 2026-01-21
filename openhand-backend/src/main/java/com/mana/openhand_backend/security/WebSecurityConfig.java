@@ -98,14 +98,16 @@ public class WebSecurityConfig {
                             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                             boolean isAnonymous = auth == null || auth instanceof AnonymousAuthenticationToken;
                             if (isAnonymous) {
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
                             } else {
                                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
                             }
                         }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refreshtoken").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/refreshtoken",
+                                "/api/auth/forgot-password", "/api/auth/reset-password")
+                        .permitAll()
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // Protect Audit Endpoints
                         .requestMatchers("/api/auth/**").authenticated()

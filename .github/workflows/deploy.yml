@@ -1,0 +1,43 @@
+name: Deploy to Windows Server
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create .env files
+        shell: powershell
+        run: |
+          # --- Root .env (Backend & DB) ---
+          Set-Content -Path .env -Value "DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}"
+          Add-Content -Path .env -Value "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}"
+          Add-Content -Path .env -Value "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+          Add-Content -Path .env -Value "JWT_EXPIRATION_MS=86400000"
+          Add-Content -Path .env -Value "JWT_REFRESH_EXPIRATION_MS=604800000"
+          Add-Content -Path .env -Value "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}"
+          Add-Content -Path .env -Value "SENDGRID_FROM_EMAIL=${{ secrets.SENDGRID_FROM_EMAIL }}"
+          Add-Content -Path .env -Value "SENDGRID_FROM_NAME=${{ secrets.SENDGRID_FROM_NAME }}"
+          Add-Content -Path .env -Value "DATABASE_URL=jdbc:postgresql://db:5432/openhanddb"
+          # Use the PUBLIC_API_URL secret for CORS
+          Add-Content -Path .env -Value "CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,${{ secrets.PUBLIC_API_URL }}"
+          # For Docker Compose Substitution
+          Add-Content -Path .env -Value "EXPO_PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL }}/api"
+
+          # --- Mobile App .env (Code access) ---
+          if (!(Test-Path mobile-app)) { New-Item -ItemType Directory -Path mobile-app }
+          Set-Content -Path mobile-app/.env -Value "EXPO_PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL }}/api"
+          Add-Content -Path mobile-app/.env -Value "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}"
+          Add-Content -Path mobile-app/.env -Value "SENDGRID_FROM_EMAIL=${{ secrets.SENDGRID_FROM_EMAIL }}"
+          Add-Content -Path mobile-app/.env -Value "SENDGRID_FROM_NAME=${{ secrets.SENDGRID_FROM_NAME }}"
+
+      - name: Build and Deploy
+        run: |
+          docker compose down
+          # Only start the Database and the Backend (Not mobile-app or admin-web)
+          docker compose up -d --build --remove-orphans backend db

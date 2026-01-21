@@ -1,5 +1,5 @@
 // mobile-app/services/events.service.ts
-import { API_BASE } from '../utils/api';
+import apiClient from './api.client';
 
 export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL' | 'CANCELLED' | 'COMPLETED';
 
@@ -53,38 +53,27 @@ export type EventAttendeesResponse = {
     attendees: EventAttendee[];
 };
 
-async function handleResponse<T>(res: Response, context: string): Promise<T> {
-    if (!res.ok) {
-        throw new Error(`HTTP ${res.status} en chargeant ${context}`);
-    }
-    return res.json() as Promise<T>;
+async function handleResponse<T>(res: any, context: string): Promise<T> {
+    // Axios response data is already parsed
+    return res.data;
 }
 
 export async function getUpcomingEvents(): Promise<EventSummary[]> {
-    const url = `${API_BASE}/events/upcoming`;
-    const res = await fetch(url, { method: 'GET' });
-    return handleResponse<EventSummary[]>(res, "les événements");
+    const res = await apiClient.get('/events/upcoming');
+    return res.data;
 }
 
 export async function getEventById(id: number): Promise<EventDetail> {
-    const url = `${API_BASE}/events/${id}`;
-    const res = await fetch(url, { method: 'GET' });
-    return handleResponse<EventDetail>(res, "l'événement");
+    const res = await apiClient.get(`/events/${id}`);
+    return res.data;
 }
 
 export async function getRegistrationSummary(eventId: number): Promise<RegistrationSummary> {
-    const url = `${API_BASE}/events/${eventId}/registration-summary`;
-    const res = await fetch(url, { method: 'GET' });
-    return handleResponse<RegistrationSummary>(res, "le résumé des inscriptions");
+    const res = await apiClient.get(`/events/${eventId}/registration-summary`);
+    return res.data;
 }
 
-export async function getEventAttendees(eventId: number, token: string): Promise<EventAttendeesResponse> {
-    const url = `${API_BASE}/events/${eventId}/attendees`;
-    const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-    return handleResponse<EventAttendeesResponse>(res, "la liste des participants");
+export async function getEventAttendees(eventId: number): Promise<EventAttendeesResponse> {
+    const res = await apiClient.get(`/events/${eventId}/attendees`);
+    return res.data;
 }

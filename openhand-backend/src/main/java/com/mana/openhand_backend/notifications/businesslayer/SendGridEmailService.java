@@ -20,7 +20,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 /**
- * Email delivery via SendGrid. This service sits in the business layer to keep controllers thin.
+ * Email delivery via SendGrid. This service sits in the business layer to keep
+ * controllers thin.
  */
 @Service
 public class SendGridEmailService {
@@ -36,19 +37,20 @@ public class SendGridEmailService {
         this.senderProperties = senderProperties;
     }
 
-    public EmailSendResult sendRegistrationConfirmation(String toEmail, String recipientName, String eventTitle, String language) {
+    public EmailSendResult sendRegistrationConfirmation(String toEmail, String recipientName, String eventTitle,
+            String language) {
         LocalizedEmailContent content = registrationContent(eventTitle, language);
         return sendEmail(toEmail, recipientName, content.subject(), content.body());
     }
 
     public EmailSendResult sendReminder(String toEmail, String recipientName, String eventTitle,
-                                        LocalDateTime eventStartDateTime, String language) {
+            LocalDateTime eventStartDateTime, String language) {
         LocalizedEmailContent content = reminderContent(eventTitle, eventStartDateTime, language);
         return sendEmail(toEmail, recipientName, content.subject(), content.body());
     }
 
     public EmailSendResult sendCancellationOrUpdate(String toEmail, String recipientName, String eventTitle,
-                                                    String updateDetails, String language) {
+            String updateDetails, String language) {
         LocalizedEmailContent content = cancellationOrUpdateContent(eventTitle, updateDetails, language);
         return sendEmail(toEmail, recipientName, content.subject(), content.body());
     }
@@ -56,6 +58,20 @@ public class SendGridEmailService {
     public EmailSendResult sendAccountRegistrationConfirmation(String toEmail, String recipientName) {
         LocalizedEmailContent content = accountRegistrationContent(recipientName);
         return sendEmail(toEmail, recipientName, content.subject(), content.body());
+    }
+
+    public EmailSendResult sendPasswordResetCode(String toEmail, String code) {
+        LocalizedEmailContent content = passwordResetContent(code);
+        return sendEmail(toEmail, null, content.subject(), content.body());
+    }
+
+    private LocalizedEmailContent passwordResetContent(String code) {
+        String subject = "Your Password Reset Code";
+        String body = "You requested a password reset. Here is your code:\n\n"
+                + code + "\n\n"
+                + "This code will expire in 24 hours.\n"
+                + "If you did not request this, please ignore this email.";
+        return new LocalizedEmailContent(subject, body);
     }
 
     private EmailSendResult sendEmail(String toEmail, String recipientName, String subject, String body) {
@@ -95,11 +111,13 @@ public class SendGridEmailService {
             Response response = sendGrid.api(request);
 
             if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
-                logger.info("SendGrid email sent: subject='{}', to='{}', status={}", subject, toEmail, response.getStatusCode());
+                logger.info("SendGrid email sent: subject='{}', to='{}', status={}", subject, toEmail,
+                        response.getStatusCode());
                 return EmailSendResult.ok();
             }
 
-            String errorMsg = String.format("SendGrid responded with status %d: %s", response.getStatusCode(), response.getBody());
+            String errorMsg = String.format("SendGrid responded with status %d: %s", response.getStatusCode(),
+                    response.getBody());
             logger.error("Failed to send SendGrid email to {}. {}", toEmail, errorMsg);
             return EmailSendResult.failure(errorMsg);
         } catch (IOException ex) {
@@ -113,16 +131,13 @@ public class SendGridEmailService {
         return switch (lang) {
             case "fr" -> new LocalizedEmailContent(
                     "Confirmation d'inscription : " + eventTitle,
-                    "Vous êtes inscrit à l'événement \"" + eventTitle + "\". Merci de votre inscription."
-            );
+                    "Vous êtes inscrit à l'événement \"" + eventTitle + "\". Merci de votre inscription.");
             case "spa" -> new LocalizedEmailContent(
                     "Confirmación de registro: " + eventTitle,
-                    "Está registrado en el evento \"" + eventTitle + "\". Gracias por registrarse."
-            );
+                    "Está registrado en el evento \"" + eventTitle + "\". Gracias por registrarse.");
             default -> new LocalizedEmailContent(
                     "Registration confirmed: " + eventTitle,
-                    "You are registered for \"" + eventTitle + "\". Thank you for joining us."
-            );
+                    "You are registered for \"" + eventTitle + "\". Thank you for joining us.");
         };
     }
 
@@ -135,20 +150,18 @@ public class SendGridEmailService {
         return switch (lang) {
             case "fr" -> new LocalizedEmailContent(
                     "Rappel : " + eventTitle,
-                    "Rappel pour \"" + eventTitle + "\" le " + formattedDate + ". Nous avons hate de vous voir."
-            );
+                    "Rappel pour \"" + eventTitle + "\" le " + formattedDate + ". Nous avons hate de vous voir.");
             case "spa" -> new LocalizedEmailContent(
                     "Recordatorio: " + eventTitle,
-                    "Recordatorio para \"" + eventTitle + "\" el " + formattedDate + ". Lo esperamos."
-            );
+                    "Recordatorio para \"" + eventTitle + "\" el " + formattedDate + ". Lo esperamos.");
             default -> new LocalizedEmailContent(
                     "Reminder: " + eventTitle,
-                    "Reminder for \"" + eventTitle + "\" on " + formattedDate + ". We look forward to seeing you."
-            );
+                    "Reminder for \"" + eventTitle + "\" on " + formattedDate + ". We look forward to seeing you.");
         };
     }
 
-    private LocalizedEmailContent cancellationOrUpdateContent(String eventTitle, String updateDetails, String language) {
+    private LocalizedEmailContent cancellationOrUpdateContent(String eventTitle, String updateDetails,
+            String language) {
         String lang = normalizeLanguage(language);
         String details = (updateDetails == null || updateDetails.isBlank())
                 ? ""
@@ -157,16 +170,13 @@ public class SendGridEmailService {
         return switch (lang) {
             case "fr" -> new LocalizedEmailContent(
                     "Mise à jour importante : " + eventTitle,
-                    "Votre événement \"" + eventTitle + "\" a change ou est annule." + details
-            );
+                    "Votre événement \"" + eventTitle + "\" a change ou est annule." + details);
             case "spa" -> new LocalizedEmailContent(
                     "Actualización importante: " + eventTitle,
-                    "Su evento \"" + eventTitle + "\" ha cambiado o ha sido cancelado." + details
-            );
+                    "Su evento \"" + eventTitle + "\" ha cambiado o ha sido cancelado." + details);
             default -> new LocalizedEmailContent(
                     "Important update: " + eventTitle,
-                    "Your event \"" + eventTitle + "\" has changed or has been cancelled." + details
-            );
+                    "Your event \"" + eventTitle + "\" has changed or has been cancelled." + details);
         };
     }
 

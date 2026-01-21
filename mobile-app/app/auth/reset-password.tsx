@@ -13,43 +13,44 @@ import {
 } from "react-native";
 import { styles } from "../../styles/auth.login.styles";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../context/AuthContext";
-import { Link, useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import AuthService from "../../services/auth.service";
 
-export default function LoginScreen() {
-    const router = useRouter();
+export default function ResetPasswordScreen() {
     const { t } = useTranslation();
-    const { signIn } = useAuth();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const router = useRouter();
+    const params = useLocalSearchParams();
+
+    // Ensure params.email is treated as a string, handling array case if necessary
+    const initialEmail = Array.isArray(params.email) ? params.email[0] : (params.email as string) || "";
+
+    const [email, setEmail] = useState(initialEmail);
+    const [code, setCode] = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
-    const handleLogin = async () => {
-        // Basic email format validation (optional, skipped if input might be phone)
-        // We will just check if not empty for now, or ensure at least simple length
-
-        if (!email || !password) {
-            setError(t("auth.error.fill_all_fields_login"));
+    const handleSubmit = async () => {
+        if (!email || !code || !newPassword) {
+            setError(t('auth.error.fill_all_fields_reset'));
             return;
         }
 
-        // Removed strict email regex check to allow phone numbers
         setLoading(true);
         setError(null);
+        setMessage(null);
+
         try {
-            await signIn(email, password);
-            router.replace("/");
+            const res = await AuthService.resetPassword(email, code, newPassword);
+            setMessage(res.data.message);
+            setTimeout(() => {
+                router.replace("/auth/login");
+            }, 2000);
         } catch (e: any) {
-            if (e?.response?.status === 401) {
-                setError(t("auth.error.invalid_credentials"));
-            } else if (e?.response) {
-                setError(t("auth.error.login_failed"));
-            } else {
-                setError(t("auth.error.network_error"));
-            }
+            setError(e.response?.data?.message || t('auth.error.generic_reset_error'));
         } finally {
             setLoading(false);
         }
@@ -65,7 +66,6 @@ export default function LoginScreen() {
                 style={styles.container}
             >
                 <View style={styles.contentContainer}>
-                    {/* LOGO */}
                     <View style={styles.logoContainer}>
                         <Image
                             source={require("../../assets/mana/manaLogo.png")}
@@ -74,15 +74,14 @@ export default function LoginScreen() {
                         />
                     </View>
 
-                    <Text style={styles.title}>{t("auth.title")}</Text>
+                    <Text style={styles.title}>{t('auth.reset_password_title')}</Text>
 
-                    {/* INPUTS */}
                     <View style={styles.inputContainer}>
                         <View style={styles.inputWrapper}>
                             <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder={t("auth.email_placeholder")}
+                                placeholder={t('auth.email_placeholder')}
                                 placeholderTextColor="#999"
                                 value={email}
                                 onChangeText={setEmail}
@@ -92,16 +91,29 @@ export default function LoginScreen() {
                         </View>
 
                         <View style={styles.inputWrapper}>
+                            <Ionicons name="key-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <TextInput
+                                style={styles.input}
+                                placeholder={t('auth.six_digit_code_placeholder')}
+                                placeholderTextColor="#999"
+                                value={code}
+                                onChangeText={setCode}
+                                keyboardType="number-pad"
+                                maxLength={6}
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
                             <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder={t("auth.password_placeholder")}
+                                placeholder={t('auth.new_password_placeholder')}
                                 placeholderTextColor="#999"
-                                value={password}
-                                onChangeText={setPassword}
+                                value={newPassword}
+                                onChangeText={setNewPassword}
                                 secureTextEntry={!isPasswordVisible}
                             />
-                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility")}>
+                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
                                 <Ionicons
                                     name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                     size={20}
@@ -111,15 +123,6 @@ export default function LoginScreen() {
                         </View>
                     </View>
 
-                    <View style={{ alignItems: 'flex-end', marginBottom: 20 }}>
-                        <Link href="/auth/forgot-password" asChild>
-                            <TouchableOpacity>
-                                <Text style={{ color: '#0056A8', fontSize: 14 }}>{t('auth.forgot_password_link_login')}</Text>
-                            </TouchableOpacity>
-                        </Link>
-                    </View>
-
-                    {/* ERROR MESSAGE */}
                     {error && (
                         <View style={styles.errorContainer}>
                             <Ionicons name="alert-circle" size={18} color="#D32F2F" />
@@ -127,29 +130,28 @@ export default function LoginScreen() {
                         </View>
                     )}
 
-                    {/* LOGIN BUTTON */}
+                    {message && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: '#E8F5E9', borderRadius: 8 }}>
+                            <Ionicons name="checkmark-circle" size={18} color="#2E7D32" />
+                            <Text style={{ color: '#2E7D32', marginLeft: 8, flex: 1 }}>{message}</Text>
+                        </View>
+                    )}
+
                     <View style={styles.buttonContainer}>
                         {loading ? (
                             <ActivityIndicator size="large" color="#0056A8" />
                         ) : (
-                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.8}>
-                                <Text style={styles.loginButtonText}>{t("auth.login_button")}</Text>
+                            <TouchableOpacity style={styles.loginButton} onPress={handleSubmit} activeOpacity={0.8}>
+                                <Text style={styles.loginButtonText}>{t('auth.reset_password_button')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
 
-                    {/* REGISTER LINK */}
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>{t("auth.register_prompt")} </Text>
-                        <Link href="/auth/register" asChild>
-                            <TouchableOpacity>
-                                <Text style={styles.link}>{t("auth.register_link")}</Text>
-                            </TouchableOpacity>
-                        </Link>
-                    </View>
+                    <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+                        <Text style={{ color: '#0056A8', textAlign: 'center' }}>{t('auth.cancel_link')}</Text>
+                    </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
         </Wrapper>
     );
 }
-

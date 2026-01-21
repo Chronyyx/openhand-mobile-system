@@ -57,6 +57,9 @@ public class AuthController {
     @Autowired
     SendGridEmailService sendGridEmailService;
 
+    @Autowired
+    com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetTokenRepository passwordResetTokenRepository;
+
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
@@ -229,5 +232,55 @@ public class AuthController {
         }
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
+            String code = String.format("%06d", new java.security.SecureRandom().nextInt(999999));
+
+            com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetToken token = passwordResetTokenRepository
+                    .findByUser(user)
+                    .orElse(new com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetToken());
+
+            token.setUser(user);
+            token.setToken(code);
+            token.setExpiryDate(java.time.LocalDateTime.now().plusMinutes(30)); // 30 mins expiry
+            passwordResetTokenRepository.save(token);
+
+            sendGridEmailService.sendPasswordResetCode(user.getEmail(), code);
+        });
+
+        return ResponseEntity
+                .ok(new MessageResponse("If an account exists for this email, a reset code has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        var userOpt = userRepository.findByEmail(request.getEmail());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: Invalid email or code provided."));
+        }
+        User user = userOpt.get();
+
+        var tokenOpt = passwordResetTokenRepository.findByUser(user);
+        if (tokenOpt.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: Invalid email or code provided."));
+        }
+        com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetToken token = tokenOpt.get();
+
+        if (!token.getToken().equals(request.getCode()) || token.isExpired()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Error: Invalid or expired code"));
+        }
+
+        user.setPasswordHash(encoder.encode(request.getNewPassword()));
+        userRepository.save(user); // Save user first
+
+        // Delete token after successful reset
+        passwordResetTokenRepository.delete(token);
+
+        return ResponseEntity.ok(new MessageResponse("Password reset successfully!"));
     }
 }

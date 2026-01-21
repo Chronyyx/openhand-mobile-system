@@ -12,7 +12,8 @@ public class HealthController {
     public Map<String, String> health() {
         return Map.of(
                 "status", "UP",
-                "service", "OpenHand Backend"
+                "service", "OpenHand Backend",
+                "proof", "This is a proof of CI/CD."
         );
     }
 }

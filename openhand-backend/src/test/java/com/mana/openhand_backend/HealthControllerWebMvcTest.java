@@ -23,6 +23,7 @@ class HealthControllerWebMvcTest {
         mockMvc.perform(get("/api/health").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
-                .andExpect(jsonPath("$.service").value("OpenHand Backend"));
+                .andExpect(jsonPath("$.service").value("OpenHand Backend"))
+                .andExpect(jsonPath("$.proof").value("This is a proof of CI/CD."));
     }
 }

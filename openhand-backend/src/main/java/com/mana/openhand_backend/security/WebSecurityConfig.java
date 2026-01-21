@@ -116,6 +116,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/events/**").permitAll()
                         .requestMatchers("/api/registrations/**").authenticated()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/ws/**").permitAll() // Allow WebSocket handshake
                         .anyRequest().authenticated());
 

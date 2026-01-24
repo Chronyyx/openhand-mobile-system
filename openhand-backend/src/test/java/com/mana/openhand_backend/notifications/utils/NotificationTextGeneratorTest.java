@@ -256,6 +256,35 @@ class NotificationTextGeneratorTest {
     }
 
     @Test
+    void generateText_eventUpdate_withNullDateTime_usesTBD() {
+        String eventTitle = "Updated Event";
+        String result = textGenerator.generateText(
+                NotificationType.EVENT_UPDATE,
+                eventTitle,
+                "en",
+                null
+        );
+
+        assertTrue(result.contains(eventTitle));
+        assertTrue(result.contains("TBD"));
+    }
+
+    @Test
+    void generateText_employeeRegistered_defaultNameWhenMissing() {
+        String eventTitle = "Staff Event";
+        String result = textGenerator.generateText(
+                NotificationType.EMPLOYEE_REGISTERED_PARTICIPANT,
+                eventTitle,
+                "en",
+                null,
+                null
+        );
+
+        assertTrue(result.contains("participant"));
+        assertTrue(result.contains(eventTitle));
+    }
+
+    @Test
     void generateText_allNotificationTypes_generateUniqueText() {
         // Arrange
         String eventTitle = "Test Event";

@@ -53,6 +53,18 @@ public class GlobalExceptionHandler {
                                 .body(new MessageResponse("Error: " + ex.getMessage()));
         }
 
+        @ExceptionHandler(com.mana.openhand_backend.attendance.utils.AttendanceCheckInNotAllowedException.class)
+        public ResponseEntity<MessageResponse> handleAttendanceCheckInNotAllowed(RuntimeException ex) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(new MessageResponse("Error: " + ex.getMessage()));
+        }
+
+        @ExceptionHandler(com.mana.openhand_backend.attendance.utils.AttendanceRegistrationNotFoundException.class)
+        public ResponseEntity<MessageResponse> handleAttendanceRegistrationNotFound(RuntimeException ex) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(new MessageResponse("Error: " + ex.getMessage()));
+        }
+
         @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
         public ResponseEntity<MessageResponse> handleResponseStatusException(
                         org.springframework.web.server.ResponseStatusException ex) {

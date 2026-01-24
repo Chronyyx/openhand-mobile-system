@@ -134,7 +134,9 @@ public class AuthController {
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(), userAgent);
         String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
-                .fromCurrentContextPath()
+                .fromRequestUri(request)
+                .replacePath(null)
+                .replaceQuery(null)
                 .build()
                 .toUriString();
         String profilePictureUrl = profilePictureService.toPublicUrl(baseUrl, userDetails.getProfilePictureUrl());

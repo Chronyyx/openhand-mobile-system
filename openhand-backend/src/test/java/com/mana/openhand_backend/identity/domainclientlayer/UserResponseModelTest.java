@@ -47,7 +47,7 @@ class UserResponseModelTest {
 
     @Test
     void setters_shouldUpdateFields() {
-        UserResponseModel model = new UserResponseModel(1L, "user@example.com", new HashSet<>(), null, null, null, null, null, null);
+        UserResponseModel model = new UserResponseModel(1L, "user@example.com", new HashSet<>(), null, null, null, null, null, null, null);
         LocalDateTime changedAt = LocalDateTime.of(2024, 1, 2, 3, 4);
 
         model.setId(2L);
@@ -57,6 +57,7 @@ class UserResponseModelTest {
         model.setPhoneNumber("555-7890");
         model.setGender("FEMALE");
         model.setAge(30);
+        model.setProfilePictureUrl("/uploads/profile-pictures/example.jpg");
         model.setMemberStatus("INACTIVE");
         model.setStatusChangedAt(changedAt);
 
@@ -67,6 +68,7 @@ class UserResponseModelTest {
         assertEquals("555-7890", model.getPhoneNumber());
         assertEquals("FEMALE", model.getGender());
         assertEquals(30, model.getAge());
+        assertEquals("/uploads/profile-pictures/example.jpg", model.getProfilePictureUrl());
         assertEquals("INACTIVE", model.getMemberStatus());
         assertEquals(changedAt, model.getStatusChangedAt());
     }

@@ -20,9 +20,11 @@ class JwtResponseTest {
         String phoneNumber = "123";
         String gender = "MALE";
         Integer age = 25;
+        String profilePictureUrl = "/uploads/profile-pictures/pic.jpg";
 
         // act
-        JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, phoneNumber, gender, age);
+        JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, phoneNumber, gender, age,
+                profilePictureUrl);
 
         // assert
         assertEquals(token, response.getToken());
@@ -34,13 +36,15 @@ class JwtResponseTest {
         assertEquals(phoneNumber, response.getPhoneNumber());
         assertEquals(gender, response.getGender());
         assertEquals(age, response.getAge());
+        assertEquals(profilePictureUrl, response.getProfilePictureUrl());
 
         assertEquals("Bearer", response.getType());
     }
 
     @Test
     void setters_updateFieldsCorrectly() {
-        JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n", "p", "g", 1);
+        JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n", "p", "g", 1,
+                null);
 
         response.setToken("new-token");
         response.setRefreshToken("new-refresh-token");
@@ -52,6 +56,7 @@ class JwtResponseTest {
         response.setPhoneNumber("999");
         response.setGender("FEMALE");
         response.setAge(99);
+        response.setProfilePictureUrl("/uploads/profile-pictures/new.jpg");
 
         assertEquals("new-token", response.getToken());
         assertEquals("new-refresh-token", response.getRefreshToken());
@@ -63,5 +68,6 @@ class JwtResponseTest {
         assertEquals("999", response.getPhoneNumber());
         assertEquals("FEMALE", response.getGender());
         assertEquals(99, response.getAge());
+        assertEquals("/uploads/profile-pictures/new.jpg", response.getProfilePictureUrl());
     }
 }

@@ -30,7 +30,12 @@
     "age": "Age",
     "details": "Profile Details",
     "edit": "Edit Profile",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "pictureAction": "Add / Change Photo",
+    "picturePermissionTitle": "Photo Access Needed",
+    "picturePermissionMessage": "Enable photo library access to choose a profile picture.",
+    "pictureUploadErrorTitle": "Upload Failed",
+    "pictureUploadErrorMessage": "Unable to upload your photo. Please try again."
   },
   "home": {
     "browseEvents": "Browse Events",

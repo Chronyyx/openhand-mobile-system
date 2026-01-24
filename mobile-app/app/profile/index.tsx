@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
+import { getProfilePicture, uploadProfilePicture } from '../../services/profile-picture.service';
 
 const ACCENT = '#0056A8';
 const SURFACE = '#F5F7FB';
@@ -13,8 +16,12 @@ const SURFACE = '#F5F7FB';
 export default function ProfileScreen() {
     const router = useRouter();
     const { t } = useTranslation();
-    const { user, signOut, hasRole } = useAuth();
+    const { user, signOut, hasRole, updateUser } = useAuth();
     const [menuVisible, setMenuVisible] = useState(false);
+    const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
+        user?.profilePictureUrl ?? null
+    );
+    const [isUploading, setIsUploading] = useState(false);
 
     const handleNavigateHome = () => {
         setMenuVisible(false);
@@ -39,6 +46,68 @@ export default function ProfileScreen() {
     const handleNavigateAttendance = () => {
         setMenuVisible(false);
         router.push('/admin/attendance');
+    };
+
+    useEffect(() => {
+        setProfilePictureUrl(user?.profilePictureUrl ?? null);
+    }, [user?.profilePictureUrl]);
+
+    useEffect(() => {
+        const loadProfilePicture = async () => {
+            if (!user) return;
+            try {
+                const response = await getProfilePicture();
+                if (response.url) {
+                    setProfilePictureUrl(response.url);
+                    await updateUser({ profilePictureUrl: response.url });
+                }
+            } catch (error) {
+                console.warn('[Profile] Unable to load profile picture', error);
+            }
+        };
+        loadProfilePicture();
+    }, [user, updateUser]);
+
+    const handleChangeProfilePicture = async () => {
+        if (!user) return;
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+            Alert.alert(t('profile.picturePermissionTitle'), t('profile.picturePermissionMessage'));
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+        });
+
+        if (result.canceled) {
+            return;
+        }
+
+        const asset = result.assets[0];
+        if (!asset?.uri) {
+            Alert.alert(t('profile.pictureUploadErrorTitle'), t('profile.pictureUploadErrorMessage'));
+            return;
+        }
+
+        setIsUploading(true);
+        try {
+            const response = await uploadProfilePicture(asset.uri, asset.fileName, asset.mimeType);
+            if (response.url) {
+                setProfilePictureUrl(response.url);
+                await updateUser({ profilePictureUrl: response.url });
+            } else {
+                Alert.alert(t('profile.pictureUploadErrorTitle'), t('profile.pictureUploadErrorMessage'));
+            }
+        } catch (error) {
+            console.error('[Profile] Failed to upload profile picture', error);
+            Alert.alert(t('profile.pictureUploadErrorTitle'), t('profile.pictureUploadErrorMessage'));
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     if (!user) {
@@ -84,8 +153,29 @@ export default function ProfileScreen() {
                 <View style={styles.card}>
                     <View style={styles.avatarContainer}>
                         <View style={styles.avatar}>
-                            <Ionicons name="person" size={40} color={ACCENT} />
+                            {profilePictureUrl ? (
+                                <Image
+                                    source={{ uri: profilePictureUrl }}
+                                    style={styles.avatarImage}
+                                    contentFit="cover"
+                                />
+                            ) : (
+                                <Ionicons name="person" size={40} color={ACCENT} />
+                            )}
                         </View>
+                        <Pressable
+                            style={styles.pictureButton}
+                            onPress={handleChangeProfilePicture}
+                            disabled={isUploading}
+                        >
+                            {isUploading ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Text style={styles.pictureButtonText}>
+                                    {t('profile.pictureAction')}
+                                </Text>
+                            )}
+                        </Pressable>
                         <Text style={styles.userName}>{user.name || user.email}</Text>
                         <Text style={styles.userEmail}>{user.email}</Text>
                         <View style={styles.rolesRow}>
@@ -212,6 +302,25 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
+        overflow: 'hidden',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+    },
+    pictureButton: {
+        backgroundColor: ACCENT,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 16,
+        marginBottom: 16,
+        minWidth: 160,
+        alignItems: 'center',
+    },
+    pictureButtonText: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+        fontSize: 14,
     },
     userName: {
         fontSize: 20,

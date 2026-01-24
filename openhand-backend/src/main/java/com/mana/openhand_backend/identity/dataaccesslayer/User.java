@@ -34,6 +34,9 @@ public class User {
 
     private Integer age;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "varchar(255) default 'ACTIVE'")
     private MemberStatus memberStatus = MemberStatus.ACTIVE;
@@ -79,6 +82,14 @@ public class User {
 
     public void setAge(Integer age) {
         this.age = age;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 
     public Long getId() {

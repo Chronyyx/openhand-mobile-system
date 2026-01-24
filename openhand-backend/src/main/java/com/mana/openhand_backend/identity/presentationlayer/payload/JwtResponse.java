@@ -14,9 +14,10 @@ public class JwtResponse {
     private String phoneNumber;
     private String gender;
     private Integer age;
+    private String profilePictureUrl;
 
     public JwtResponse(String accessToken, String refreshToken, Long id, String email, List<String> roles, String name,
-            String phoneNumber, String gender, Integer age) {
+            String phoneNumber, String gender, Integer age, String profilePictureUrl) {
         this.token = accessToken;
         this.refreshToken = refreshToken;
         this.id = id;
@@ -26,6 +27,7 @@ public class JwtResponse {
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.age = age;
+        this.profilePictureUrl = profilePictureUrl;
     }
 
     public String getToken() {
@@ -106,5 +108,13 @@ public class JwtResponse {
 
     public void setAge(Integer age) {
         this.age = age;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
     }
 }

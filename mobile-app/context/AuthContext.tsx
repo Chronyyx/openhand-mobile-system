@@ -12,6 +12,7 @@ export interface User {
     phoneNumber: string;
     gender: string;
     age: number;
+    profilePictureUrl?: string | null;
 }
 
 interface AuthContextProps {
@@ -21,6 +22,7 @@ interface AuthContextProps {
     signOut: () => Promise<void>;
     signUp: (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => Promise<void>;
     hasRole: (roles: string[]) => boolean;
+    updateUser: (updates: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -30,6 +32,7 @@ const AuthContext = createContext<AuthContextProps>({
     signOut: async () => { },
     signUp: async () => { },
     hasRole: () => false,
+    updateUser: async () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -95,6 +98,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return result;
     };
 
+    const updateUser = async (updates: Partial<User>) => {
+        if (!user) {
+            return;
+        }
+        const nextUser = { ...user, ...updates };
+        setUser(nextUser);
+        await AuthService.storeUser(nextUser);
+    };
+
     return (
         <AuthContext.Provider
             value={{
@@ -104,6 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 signOut,
                 signUp,
                 hasRole,
+                updateUser,
             }}
         >
             {children}

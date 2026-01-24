@@ -30,7 +30,12 @@
     "age": "Âge",
     "details": "Détails du profil",
     "edit": "Modifier le profil",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "pictureAction": "Ajouter / changer la photo",
+    "picturePermissionTitle": "Accès aux photos requis",
+    "picturePermissionMessage": "Activez l'accès à la bibliothèque pour choisir une photo.",
+    "pictureUploadErrorTitle": "Échec de l'envoi",
+    "pictureUploadErrorMessage": "Impossible d'envoyer la photo. Réessayez."
   },
   "home": {
     "browseEvents": "Parcourir les événements",

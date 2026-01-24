@@ -58,11 +58,11 @@ class UserDetailsImplTest {
         @Test
         void equals_comparesByIdOnly() {
                 UserDetailsImpl d1 = new UserDetailsImpl(1L, "a@example.com", "pwd", true, Collections.emptyList(), "n",
-                                "p", "g", 1);
+                                "p", "g", 1, null);
                 UserDetailsImpl d2 = new UserDetailsImpl(1L, "b@example.com", "pwd2", false, Collections.emptyList(),
-                                "n2", "p2", "g2", 2);
+                                "n2", "p2", "g2", 2, null);
                 UserDetailsImpl d3 = new UserDetailsImpl(2L, "a@example.com", "pwd", true, Collections.emptyList(), "n",
-                                "p", "g", 1);
+                                "p", "g", 1, null);
 
                 assertEquals(d1, d2);
                 assertNotEquals(d1, d3);
@@ -71,7 +71,7 @@ class UserDetailsImplTest {
         @Test
         void accountAndCredentialsStatusFlags() {
                 UserDetailsImpl details = new UserDetailsImpl(1L, "user@example.com", "pwd", true,
-                                Collections.emptyList(), "n", "p", "g", 1);
+                                Collections.emptyList(), "n", "p", "g", 1, null);
 
                 assertTrue(details.isAccountNonExpired());
                 assertTrue(details.isCredentialsNonExpired());

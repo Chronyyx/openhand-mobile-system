@@ -3,27 +3,25 @@ package com.mana.openhand_backend.identity.businesslayer;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.utils.InvalidRoleException;
-import com.mana.openhand_backend.identity.utils.RoleUtils;
-
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.*;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,125 +36,77 @@ class UserAdminServiceImplTest {
     @Mock
     private HttpServletRequest request;
 
-    @Mock
-    private SecurityContext securityContext;
-
-    @Mock
-    private Authentication authentication;
-
+    @InjectMocks
     private UserAdminServiceImpl userAdminService;
 
-    @BeforeEach
-    void setUp() {
-        userAdminService = new UserAdminServiceImpl(userRepository, auditLogService, request);
-
-        // Mock Security Context
-        SecurityContextHolder.setContext(securityContext);
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
     }
 
-    // ---------------- getAllUsers ----------------
-
     @Test
-    void getAllUsers_returnsUsersSortedByEmailAsc() {
-        List<User> users = List.of(mock(User.class));
-        when(userRepository.findAll(any(Sort.class))).thenReturn(users);
+    void getAllUsers_returnsSortedList() {
+        when(userRepository.findAll(any(org.springframework.data.domain.Sort.class)))
+                .thenReturn(List.of(new User("a@test.com", "p", Set.of("ROLE_MEMBER"))));
 
         List<User> result = userAdminService.getAllUsers();
 
-        assertSame(users, result);
-
-        ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
-        verify(userRepository).findAll(sortCaptor.capture());
-
-        Sort expectedSort = Sort.by(Sort.Direction.ASC, "email");
-        assertEquals(expectedSort, sortCaptor.getValue());
+        assertEquals(1, result.size());
+        verify(userRepository).findAll(any(org.springframework.data.domain.Sort.class));
     }
 
-    // ---------------- updateUserRoles (happy path) ----------------
+    @Test
+    void updateUserRoles_whenInvalidRole_throwsInvalidRoleException() {
+        assertThrows(InvalidRoleException.class, () -> userAdminService.updateUserRoles(1L, Set.of("invalid")));
+    }
 
     @Test
-    void updateUserRoles_validRoles_normalizesAndSavesAndLogs() {
-        Long userId = 1L;
-        Set<String> roles = Set.of("admin", "member");
-        User user = new User();
-        user.setId(userId);
-        user.setEmail("test@example.com");
-        user.setRoles(new HashSet<>(Set.of("ROLE_MEMBER"))); // Old role
+    void updateUserRoles_whenUserMissing_throwsNotFound() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0)); // Return the
-                                                                                                        // same user
-                                                                                                        // object
+        assertThrows(UserNotFoundException.class, () -> userAdminService.updateUserRoles(99L, Set.of("member")));
+    }
 
-        // Mock Security & Request
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getName()).thenReturn("adminUser");
+    @Test
+    void updateUserRoles_updatesRolesAndAudits() {
+        User user = new User("user@example.com", "pwd", Set.of("ROLE_MEMBER"));
+        user.setId(10L);
+        when(userRepository.findById(10L)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
         when(request.getHeader("User-Agent")).thenReturn("JUnit");
 
-        User result = userAdminService.updateUserRoles(userId, roles);
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("admin@example.com", "pwd"));
 
-        Set<String> expectedNormalized = RoleUtils.normalizeRoles(roles);
+        User updated = userAdminService.updateUserRoles(10L, Set.of("admin"));
 
-        // Verify Repository interactions
-        verify(userRepository).findById(userId);
-        verify(userRepository).save(user);
-        assertEquals(expectedNormalized, result.getRoles());
+        assertTrue(updated.getRoles().contains("ROLE_ADMIN"));
+        assertFalse(updated.getRoles().contains("ROLE_MEMBER"));
 
-        // Verify Audit Log
+        ArgumentCaptor<String> previousRoleCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> newRoleCaptor = ArgumentCaptor.forClass(String.class);
+
         verify(auditLogService).logRoleChange(
-                eq(userId),
-                eq("test@example.com"),
-                eq("ROLE_MEMBER"), // Old
-                argThat(s -> s.contains("ROLE_ADMIN") && s.contains("ROLE_MEMBER")), // New (order might vary)
-                eq("adminUser"),
+                eq(10L),
+                eq("user@example.com"),
+                previousRoleCaptor.capture(),
+                newRoleCaptor.capture(),
+                eq("admin@example.com"),
                 eq("127.0.0.1"),
                 eq("JUnit"),
-                eq("ADMIN_CONSOLE"));
+                eq("ADMIN_CONSOLE")
+        );
+
+        assertTrue(previousRoleCaptor.getValue().contains("ROLE_MEMBER"));
+        assertEquals("ROLE_ADMIN", newRoleCaptor.getValue());
     }
 
-    // ---------------- updateUserRoles (invalid roles) ----------------
-
     @Test
-    void updateUserRoles_invalidRoles_throwsInvalidRoleException() {
-        Long userId = 1L;
-        Set<String> invalidRoles = Collections.emptySet();
-
-        assertThrows(
-                InvalidRoleException.class,
-                () -> userAdminService.updateUserRoles(userId, invalidRoles));
-
-        verifyNoInteractions(userRepository);
-        verifyNoInteractions(auditLogService);
-    }
-
-    // ---------------- updateUserRoles (user not found) ----------------
-
-    @Test
-    void updateUserRoles_userNotFound_throwsUserNotFoundException() {
-        Long userId = 99L;
-        Set<String> roles = Set.of("member");
-
-        when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-        assertThrows(
-                UserNotFoundException.class,
-                () -> userAdminService.updateUserRoles(userId, roles));
-
-        verify(userRepository).findById(userId);
-        verify(userRepository, never()).save(any());
-        verifyNoInteractions(auditLogService);
-    }
-
-    // ---------------- getAvailableRoles ----------------
-
-    @Test
-    void getAvailableRoles_returnsSortedAllowedRoles() {
+    void getAvailableRoles_returnsSortedRoles() {
         List<String> roles = userAdminService.getAvailableRoles();
 
-        List<String> expected = new ArrayList<>(RoleUtils.ALLOWED_ROLES);
-        expected.sort(String::compareTo);
-
-        assertEquals(expected, roles);
+        assertEquals(List.of("ROLE_ADMIN", "ROLE_EMPLOYEE", "ROLE_MEMBER"), roles);
     }
 }

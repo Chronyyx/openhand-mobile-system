@@ -79,6 +79,9 @@ class AuthControllerWebMvcTest {
     @MockBean
     private ProfilePictureService profilePictureService;
 
+    @MockBean
+    private com.mana.openhand_backend.identity.businesslayer.UserMemberService userMemberService;
+
     @Test
     void login_success_returnsJwtPayload() throws Exception {
         LoginRequest request = new LoginRequest();
@@ -104,6 +107,12 @@ class AuthControllerWebMvcTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
+        
+        User user = new User();
+        user.setId(1L);
+        user.setMemberStatus(com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus.ACTIVE);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        
         when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt");
 
         RefreshToken refreshToken = new RefreshToken();
@@ -150,6 +159,12 @@ class AuthControllerWebMvcTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
+        
+        User user = new User();
+        user.setId(1L);
+        user.setMemberStatus(com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus.ACTIVE);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        
         when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt");
 
         mockMvc.perform(post("/api/auth/login")

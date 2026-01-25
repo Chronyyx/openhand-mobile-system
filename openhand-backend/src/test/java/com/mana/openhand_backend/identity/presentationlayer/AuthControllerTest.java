@@ -3,12 +3,14 @@ package com.mana.openhand_backend.identity.presentationlayer;
 import com.mana.openhand_backend.identity.dataaccesslayer.RefreshToken;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 import com.mana.openhand_backend.identity.presentationlayer.payload.JwtResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.LoginRequest;
 import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
 import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
 import com.mana.openhand_backend.identity.presentationlayer.payload.TokenRefreshRequest;
 import com.mana.openhand_backend.identity.businesslayer.ProfilePictureService;
+import com.mana.openhand_backend.identity.businesslayer.UserMemberService;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
 import com.mana.openhand_backend.security.services.InvalidRefreshTokenException;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
@@ -63,6 +65,9 @@ class AuthControllerTest {
         @Mock
         ProfilePictureService profilePictureService;
 
+        @Mock
+        UserMemberService userMemberService;
+
         @InjectMocks
         AuthController authController;
 
@@ -86,6 +91,11 @@ class AuthControllerTest {
 
                 when(userDetails.getId()).thenReturn(1L);
                 when(userDetails.getUsername()).thenReturn("user@example.com");
+
+                User user = new User();
+                user.setId(1L);
+                user.setMemberStatus(MemberStatus.ACTIVE);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
                 RefreshToken refreshToken = new RefreshToken();
                 refreshToken.setToken("refresh-token");
@@ -360,7 +370,14 @@ class AuthControllerTest {
                 when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                                 .thenReturn(authentication);
                 when(authentication.getPrincipal()).thenReturn(userDetails);
+                when(userDetails.getId()).thenReturn(1L);
                 when(jwtUtils.generateJwtToken(authentication)).thenReturn("jwt-token");
+
+                User user = new User();
+                user.setId(1L);
+                user.setMemberStatus(MemberStatus.ACTIVE);
+                when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
                 // return a non-null collection
                 Collection<? extends GrantedAuthority> authorities = Collections
                                 .singletonList((GrantedAuthority) () -> "ROLE_MEMBER");
@@ -426,5 +443,90 @@ class AuthControllerTest {
                 TokenRefreshResponse body = (TokenRefreshResponse) response.getBody();
                 assertEquals("new-access", body.getAccessToken());
                 assertEquals("new-refresh", body.getRefreshToken());
+        }
+
+        @Test
+        void deactivateAuthenticatedAccount_setsInactive_andRevokesTokens() {
+                // arrange
+                User user = new User();
+                user.setId(5L);
+                user.setEmail("test@mana.org");
+                user.setMemberStatus(MemberStatus.ACTIVE);
+
+                UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+                when(userDetails.getId()).thenReturn(5L);
+
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getPrincipal()).thenReturn(userDetails);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                User deactivated = new User();
+                deactivated.setId(5L);
+                deactivated.setEmail("test@mana.org");
+                deactivated.setMemberStatus(MemberStatus.INACTIVE);
+
+                when(userMemberService.deactivateAccount(5L)).thenReturn(deactivated);
+
+                // act
+                ResponseEntity<?> response = authController.deactivateAuthenticatedAccount();
+
+                // assert
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                verify(userMemberService).deactivateAccount(5L);
+                verify(refreshTokenService).deleteByUserId(5L);
+        }
+
+        @Test
+        void authenticateUser_whenUserIsDeactivated_throwsBadCredentialsException() {
+                // arrange
+                LoginRequest loginRequest = new LoginRequest();
+                loginRequest.setEmail("inactive@example.com");
+                loginRequest.setPassword("password");
+
+                HttpServletRequest request = mock(HttpServletRequest.class);
+
+                Authentication authentication = mock(Authentication.class);
+                UserDetailsImpl userDetails = mock(UserDetailsImpl.class);
+                when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                                .thenReturn(authentication);
+                when(authentication.getPrincipal()).thenReturn(userDetails);
+                when(userDetails.getId()).thenReturn(10L);
+
+                User user = new User();
+                user.setId(10L);
+                user.setMemberStatus(MemberStatus.INACTIVE);
+                when(userRepository.findById(10L)).thenReturn(Optional.of(user));
+
+                // act & assert
+                assertThrows(BadCredentialsException.class,
+                                () -> authController.authenticateUser(loginRequest, request));
+
+                verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+                verify(userRepository).findById(10L);
+        }
+
+        @Test
+        void refreshtoken_whenUserIsDeactivated_deletesTokensAndThrowsException() {
+                // arrange
+                TokenRefreshRequest req = new TokenRefreshRequest();
+                req.setRefreshToken("refresh-token");
+                HttpServletRequest request = mock(HttpServletRequest.class);
+
+                RefreshToken token = new RefreshToken();
+                token.setToken("refresh-token");
+                User user = new User();
+                user.setId(15L);
+                user.setMemberStatus(MemberStatus.INACTIVE);
+                token.setUser(user);
+
+                when(refreshTokenService.findByToken("refresh-token")).thenReturn(Optional.of(token));
+                when(refreshTokenService.verifyExpiration(token)).thenReturn(token);
+                when(refreshTokenService.rotateRefreshToken(token)).thenReturn(token);
+
+                // act & assert
+                assertThrows(InvalidRefreshTokenException.class,
+                                () -> authController.refreshtoken(req, request));
+
+                verify(refreshTokenService).deleteByUserId(15L);
         }
 }

@@ -1,9 +1,11 @@
 package com.mana.openhand_backend.identity.presentationlayer;
 
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 import com.mana.openhand_backend.identity.dataaccesslayer.RefreshToken;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.presentationlayer.payload.*;
+import com.mana.openhand_backend.identity.domainclientlayer.UserResponseModel;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
 import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import org.slf4j.Logger;
@@ -59,6 +61,9 @@ public class AuthController {
 
     @Autowired
     com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @Autowired
+    com.mana.openhand_backend.identity.businesslayer.UserMemberService userMemberService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
@@ -116,9 +121,16 @@ public class AuthController {
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
-
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        // Prevent login for deactivated members.
+        User userEntity = userRepository.findById(userDetails.getId())
+            .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
+        if (userEntity.getMemberStatus() == MemberStatus.INACTIVE) {
+            throw new BadCredentialsException("Account has been deactivated");
+        }
+
+        String jwt = jwtUtils.generateJwtToken(authentication);
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
@@ -131,14 +143,16 @@ public class AuthController {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(), userAgent);
 
         return ResponseEntity.ok(new JwtResponse(jwt,
-                refreshToken.getToken(),
-                userDetails.getId(),
-                userDetails.getUsername(),
-                roles,
-                userDetails.getName(),
-                userDetails.getPhoneNumber(),
-                userDetails.getGender(),
-                userDetails.getAge()));
+            refreshToken.getToken(),
+            userDetails.getId(),
+            userDetails.getUsername(),
+            roles,
+            userDetails.getName(),
+            userDetails.getPhoneNumber(),
+            userDetails.getGender(),
+            userDetails.getAge(),
+            userEntity.getMemberStatus(),
+            userEntity.getStatusChangedAt()));
     }
 
     @PostMapping("/refreshtoken")
@@ -163,6 +177,10 @@ public class AuthController {
                     // refactor JwtUtils
                     // For now, let's create a UsernamePasswordAuthenticationToken
                     User user = newToken.getUser();
+                    if (user.getMemberStatus() == MemberStatus.INACTIVE) {
+                        refreshTokenService.deleteByUserId(user.getId());
+                        throw new InvalidRefreshTokenException("Account has been deactivated");
+                    }
                     UserDetailsImpl userDetails = UserDetailsImpl.build(user);
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
@@ -282,5 +300,16 @@ public class AuthController {
         passwordResetTokenRepository.delete(token);
 
         return ResponseEntity.ok(new MessageResponse("Password reset successfully!"));
+    }
+
+    @PostMapping("/deactivate")
+    public ResponseEntity<?> deactivateAuthenticatedAccount() {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        Long userId = userDetails.getId();
+
+        User updated = userMemberService.deactivateAccount(userId);
+        refreshTokenService.deleteByUserId(userId);
+        return ResponseEntity.ok(UserResponseModel.fromEntity(updated));
     }
 }

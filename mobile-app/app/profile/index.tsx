@@ -116,6 +116,19 @@ export default function ProfileScreen() {
                             </View>
                             <Ionicons name="chevron-forward" size={18} color={ACCENT} />
                         </Pressable>
+
+                        <Pressable
+                            style={[styles.settingsItem, styles.settingsDangerItem]}
+                            onPress={() => router.push('/settings/deactivate' as Href)}
+                        >
+                            <View style={styles.settingsItemLeft}>
+                                <Ionicons name="alert-circle-outline" size={20} color="#C62828" />
+                                <Text style={[styles.settingsItemText, { color: '#C62828' }]}>
+                                    {t('settings.account.deactivateLink')}
+                                </Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color="#C62828" />
+                        </Pressable>
                     </View>
                 )}
 
@@ -314,6 +327,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#F8FAFE',
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: '#D9E5FF',
+    },
+    settingsDangerItem: {
+        marginTop: 8,
+        backgroundColor: '#FEF2F2',
+        borderColor: '#F8BBD0',
     },
     settingsItemLeft: {
         flexDirection: 'row',

@@ -29,19 +29,10 @@ export default function DeactivateAccountScreen() {
         setLoading(true);
         try {
             await deactivateAccount();
-            Alert.alert(
-                t('settings.account.successTitle'),
-                t('settings.account.successMessage'),
-                [
-                    {
-                        text: t('common.confirm'),
-                        onPress: async () => {
-                            await signOut();
-                            router.replace('/');
-                        }
-                    }
-                ]
-            );
+            // Immediately log out and send the user home so the session is cleared on all platforms (web/native).
+            await signOut();
+            router.replace('/');
+            Alert.alert(t('settings.account.successTitle'), t('settings.account.successMessage'));
         } catch (e: any) {
             const message = e?.response?.data?.message || t('settings.account.error');
             setError(message);

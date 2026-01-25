@@ -95,7 +95,11 @@ export default function ProfileScreen() {
 
         setIsUploading(true);
         try {
-            const response = await uploadProfilePicture(asset.uri, asset.fileName, asset.mimeType);
+            const response = await uploadProfilePicture(
+                asset.uri,
+                asset.fileName ?? undefined,
+                asset.mimeType ?? undefined
+            );
             if (response.url) {
                 setProfilePictureUrl(response.url);
                 await updateUser({ profilePictureUrl: response.url });

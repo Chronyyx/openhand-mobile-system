@@ -165,6 +165,20 @@
         "loadFailed": "Unable to load preferences.",
         "updateFailed": "Unable to update preferences."
       }
+    },
+    "account": {
+      "deactivateLink": "Deactivate account",
+      "title": "Deactivate account",
+      "subtitle": "You will be signed out and will no longer be able to log in.",
+      "warningTitle": "This action is permanent",
+      "warningBody": "Your account will be deactivated immediately. Your data stays on file for record keeping.",
+      "confirmationLabel": "Type 'deactivate' to confirm",
+      "confirmationPlaceholder": "deactivate",
+      "confirmationError": "Please type 'deactivate' to continue.",
+      "deactivateButton": "Deactivate my account",
+      "successTitle": "Account deactivated",
+      "successMessage": "You have been signed out. If you need help, contact support.",
+      "error": "Unable to deactivate your account right now."
     }
   },
   "modal": {
@@ -364,6 +378,7 @@
       "management": "Management",
       "adminOnly": "Admin",
       "users": "Users",
+    "inactiveMember": "Your account is deactivated. You cannot register for events.",
       "usersDescription": "View accounts and update their roles",
       "events": "Events",
       "eventsDescription": "Create and manage upcoming events"

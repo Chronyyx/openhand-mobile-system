@@ -4,6 +4,7 @@ import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 import com.mana.openhand_backend.identity.dataaccesslayer.RefreshToken;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.identity.businesslayer.ProfilePictureService;
 import com.mana.openhand_backend.identity.presentationlayer.payload.*;
 import com.mana.openhand_backend.identity.domainclientlayer.UserResponseModel;
 import com.mana.openhand_backend.identity.utils.RoleUtils;
@@ -58,6 +59,9 @@ public class AuthController {
 
     @Autowired
     SendGridEmailService sendGridEmailService;
+
+    @Autowired
+    ProfilePictureService profilePictureService;
 
     @Autowired
     com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetTokenRepository passwordResetTokenRepository;
@@ -141,6 +145,13 @@ public class AuthController {
         }
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getId(), userAgent);
+        String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
+                .fromRequestUri(request)
+                .replacePath(null)
+                .replaceQuery(null)
+                .build()
+                .toUriString();
+        String profilePictureUrl = profilePictureService.toPublicUrl(baseUrl, userDetails.getProfilePictureUrl());
 
         return ResponseEntity.ok(new JwtResponse(jwt,
             refreshToken.getToken(),
@@ -152,7 +163,8 @@ public class AuthController {
             userDetails.getGender(),
             userDetails.getAge(),
             userEntity.getMemberStatus(),
-            userEntity.getStatusChangedAt()));
+            userEntity.getStatusChangedAt(),
+            profilePictureUrl));
     }
 
     @PostMapping("/refreshtoken")

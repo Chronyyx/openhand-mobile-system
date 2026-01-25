@@ -29,10 +29,11 @@ public class UserDetailsImpl implements UserDetails {
     private String phoneNumber;
     private String gender;
     private Integer age;
+    private String profilePictureUrl;
 
     public UserDetailsImpl(Long id, String email, String password, boolean accountNonLocked,
             Collection<? extends GrantedAuthority> authorities, String name, String phoneNumber, String gender,
-            Integer age) {
+            Integer age, String profilePictureUrl) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -42,6 +43,7 @@ public class UserDetailsImpl implements UserDetails {
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.age = age;
+        this.profilePictureUrl = profilePictureUrl;
     }
 
     public static UserDetailsImpl build(User user) {
@@ -58,7 +60,8 @@ public class UserDetailsImpl implements UserDetails {
                 user.getName(),
                 user.getPhoneNumber(),
                 user.getGender() != null ? user.getGender().name() : null,
-                user.getAge());
+                user.getAge(),
+                user.getProfilePictureUrl());
     }
 
     @Override
@@ -88,6 +91,10 @@ public class UserDetailsImpl implements UserDetails {
 
     public Integer getAge() {
         return age;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
     }
 
     @Override

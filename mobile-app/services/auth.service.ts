@@ -36,6 +36,7 @@ const login = (email: string, password: string) => {
                     age: response.data.age,
                     memberStatus: response.data.memberStatus,
                     statusChangedAt: response.data.statusChangedAt,
+                    profilePictureUrl: response.data.profilePictureUrl ?? null,
                 };
                 console.log(`[AuthService] Storing user.`);
                 await setItem('userToken', JSON.stringify(userToStore));
@@ -68,6 +69,10 @@ const getCurrentUser = async () => {
     return null;
 };
 
+const storeUser = async (user: unknown) => {
+    await setItem('userToken', JSON.stringify(user));
+};
+
 const AuthService = {
     register,
     login,
@@ -75,6 +80,7 @@ const AuthService = {
     getCurrentUser,
     forgotPassword,
     resetPassword,
+    storeUser,
 };
 
 export default AuthService;

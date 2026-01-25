@@ -3,6 +3,7 @@ package com.mana.openhand_backend.identity.presentationlayer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
+import com.mana.openhand_backend.identity.businesslayer.ProfilePictureService;
 import com.mana.openhand_backend.identity.presentationlayer.payload.SignupRequest;
 import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
@@ -56,6 +57,9 @@ class AuthControllerRegistrationTest {
     private SendGridEmailService sendGridEmailService;
 
     @MockBean
+    private ProfilePictureService profilePictureService;
+
+    @MockBean
     private com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Test
@@ -74,8 +78,8 @@ class AuthControllerRegistrationTest {
                 .sendAccountRegistrationConfirmation(anyString(), anyString());
 
         mockMvc.perform(post("/api/auth/register")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
         verify(userRepository, never()).existsByPhoneNumber(anyString());

@@ -30,7 +30,12 @@
     "age": "Edad",
     "details": "Detalles del perfil",
     "edit": "Editar Perfil",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "pictureAction": "Agregar / cambiar foto",
+    "picturePermissionTitle": "Se necesita acceso a fotos",
+    "picturePermissionMessage": "Habilita el acceso a la biblioteca para elegir una foto.",
+    "pictureUploadErrorTitle": "Error al subir",
+    "pictureUploadErrorMessage": "No se pudo subir la foto. Inténtalo de nuevo."
   },
   "home": {
     "browseEvents": "Explorar eventos",

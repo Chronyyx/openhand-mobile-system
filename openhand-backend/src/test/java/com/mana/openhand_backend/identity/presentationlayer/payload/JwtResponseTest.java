@@ -2,7 +2,10 @@ package com.mana.openhand_backend.identity.presentationlayer.payload;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,7 +25,9 @@ class JwtResponseTest {
         Integer age = 25;
 
         // act
-        JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, phoneNumber, gender, age);
+        LocalDateTime statusChangedAt = LocalDateTime.now();
+        JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, phoneNumber, gender, age,
+            MemberStatus.ACTIVE, statusChangedAt);
 
         // assert
         assertEquals(token, response.getToken());
@@ -40,7 +45,9 @@ class JwtResponseTest {
 
     @Test
     void setters_updateFieldsCorrectly() {
-        JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n", "p", "g", 1);
+        LocalDateTime statusChangedAt = LocalDateTime.now();
+        JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n", "p", "g", 1,
+            MemberStatus.ACTIVE, statusChangedAt);
 
         response.setToken("new-token");
         response.setRefreshToken("new-refresh-token");
@@ -52,6 +59,8 @@ class JwtResponseTest {
         response.setPhoneNumber("999");
         response.setGender("FEMALE");
         response.setAge(99);
+        response.setMemberStatus(MemberStatus.INACTIVE);
+        response.setStatusChangedAt(statusChangedAt.plusDays(1));
 
         assertEquals("new-token", response.getToken());
         assertEquals("new-refresh-token", response.getRefreshToken());
@@ -63,5 +72,7 @@ class JwtResponseTest {
         assertEquals("999", response.getPhoneNumber());
         assertEquals("FEMALE", response.getGender());
         assertEquals(99, response.getAge());
+        assertEquals(MemberStatus.INACTIVE, response.getMemberStatus());
+        assertEquals(statusChangedAt.plusDays(1), response.getStatusChangedAt());
     }
 }

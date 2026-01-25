@@ -1,13 +1,5 @@
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
-import { API_BASE } from '../utils/api';
-
-import { setItem, getItem, deleteItem } from '../utils/storage';
-
-const API_URL = API_BASE;
-
 import apiClient from './api.client';
+import { setItem, getItem, deleteItem } from '../utils/storage';
 
 const register = (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: number) => {
     return apiClient.post('/auth/register', {
@@ -38,6 +30,12 @@ const login = (email: string, password: string) => {
                     id: response.data.id,
                     email: response.data.email,
                     roles: response.data.roles,
+                    name: response.data.name,
+                    phoneNumber: response.data.phoneNumber,
+                    gender: response.data.gender,
+                    age: response.data.age,
+                    memberStatus: response.data.memberStatus,
+                    statusChangedAt: response.data.statusChangedAt,
                 };
                 console.log(`[AuthService] Storing user.`);
                 await setItem('userToken', JSON.stringify(userToStore));

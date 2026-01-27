@@ -12,6 +12,8 @@ export interface User {
     phoneNumber: string;
     gender: string;
     age: number;
+    memberStatus?: 'ACTIVE' | 'INACTIVE';
+    statusChangedAt?: string | null;
     profilePictureUrl?: string | null;
 }
 

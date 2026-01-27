@@ -62,6 +62,9 @@ class AuthControllerRegistrationTest {
     @MockBean
     private com.mana.openhand_backend.identity.dataaccesslayer.PasswordResetTokenRepository passwordResetTokenRepository;
 
+    @MockBean
+    private com.mana.openhand_backend.identity.businesslayer.UserMemberService userMemberService;
+
     @Test
     void register_allowsBlankPhoneAndDoesNotBlockOnEmailFailure() throws Exception {
         SignupRequest request = new SignupRequest();

@@ -2,9 +2,12 @@ package com.mana.openhand_backend.identity.presentationlayer.payload;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,7 +55,7 @@ class IdentityPayloadTest {
     void testJwtResponse() {
         List<String> roles = Collections.singletonList("ROLE_USER");
         JwtResponse response = new JwtResponse("access", "refresh", 1L, "user@test.com", roles, "Test User",
-                "1234567890", "MALE", 30, null);
+            "1234567890", "MALE", 30, MemberStatus.ACTIVE, LocalDateTime.now(), null);
 
         // Test Setters if they exist
         response.setToken("access2");

@@ -162,6 +162,8 @@ export function EventDetailModal({
         router.push(`/events/${displayEvent.id}/attendees`);
     };
 
+    const isInactiveMember = user?.memberStatus === 'INACTIVE';
+
     return (
         <Modal
             visible={visible && !!selectedEvent}
@@ -366,7 +368,13 @@ export function EventDetailModal({
 
                                 {/* Buttons */}
                                 {user ? (
-                                    hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) ? (
+                                    isInactiveMember ? (
+                                        <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
+                                            <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                                {t('events.inactiveMember')}
+                                            </ThemedText>
+                                        </View>
+                                    ) : hasRole(['ROLE_MEMBER', 'ROLE_EMPLOYEE']) ? (
                                         isCompleted ? (
                                             <View style={styles.infoBox}>
                                                 <ThemedText style={styles.infoText}>
@@ -377,8 +385,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
-                                                        <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                                    <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
+                                                        <ThemedText style={[styles.infoText, { color: '#c62828' }]}> 
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>

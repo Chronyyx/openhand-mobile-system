@@ -2,7 +2,10 @@ package com.mana.openhand_backend.identity.presentationlayer.payload;
 
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
+
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,8 +26,9 @@ class JwtResponseTest {
         String profilePictureUrl = "/uploads/profile-pictures/pic.jpg";
 
         // act
+        LocalDateTime statusChangedAt = LocalDateTime.now();
         JwtResponse response = new JwtResponse(token, refreshToken, id, email, roles, name, phoneNumber, gender, age,
-                profilePictureUrl);
+            MemberStatus.ACTIVE, statusChangedAt, profilePictureUrl);
 
         // assert
         assertEquals(token, response.getToken());
@@ -36,6 +40,8 @@ class JwtResponseTest {
         assertEquals(phoneNumber, response.getPhoneNumber());
         assertEquals(gender, response.getGender());
         assertEquals(age, response.getAge());
+        assertEquals(MemberStatus.ACTIVE, response.getMemberStatus());
+        assertEquals(statusChangedAt, response.getStatusChangedAt());
         assertEquals(profilePictureUrl, response.getProfilePictureUrl());
 
         assertEquals("Bearer", response.getType());
@@ -43,8 +49,9 @@ class JwtResponseTest {
 
     @Test
     void setters_updateFieldsCorrectly() {
+        LocalDateTime statusChangedAt = LocalDateTime.now();
         JwtResponse response = new JwtResponse("t1", "r1", 1L, "a@a.com", List.of("ROLE_1"), "n", "p", "g", 1,
-                null);
+            MemberStatus.ACTIVE, statusChangedAt, null);
 
         response.setToken("new-token");
         response.setRefreshToken("new-refresh-token");
@@ -56,6 +63,8 @@ class JwtResponseTest {
         response.setPhoneNumber("999");
         response.setGender("FEMALE");
         response.setAge(99);
+        response.setMemberStatus(MemberStatus.INACTIVE);
+        response.setStatusChangedAt(statusChangedAt.plusDays(1));
         response.setProfilePictureUrl("/uploads/profile-pictures/new.jpg");
 
         assertEquals("new-token", response.getToken());
@@ -68,6 +77,8 @@ class JwtResponseTest {
         assertEquals("999", response.getPhoneNumber());
         assertEquals("FEMALE", response.getGender());
         assertEquals(99, response.getAge());
+        assertEquals(MemberStatus.INACTIVE, response.getMemberStatus());
+        assertEquals(statusChangedAt.plusDays(1), response.getStatusChangedAt());
         assertEquals("/uploads/profile-pictures/new.jpg", response.getProfilePictureUrl());
     }
 }

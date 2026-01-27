@@ -170,6 +170,20 @@
         "loadFailed": "Impossible de charger les preferences.",
         "updateFailed": "Impossible de mettre a jour les preferences."
       }
+    },
+    "account": {
+      "deactivateLink": "Désactiver le compte",
+      "title": "Désactiver le compte",
+      "subtitle": "Vous serez déconnecté et ne pourrez plus vous reconnecter.",
+      "warningTitle": "Cette action est permanente",
+      "warningBody": "Votre compte sera désactivé immédiatement. Vos données restent conservées pour archivage.",
+      "confirmationLabel": "Tapez 'deactivate' pour confirmer",
+      "confirmationPlaceholder": "deactivate",
+      "confirmationError": "Veuillez taper 'deactivate' pour continuer.",
+      "deactivateButton": "Désactiver mon compte",
+      "successTitle": "Compte désactivé",
+      "successMessage": "Vous avez été déconnecté. Pour toute aide, contactez le support.",
+      "error": "Impossible de désactiver votre compte pour le moment."
     }
   },
   "modal": {
@@ -203,6 +217,7 @@
       "undo": "Annuler l'inscription",
       "unregister": "Se désinscrire"
     },
+    "inactiveMember": "Votre compte est désactivé. Vous ne pouvez pas vous inscrire aux événements.",
     "errors": {
       "loadFailed": "Impossible de charger l'événement.",
       "detailsFailed": "Impossible de charger les détails de l'événement.",

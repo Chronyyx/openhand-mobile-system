@@ -186,15 +186,17 @@ export default function NotificationsScreen() {
                         )}
                     </View>
 
-                    <Pressable
-                        onPress={handleMarkAllAsRead}
-                        style={styles.markAllButton}
-                    >
-                        <Ionicons name="checkmark" size={20} color="#0056A8" />
-                        <ThemedText style={styles.markAllText}>
-                            {t('notifications.markAllAsRead', 'Mark all read')}
-                        </ThemedText>
-                    </Pressable>
+                    {unreadCount > 0 && (
+                        <Pressable
+                            onPress={handleMarkAllAsRead}
+                            style={styles.markAllButton}
+                        >
+                            <Ionicons name="checkmark" size={20} color="#0056A8" />
+                            <ThemedText style={styles.markAllText}>
+                                {t('notifications.markAllAsRead', 'Mark all read')}
+                            </ThemedText>
+                        </Pressable>
+                    )}
                 </View>
 
                 {/* Error message */}

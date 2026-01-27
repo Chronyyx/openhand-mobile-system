@@ -170,6 +170,20 @@
         "loadFailed": "No se pudieron cargar las preferencias.",
         "updateFailed": "No se pudieron actualizar las preferencias."
       }
+    },
+    "account": {
+      "deactivateLink": "Desactivar cuenta",
+      "title": "Desactivar cuenta",
+      "subtitle": "Se cerrará tu sesión y no podrás volver a iniciar sesión.",
+      "warningTitle": "Esta acción es permanente",
+      "warningBody": "Tu cuenta se desactivará de inmediato. Tus datos permanecerán guardados para registro.",
+      "confirmationLabel": "Escribe 'deactivate' para confirmar",
+      "confirmationPlaceholder": "deactivate",
+      "confirmationError": "Por favor escribe 'deactivate' para continuar.",
+      "deactivateButton": "Desactivar mi cuenta",
+      "successTitle": "Cuenta desactivada",
+      "successMessage": "Has cerrado sesión. Si necesitas ayuda, contacta soporte.",
+      "error": "No se pudo desactivar tu cuenta en este momento."
     }
   },
   "modal": {
@@ -369,6 +383,7 @@
       "management": "Gestión",
       "adminOnly": "Admin",
       "users": "Usuarios",
+    "inactiveMember": "Tu cuenta está desactivada. No puedes inscribirte en eventos.",
       "usersDescription": "Ver cuentas y actualizar sus roles",
       "events": "Eventos",
       "eventsDescription": "Crear y gestionar próximos eventos"

@@ -1,6 +1,8 @@
 package com.mana.openhand_backend.identity.presentationlayer.payload;
 
 import java.util.List;
+import java.time.LocalDateTime;
+import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 
 public class JwtResponse {
     private String token;
@@ -14,10 +16,12 @@ public class JwtResponse {
     private String phoneNumber;
     private String gender;
     private Integer age;
+    private MemberStatus memberStatus;
+    private LocalDateTime statusChangedAt;
     private String profilePictureUrl;
 
     public JwtResponse(String accessToken, String refreshToken, Long id, String email, List<String> roles, String name,
-            String phoneNumber, String gender, Integer age, String profilePictureUrl) {
+            String phoneNumber, String gender, Integer age, MemberStatus memberStatus, LocalDateTime statusChangedAt, String profilePictureUrl) {
         this.token = accessToken;
         this.refreshToken = refreshToken;
         this.id = id;
@@ -27,6 +31,8 @@ public class JwtResponse {
         this.phoneNumber = phoneNumber;
         this.gender = gender;
         this.age = age;
+        this.memberStatus = memberStatus;
+        this.statusChangedAt = statusChangedAt;
         this.profilePictureUrl = profilePictureUrl;
     }
 
@@ -104,6 +110,22 @@ public class JwtResponse {
 
     public Integer getAge() {
         return age;
+    }
+
+    public MemberStatus getMemberStatus() {
+        return memberStatus;
+    }
+
+    public void setMemberStatus(MemberStatus memberStatus) {
+        this.memberStatus = memberStatus;
+    }
+
+    public LocalDateTime getStatusChangedAt() {
+        return statusChangedAt;
+    }
+
+    public void setStatusChangedAt(LocalDateTime statusChangedAt) {
+        this.statusChangedAt = statusChangedAt;
     }
 
     public void setAge(Integer age) {

@@ -15,23 +15,33 @@ const LANGUAGE_STORAGE_KEY = '@app_language';
 export const SUPPORTED_LANGUAGES = ['en', 'fr', 'es'] as const;
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
+// Helper to detect SSR (web server) vs browser/native runtime
+const isServer = typeof window === 'undefined';
+
 // Language detector plugin
 const languageDetector = {
   type: 'languageDetector' as const,
   async: true,
   detect: async (callback: (lng: string) => void) => {
     try {
-      // Try to get saved language from AsyncStorage
-      const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
-      
-      if (savedLanguage && SUPPORTED_LANGUAGES.includes(savedLanguage as SupportedLanguage)) {
-        callback(savedLanguage);
-        return;
+      // On server-side rendering, avoid using AsyncStorage/window; defer to fallback
+      if (!isServer) {
+        // Try to get saved language from AsyncStorage
+        const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+        if (savedLanguage && SUPPORTED_LANGUAGES.includes(savedLanguage as SupportedLanguage)) {
+          callback(savedLanguage);
+          return;
+        }
       }
 
       // If no saved language, try to detect from device locale
-      const deviceLocale = Localization.getLocales()[0];
-      const deviceLanguage = deviceLocale?.languageCode || 'en';
+      let deviceLanguage = 'en';
+      try {
+        const deviceLocale = Localization.getLocales()[0];
+        deviceLanguage = deviceLocale?.languageCode || 'en';
+      } catch {
+        // In SSR or unsupported environments, keep 'en'
+      }
       
       // Check if device language is supported
       if (SUPPORTED_LANGUAGES.includes(deviceLanguage as SupportedLanguage)) {
@@ -48,7 +58,9 @@ const languageDetector = {
   init: () => {},
   cacheUserLanguage: async (language: string) => {
     try {
-      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      if (!isServer) {
+        await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+      }
     } catch (error) {
       console.error('Error saving language:', error);
     }

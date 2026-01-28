@@ -23,6 +23,43 @@ public class UserMemberServiceImpl implements UserMemberService {
     }
 
     @Override
+    public User getProfile(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    @Override
+    @Transactional
+    public User updateProfile(Long userId,
+            com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        if (request.name() != null) {
+            user.setName(request.name());
+        }
+        if (request.phoneNumber() != null) {
+            user.setPhoneNumber(request.phoneNumber());
+        }
+        if (request.preferredLanguage() != null) {
+            user.setPreferredLanguage(request.preferredLanguage());
+        }
+        if (request.gender() != null) {
+            try {
+                user.setGender(com.mana.openhand_backend.identity.dataaccesslayer.Gender.valueOf(request.gender()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid gender value: " + request.gender(), e);
+            }
+        }
+        if (request.age() != null) {
+            Integer age = request.age();
+            if (age >= 13 && age <= 120) {
+                user.setAge(age);
+            }
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
     @Transactional
     public User deactivateAccount(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));

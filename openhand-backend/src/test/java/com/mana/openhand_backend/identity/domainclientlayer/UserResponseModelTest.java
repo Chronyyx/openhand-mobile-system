@@ -47,7 +47,8 @@ class UserResponseModelTest {
 
     @Test
     void setters_shouldUpdateFields() {
-        UserResponseModel model = new UserResponseModel(1L, "user@example.com", new HashSet<>(), null, null, null, null, null, null, null);
+        UserResponseModel model = new UserResponseModel(1L, "user@example.com", new HashSet<>(), null, null, null, null,
+                null, null, null, null);
         LocalDateTime changedAt = LocalDateTime.of(2024, 1, 2, 3, 4);
 
         model.setId(2L);

@@ -27,66 +27,105 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class UserProfileControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockBean
-    private ProfilePictureService profilePictureService;
+        @MockBean
+        private ProfilePictureService profilePictureService;
 
-    @BeforeEach
-    void setUpSecurityContext() {
-        UserDetailsImpl userDetails = org.mockito.Mockito.mock(UserDetailsImpl.class);
-        when(userDetails.getId()).thenReturn(5L);
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(userDetails, null, java.util.List.of())
-        );
-    }
+        @MockBean
+        private com.mana.openhand_backend.identity.businesslayer.UserMemberService userMemberService;
 
-    @AfterEach
-    void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
-    }
+        @BeforeEach
+        void setUpSecurityContext() {
+                UserDetailsImpl userDetails = org.mockito.Mockito.mock(UserDetailsImpl.class);
+                when(userDetails.getId()).thenReturn(5L);
+                SecurityContextHolder.getContext().setAuthentication(
+                                new UsernamePasswordAuthenticationToken(userDetails, null, java.util.List.of()));
+        }
 
-    @Test
-    void getProfilePicture_returnsUrl() throws Exception {
-        when(profilePictureService.getProfilePicture(eq(5L), any(String.class)))
-                .thenReturn(new ProfilePictureResponse("http://localhost/uploads/profile-pictures/pic.png"));
+        @AfterEach
+        void clearSecurityContext() {
+                SecurityContextHolder.clearContext();
+        }
 
-        mockMvc.perform(get("/api/users/profile-picture"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url").value("http://localhost/uploads/profile-pictures/pic.png"));
-    }
+        @Test
+        void getProfilePicture_returnsUrl() throws Exception {
+                when(profilePictureService.getProfilePicture(eq(5L), any(String.class)))
+                                .thenReturn(new ProfilePictureResponse(
+                                                "http://localhost/uploads/profile-pictures/pic.png"));
 
-    @Test
-    void uploadProfilePicture_returnsResponse() throws Exception {
-        when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
-                .thenReturn(new ProfilePictureResponse("http://localhost/uploads/profile-pictures/new.png"));
+                mockMvc.perform(get("/api/users/profile-picture"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.url")
+                                                .value("http://localhost/uploads/profile-pictures/pic.png"));
+        }
 
-        mockMvc.perform(multipart("/api/users/profile-picture")
-                        .file("file", "content".getBytes()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.url").value("http://localhost/uploads/profile-pictures/new.png"));
-    }
+        @Test
+        void uploadProfilePicture_returnsResponse() throws Exception {
+                when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
+                                .thenReturn(new ProfilePictureResponse(
+                                                "http://localhost/uploads/profile-pictures/new.png"));
 
-    @Test
-    void uploadProfilePicture_whenInvalid_returnsBadRequest() throws Exception {
-        when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
-                .thenThrow(new IllegalArgumentException("bad"));
+                mockMvc.perform(multipart("/api/users/profile-picture")
+                                .file("file", "content".getBytes()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.url")
+                                                .value("http://localhost/uploads/profile-pictures/new.png"));
+        }
 
-        mockMvc.perform(multipart("/api/users/profile-picture")
-                        .file("file", "content".getBytes()))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Error: bad"));
-    }
+        @Test
+        void uploadProfilePicture_whenInvalid_returnsBadRequest() throws Exception {
+                when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
+                                .thenThrow(new IllegalArgumentException("bad"));
 
-    @Test
-    void uploadProfilePicture_whenUnexpectedError_returnsServerError() throws Exception {
-        when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
-                .thenThrow(new RuntimeException("boom"));
+                mockMvc.perform(multipart("/api/users/profile-picture")
+                                .file("file", "content".getBytes()))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.message").value("Error: bad"));
+        }
 
-        mockMvc.perform(multipart("/api/users/profile-picture")
-                        .file("file", "content".getBytes()))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.message").value("Error: Unable to upload profile picture."));
-    }
+        @Test
+        void uploadProfilePicture_whenUnexpectedError_returnsServerError() throws Exception {
+                when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
+                                .thenThrow(new RuntimeException("boom"));
+
+                mockMvc.perform(multipart("/api/users/profile-picture")
+                                .file("file", "content".getBytes()))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.message").value("Error: Unable to upload profile picture."));
+        }
+
+        @Test
+        void getProfile_returnsUser() throws Exception {
+                var user = new com.mana.openhand_backend.identity.dataaccesslayer.User();
+                user.setId(5L);
+                user.setName("John Doe");
+                user.setEmail("john@example.com");
+
+                when(userMemberService.getProfile(5L)).thenReturn(user);
+
+                mockMvc.perform(get("/api/users/profile"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value("John Doe"))
+                                .andExpect(jsonPath("$.email").value("john@example.com"));
+        }
+
+        @Test
+        void updateProfile_returnsUpdatedUser() throws Exception {
+                var updatedUser = new com.mana.openhand_backend.identity.dataaccesslayer.User();
+                updatedUser.setId(5L);
+                updatedUser.setName("Jane Doe");
+
+                when(userMemberService.updateProfile(eq(5L),
+                                any(com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest.class)))
+                                .thenReturn(updatedUser);
+
+                mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/api/users/profile")
+                                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\"Jane Doe\"}"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value("Jane Doe"));
+        }
 }

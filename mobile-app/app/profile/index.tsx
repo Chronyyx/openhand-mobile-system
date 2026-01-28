@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput } from 'react-native';
+import { Picker } from '@react-native-picker/picker'; // Still used for Gender/Language
+import { CountryPicker, countryCodes } from 'react-native-country-codes-picker'; // New library
+import { AsYouType, parsePhoneNumber, CountryCode as LibCountryCode } from 'libphonenumber-js';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter, Href } from 'expo-router';
@@ -9,19 +12,94 @@ import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { getProfilePicture, uploadProfilePicture } from '../../services/profile-picture.service';
+import { updateProfile } from '../../services/profile.service';
+import { API_BASE } from '../../utils/api';
 
 const ACCENT = '#0056A8';
 const SURFACE = '#F5F7FB';
 
+const formatGender = (gender: string | undefined) => {
+    if (!gender) return '-';
+    switch (gender) {
+        case 'MALE': return 'Male';
+        case 'FEMALE': return 'Female';
+        case 'OTHER': return 'Other';
+        case 'PREFER_NOT_TO_SAY': return 'Prefer not to say';
+        default: return gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+    }
+};
+
+const formatLanguage = (lang: string | undefined, t: any) => {
+    switch (lang) {
+        case 'en': return t('settings.language.languages.english');
+        case 'fr': return t('settings.language.languages.french');
+        case 'es': return t('settings.language.languages.spanish');
+        default: return lang || '-';
+    }
+};
+
+const formatPhoneDisplay = (phone: string | undefined) => {
+    if (!phone) return '-';
+    try {
+        const phoneNumber = parsePhoneNumber(phone);
+        return phoneNumber ? phoneNumber.formatInternational() : phone;
+    } catch (e) {
+        return phone;
+    }
+};
+
+const findCountryByPhone = (phone: string | undefined) => {
+    if (!phone) return { code: 'CA', dial_code: '+1' }; // Default
+    try {
+        const phoneNumber = parsePhoneNumber(phone);
+        if (phoneNumber && phoneNumber.country) {
+            const found = countryCodes.find(c => c.code === phoneNumber.country);
+            if (found) return { code: found.code, dial_code: found.dial_code };
+            return { code: phoneNumber.country as string, dial_code: '+' + phoneNumber.countryCallingCode };
+        }
+    } catch (e) {
+        // Fallback to searching codes if parse fails (e.g. incomplete number)
+    }
+
+    // Sort by length desc so we match +1242 before +1
+    const sortedCodes = [...countryCodes].sort((a, b) => b.dial_code.length - a.dial_code.length);
+    const found = sortedCodes.find(c => phone.startsWith(c.dial_code));
+    if (found) {
+        return { code: found.code, dial_code: found.dial_code };
+    }
+    return { code: 'CA', dial_code: '+1' };
+};
+
+const resolveProfileUrl = (url: string | null | undefined) => {
+    if (!url) return undefined;
+    if (url.startsWith('http')) return url;
+    // API_BASE includes /api, we need the root host
+    const host = API_BASE.replace(/\/api$/, '');
+    return `${host}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
 export default function ProfileScreen() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const { user, signOut, hasRole, updateUser } = useAuth();
     const [menuVisible, setMenuVisible] = useState(false);
     const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
         user?.profilePictureUrl ?? null
     );
     const [isUploading, setIsUploading] = useState(false);
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editName, setEditName] = useState(user?.name || '');
+    // Phone state
+    const [countryCode, setCountryCode] = useState('CA'); // Code like CA, US
+    const [callingCode, setCallingCode] = useState('+1'); // Dial code like +1
+    const [editPhoneBody, setEditPhoneBody] = useState('');
+    const [showCountryPicker, setShowCountryPicker] = useState(false);
+
+    const [editLanguage, setEditLanguage] = useState(user?.preferredLanguage || 'en');
+    const [editGender, setEditGender] = useState(user?.gender || 'PREFER_NOT_TO_SAY');
+    const [editAge, setEditAge] = useState(user?.age?.toString() || '');
 
     const handleNavigateHome = () => {
         setMenuVisible(false);
@@ -50,23 +128,99 @@ export default function ProfileScreen() {
 
     useEffect(() => {
         setProfilePictureUrl(user?.profilePictureUrl ?? null);
-    }, [user?.profilePictureUrl]);
+        if (user) {
+            setEditName(user.name || '');
 
-    useEffect(() => {
-        const loadProfilePicture = async () => {
-            if (!user) return;
-            try {
-                const response = await getProfilePicture();
-                if (response.url) {
-                    setProfilePictureUrl(response.url);
-                    await updateUser({ profilePictureUrl: response.url });
-                }
-            } catch (error) {
-                console.warn('[Profile] Unable to load profile picture', error);
+            // Initialize Phone
+            if (user.phoneNumber) {
+                const { code, dial_code } = findCountryByPhone(user.phoneNumber);
+                setCountryCode(code);
+                setCallingCode(dial_code);
+                // Remove the dial code from the body and format it
+                const rawBody = user.phoneNumber.substring(dial_code.length).trim();
+                const formattedBody = new AsYouType(code as LibCountryCode).input(rawBody);
+                setEditPhoneBody(formattedBody);
+            } else {
+                setCountryCode('CA');
+                setCallingCode('+1');
+                setEditPhoneBody('');
             }
-        };
-        loadProfilePicture();
-    }, [user, updateUser]);
+
+            if ((user as any).preferredLanguage) {
+                setEditLanguage((user as any).preferredLanguage);
+            }
+            setEditGender(user.gender || 'PREFER_NOT_TO_SAY');
+            setEditAge(user.age?.toString() || '');
+        }
+    }, [user]);
+
+
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        setIsSaving(true);
+        try {
+            // Clean payload: +15141231234 (unformatted)
+            const cleanBody = editPhoneBody.replace(/\D/g, '');
+            const finalPhone = cleanBody ? `${callingCode}${cleanBody}` : undefined; // e.g. +15141231234, +33612345678
+
+            const updatedData = {
+                name: editName,
+                phoneNumber: finalPhone ? finalPhone.trim() : undefined,
+                preferredLanguage: editLanguage,
+                gender: editGender,
+                age: editAge ? parseInt(editAge, 10) : undefined
+            };
+            const response = await updateProfile(updatedData);
+
+            // Update language immediately
+            if (editLanguage !== user.preferredLanguage) {
+                await i18n.changeLanguage(editLanguage);
+            }
+
+            // Update local context
+            await updateUser({
+                name: response.name,
+                phoneNumber: response.phoneNumber,
+                preferredLanguage: response.preferredLanguage,
+                gender: response.gender,
+                age: response.age
+            });
+
+            setIsEditing(false);
+            Alert.alert(t('common.success'), t('profile.updateSuccess'));
+        } catch (error) {
+            console.error('[Profile] Update failed', error);
+            Alert.alert(t('common.error'), t('profile.updateError'));
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        if (user) {
+            setEditName(user.name || '');
+            // Reset phone
+            if (user.phoneNumber) {
+                const { code, dial_code } = findCountryByPhone(user.phoneNumber);
+                setCountryCode(code);
+                setCallingCode(dial_code);
+                const rawBody = user.phoneNumber.substring(dial_code.length).trim();
+                const formattedBody = new AsYouType(code as LibCountryCode).input(rawBody);
+                setEditPhoneBody(formattedBody);
+            } else {
+                setCountryCode('CA');
+                setCallingCode('+1');
+                setEditPhoneBody('');
+            }
+
+            if ((user as any).preferredLanguage) {
+                setEditLanguage((user as any).preferredLanguage);
+            }
+            setEditGender(user.gender || 'PREFER_NOT_TO_SAY');
+            setEditAge(user.age?.toString() || '');
+        }
+    };
 
     const handleChangeProfilePicture = async () => {
         if (!user) return;
@@ -152,6 +306,27 @@ export default function ProfileScreen() {
                         <Ionicons name="chevron-back" size={24} color={ACCENT} />
                     </Pressable>
                     <Text style={styles.title}>{t('profile.title')}</Text>
+
+                    <View style={{ flex: 1 }} />
+                    {!isEditing ? (
+                        <Pressable style={styles.editButton} onPress={() => setIsEditing(true)}>
+                            <Ionicons name="create-outline" size={20} color={ACCENT} />
+                            <Text style={styles.editButtonText}>{t('common.edit')}</Text>
+                        </Pressable>
+                    ) : (
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                            <Pressable disabled={isSaving} onPress={handleCancelEdit}>
+                                <Text style={[styles.editButtonText, { color: '#666' }]}>{t('common.cancel')}</Text>
+                            </Pressable>
+                            {isSaving ? (
+                                <ActivityIndicator size="small" color={ACCENT} />
+                            ) : (
+                                <Pressable onPress={handleSaveProfile}>
+                                    <Text style={[styles.editButtonText, { fontWeight: 'bold' }]}>{t('common.save')}</Text>
+                                </Pressable>
+                            )}
+                        </View>
+                    )}
                 </View>
 
                 <View style={styles.card}>
@@ -159,7 +334,7 @@ export default function ProfileScreen() {
                         <View style={styles.avatar}>
                             {profilePictureUrl ? (
                                 <Image
-                                    source={{ uri: profilePictureUrl }}
+                                    source={{ uri: resolveProfileUrl(profilePictureUrl) }}
                                     style={styles.avatarImage}
                                     contentFit="cover"
                                 />
@@ -170,7 +345,7 @@ export default function ProfileScreen() {
                         <Pressable
                             style={styles.pictureButton}
                             onPress={handleChangeProfilePicture}
-                            disabled={isUploading}
+                            disabled={isUploading || isEditing}
                         >
                             {isUploading ? (
                                 <ActivityIndicator size="small" color="#FFFFFF" />
@@ -180,7 +355,17 @@ export default function ProfileScreen() {
                                 </Text>
                             )}
                         </Pressable>
-                        <Text style={styles.userName}>{user.name || user.email}</Text>
+
+                        {isEditing ? (
+                            <TextInput
+                                style={styles.inputName}
+                                value={editName}
+                                onChangeText={setEditName}
+                                placeholder={t('profile.namePlaceholder')}
+                            />
+                        ) : (
+                            <Text style={styles.userName}>{user.name || user.email}</Text>
+                        )}
                         <Text style={styles.userEmail}>{user.email}</Text>
                         <View style={styles.rolesRow}>
                             {user.roles.map((role) => (
@@ -192,9 +377,132 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={styles.infoSection}>
-                        <InfoItem icon="call-outline" label={t('profile.phone')} value={user.phoneNumber || '-'} />
-                        <InfoItem icon="male-female-outline" label={t('profile.gender')} value={user.gender || '-'} />
-                        <InfoItem icon="calendar-outline" label={t('profile.age')} value={user.age ? user.age.toString() : '-'} />
+                        {isEditing ? (
+                            <View style={styles.infoItem}>
+                                <View style={styles.iconContainer}>
+                                    <Ionicons name="call-outline" size={20} color={ACCENT} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.infoLabel}>{t('profile.phone')}</Text>
+                                    <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+                                        <Pressable
+                                            onPress={() => setShowCountryPicker(true)}
+                                            style={styles.countryPickerButton}
+                                        >
+                                            <Text style={styles.callingCodeText}>{callingCode}</Text>
+                                        </Pressable>
+
+                                        <CountryPicker
+                                            show={showCountryPicker}
+                                            pickerButtonOnPress={(item) => {
+                                                setCallingCode(item.dial_code);
+                                                setCountryCode(item.code);
+                                                setShowCountryPicker(false);
+                                            }}
+                                            lang={editLanguage}
+                                            onBackdropPress={() => setShowCountryPicker(false)}
+                                            style={{
+                                                modal: {
+                                                    height: 500,
+                                                },
+                                            }}
+                                        />
+
+                                        <TextInput
+                                            style={[styles.input, { flex: 1 }]}
+                                            value={editPhoneBody}
+                                            onChangeText={(text) => {
+                                                const asYouType = new AsYouType(countryCode as LibCountryCode);
+                                                const formatted = asYouType.input(text);
+                                                setEditPhoneBody(formatted);
+                                            }}
+                                            placeholder="(123) 456-7890"
+                                            keyboardType="phone-pad"
+                                            maxLength={20}
+                                        />
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            <InfoItem icon="call-outline" label={t('profile.phone')} value={formatPhoneDisplay(user.phoneNumber)} />
+                        )}
+
+                        {isEditing ? (
+                            <View style={styles.infoItem}>
+                                <View style={styles.iconContainer}>
+                                    <Ionicons name="male-female-outline" size={20} color={ACCENT} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.infoLabel}>{t('profile.gender')}</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <Picker
+                                            selectedValue={editGender}
+                                            onValueChange={(itemValue) => setEditGender(itemValue)}
+                                        >
+                                            <Picker.Item label="Prefer not to say" value="PREFER_NOT_TO_SAY" />
+                                            <Picker.Item label="Male" value="MALE" />
+                                            <Picker.Item label="Female" value="FEMALE" />
+                                            <Picker.Item label="Other" value="OTHER" />
+                                        </Picker>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            <InfoItem icon="male-female-outline" label={t('profile.gender')} value={formatGender(user.gender)} />
+                        )}
+
+                        {isEditing ? (
+                            <View style={styles.infoItem}>
+                                <View style={styles.iconContainer}>
+                                    <Ionicons name="calendar-outline" size={20} color={ACCENT} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.infoLabel}>{t('profile.age')}</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={editAge}
+                                        onChangeText={(text) => {
+                                            const numericValue = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                                            if (!text) {
+                                                setEditAge('');
+                                            } else if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 120) {
+                                                setEditAge(numericValue.toString());
+                                            }
+                                        }}
+                                        placeholder="13-120"
+                                        keyboardType="numeric"
+                                        maxLength={3}
+                                    />
+                                </View>
+                            </View>
+                        ) : (
+                            <InfoItem icon="calendar-outline" label={t('profile.age')} value={user.age ? user.age.toString() : '-'} />
+                        )}
+
+                        {isEditing ? (
+                            <View style={styles.infoItem}>
+                                <View style={styles.iconContainer}>
+                                    <Ionicons name="language-outline" size={20} color={ACCENT} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.infoLabel}>{t('profile.preferredLanguage')}</Text>
+                                    <View style={styles.pickerContainer}>
+                                        <Picker
+                                            selectedValue={editLanguage}
+                                            onValueChange={(itemValue) => setEditLanguage(itemValue)}
+                                        >
+                                            <Picker.Item label="English" value="en" />
+                                            <Picker.Item label="Français" value="fr" />
+                                            <Picker.Item label="Español" value="es" />
+                                        </Picker>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            <InfoItem icon="language-outline" label={t('profile.preferredLanguage')} value={formatLanguage((user as any).preferredLanguage, t)} />
+                        )}
+
+
                     </View>
                 </View>
 
@@ -292,6 +600,17 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         color: '#0F2848',
+    },
+    editButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 8,
+        gap: 4,
+    },
+    editButtonText: {
+        color: ACCENT,
+        fontSize: 14,
+        fontWeight: '600',
     },
     card: {
         backgroundColor: '#FFFFFF',
@@ -455,5 +774,60 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
         color: '#1A2D4A',
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: '#D9E5FF',
+        borderRadius: 8,
+        padding: 8,
+        fontSize: 16,
+        color: '#0F2848',
+        backgroundColor: '#F8FAFE',
+    },
+    inputName: {
+        borderWidth: 1,
+        borderColor: '#D9E5FF',
+        borderRadius: 8,
+        padding: 8,
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#0F2848',
+        marginBottom: 4,
+        textAlign: 'center',
+        backgroundColor: '#F8FAFE',
+        minWidth: 200,
+    },
+    pickerContainer: {
+        borderWidth: 1,
+        borderColor: '#D9E5FF',
+        borderRadius: 8,
+        backgroundColor: '#F8FAFE',
+        overflow: 'hidden',
+    },
+    countryPickerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#D9E5FF',
+        borderRadius: 8,
+        backgroundColor: '#F8FAFE',
+        paddingHorizontal: 8,
+        height: 50, // Match input height roughly
+    },
+    countryPickerButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#D9E5FF',
+        borderRadius: 8,
+        backgroundColor: '#F8FAFE',
+        paddingHorizontal: 12,
+        height: 50,
+        minWidth: 80,
+    },
+    callingCodeText: {
+        fontSize: 16,
+        color: '#0F2848',
+        fontWeight: '500',
     },
 });

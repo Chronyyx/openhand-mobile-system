@@ -56,7 +56,6 @@ class WebSecurityConfigTest {
                 "http://localhost:3000, https://example.com");
     }
 
-
     @Test
     void authenticationJwtTokenFilter_returnsNewFilterInstance() {
         AuthTokenFilter filter = webSecurityConfig.authenticationJwtTokenFilter();
@@ -99,7 +98,6 @@ class WebSecurityConfigTest {
         verify(authenticationConfiguration, times(1)).getAuthenticationManager();
     }
 
-
     @Test
     void corsConfigurationSource_buildsConfigFromAllowedOrigins() {
         CorsConfigurationSource source = webSecurityConfig.corsConfigurationSource();
@@ -111,12 +109,10 @@ class WebSecurityConfigTest {
 
         assertEquals(
                 List.of("http://localhost:3000", "https://example.com"),
-                config.getAllowedOriginPatterns()
-        );
+                config.getAllowedOriginPatterns());
         assertEquals(
-                Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"),
-                config.getAllowedMethods()
-        );
+                Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"),
+                config.getAllowedMethods());
         assertEquals(List.of("*"), config.getAllowedHeaders());
         assertEquals(List.of("Authorization", "Content-Type"), config.getExposedHeaders());
         assertTrue(Boolean.TRUE.equals(config.getAllowCredentials()));
@@ -128,8 +124,7 @@ class WebSecurityConfigTest {
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> webSecurityConfig.corsConfigurationSource()
-        );
+                () -> webSecurityConfig.corsConfigurationSource());
 
         assertTrue(ex.getMessage().contains("CORS_ALLOWED_ORIGINS"));
     }
@@ -140,12 +135,10 @@ class WebSecurityConfigTest {
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
-                () -> webSecurityConfig.corsConfigurationSource()
-        );
+                () -> webSecurityConfig.corsConfigurationSource());
 
         assertTrue(ex.getMessage().contains("CORS_ALLOWED_ORIGINS"));
     }
-
 
     @Test
     void filterChain_configuresHttpSecurityAndBuildsSecurityFilterChain() throws Exception {

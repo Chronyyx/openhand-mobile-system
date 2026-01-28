@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import apiClient from './api.client';
 
 export type ProfilePictureResponse = {
@@ -14,11 +15,19 @@ export const uploadProfilePicture = async (uri: string, fileName?: string, mimeT
     const name = fileName || `profile-${Date.now()}.jpg`;
     const type = mimeType || 'image/jpeg';
 
-    formData.append('file', {
-        uri,
-        name,
-        type,
-    } as any);
+    if (Platform.OS === 'web') {
+        // On Web, we must convert the URI to a Blob
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('file', blob, name);
+    } else {
+        // On Native (iOS/Android), axios/RN expects this object format
+        formData.append('file', {
+            uri,
+            name,
+            type,
+        } as any);
+    }
 
     const res = await apiClient.post<ProfilePictureResponse>('/users/profile-picture', formData, {
         headers: {

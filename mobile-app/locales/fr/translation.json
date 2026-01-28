@@ -2,10 +2,12 @@
   "common": {
     "loading": "Chargement...",
     "error": "Erreur",
+    "success": "Succès",
     "save": "Sauvegarder",
     "cancel": "Annuler",
     "confirm": "Confirmer",
     "close": "Fermer",
+    "edit": "Modifier",
     "notAuthenticated": "Vous devez être connecté."
   },
   "tabs": {
@@ -35,7 +37,11 @@
     "picturePermissionTitle": "Accès aux photos requis",
     "picturePermissionMessage": "Activez l'accès à la bibliothèque pour choisir une photo.",
     "pictureUploadErrorTitle": "Échec de l'envoi",
-    "pictureUploadErrorMessage": "Impossible d'envoyer la photo. Réessayez."
+    "pictureUploadErrorMessage": "Impossible d'envoyer la photo. Réessayez.",
+    "namePlaceholder": "Votre Nom",
+    "updateSuccess": "Profil mis à jour avec succès.",
+    "updateError": "Impossible de mettre à jour le profil.",
+    "preferredLanguage": "Langue préférée"
   },
   "home": {
     "browseEvents": "Parcourir les événements",

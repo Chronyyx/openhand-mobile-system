@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import AuthService from '../services/auth.service';
 
 export interface User {
@@ -15,6 +15,7 @@ export interface User {
     memberStatus?: 'ACTIVE' | 'INACTIVE';
     statusChangedAt?: string | null;
     profilePictureUrl?: string | null;
+    preferredLanguage?: string;
 }
 
 interface AuthContextProps {
@@ -46,8 +47,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const currentUser = await AuthService.getCurrentUser();
-                setUser(currentUser);
+                // 1. Load from storage first for speed
+                const storedUser = await AuthService.getCurrentUser();
+                if (storedUser) {
+                    setUser(storedUser);
+                    // 2. Fetch fresh data from API to ensure sync (e.g. invalid token, changed pic)
+                    try {
+                        const freshUser = await AuthService.getProfile();
+                        setUser(freshUser);
+                        await AuthService.storeUser(freshUser);
+                    } catch (refreshError) {
+                        console.warn('[Auth] Failed to refresh profile on load', refreshError);
+                        // If 401, maybe logout? For now keep local data or let api interceptor handle it.
+                    }
+                }
             } catch (error) {
                 console.error("Failed to load user", error);
                 setUser(null);
@@ -58,31 +71,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loadUser();
     }, []);
 
-    const signIn = async (email: string, password: string) => {
+    const signIn = useCallback(async (email: string, password: string) => {
         try {
             const data = await AuthService.login(email, password);
             setUser(data);
         } catch (error) {
             throw error;
         }
-    };
-    const signOut = async () => {
+    }, []);
+
+    const signOut = useCallback(async () => {
         await AuthService.logout();
         setUser(null);
-    };
+    }, []);
 
-    const signUp = async (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => {
+    const signUp = useCallback(async (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => {
         const numericAge = parseInt(age, 10);
         await AuthService.register(email, password, roles, name, phoneNumber, gender, numericAge);
-    };
+    }, []);
 
-    const hasRole = (allowedRoles: string[]) => {
+    const hasRole = useCallback((allowedRoles: string[]) => {
         if (!user || !user.roles) {
-            console.log('[AuthContext] hasRole: user or roles missing', { user: !!user, roles: user?.roles });
             return false;
         }
 
-        // Normalize roles to be case-insensitive and tolerant of missing/extra ROLE_ prefix
         const normalize = (role: string) => role.trim().toUpperCase().replace(/^ROLE_/, '');
         const allowed = allowedRoles.map(normalize);
 
@@ -91,36 +103,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return allowed.includes(normalized);
         });
 
-        console.log('[AuthContext] hasRole check:', {
-            allowedRoles,
-            allowedNormalized: allowed,
-            userRoles: user.roles,
-            result,
-        });
-        return result;
-    };
+        // Log only if allowedRoles are specific management roles to avoid spam on standard checks
+        if (allowedRoles.includes('ROLE_ADMIN') || allowedRoles.includes('ROLE_EMPLOYEE')) {
+            console.log('[AuthContext] hasRole check:', { allowed, result });
+        }
 
-    const updateUser = async (updates: Partial<User>) => {
+        return result;
+    }, [user]);
+
+    const updateUser = useCallback(async (updates: Partial<User>) => {
         if (!user) {
             return;
         }
         const nextUser = { ...user, ...updates };
         setUser(nextUser);
         await AuthService.storeUser(nextUser);
-    };
+    }, [user]);
+
+    const value = useMemo(() => ({
+        user,
+        isLoading,
+        signIn,
+        signOut,
+        signUp,
+        hasRole,
+        updateUser,
+    }), [user, isLoading, signIn, signOut, signUp, hasRole, updateUser]);
 
     return (
-        <AuthContext.Provider
-            value={{
-                user,
-                isLoading,
-                signIn,
-                signOut,
-                signUp,
-                hasRole,
-                updateUser,
-            }}
-        >
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

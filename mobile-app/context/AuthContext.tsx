@@ -52,9 +52,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 if (storedUser) {
                     setUser(storedUser);
                     // 2. Fetch fresh data from API to ensure sync (e.g. invalid token, changed pic)
-                    // 2. Fetch fresh data from API to ensure sync (e.g. invalid token, changed pic)
-                    // Copilot: Removed redundant auto-refresh on every load. 
-                    // Any explicit refresh of profile data should be triggered elsewhere in the app.
+                    try {
+                        const freshUser = await AuthService.getProfile();
+                        setUser(freshUser);
+                        await AuthService.storeUser(freshUser);
+                    } catch (refreshError) {
+                        console.warn('[Auth] Failed to refresh profile on load', refreshError);
+                        // If 401, maybe logout? For now keep local data or let api interceptor handle it.
+                    }
                 }
             } catch (error) {
                 console.error("Failed to load user", error);

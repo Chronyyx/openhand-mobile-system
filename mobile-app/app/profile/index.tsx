@@ -465,7 +465,7 @@ export default function ProfileScreen() {
                                             const numericValue = parseInt(text.replace(/[^0-9]/g, ''), 10);
                                             if (!text) {
                                                 setEditAge('');
-                                            } else if (!isNaN(numericValue) && numericValue >= 13 && numericValue <= 120) {
+                                            } else if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 120) {
                                                 setEditAge(numericValue.toString());
                                             }
                                         }}
@@ -488,13 +488,12 @@ export default function ProfileScreen() {
                                     <Text style={styles.infoLabel}>{t('profile.preferredLanguage')}</Text>
                                     <View style={styles.pickerContainer}>
                                         <Picker
-                                            selectedValue={editGender}
-                                            onValueChange={(itemValue) => setEditGender(itemValue)}
+                                            selectedValue={editLanguage}
+                                            onValueChange={(itemValue) => setEditLanguage(itemValue)}
                                         >
-                                            <Picker.Item label={t('profile.gender_options.prefer_not_to_say')} value="PREFER_NOT_TO_SAY" />
-                                            <Picker.Item label={t('profile.gender_options.male')} value="MALE" />
-                                            <Picker.Item label={t('profile.gender_options.female')} value="FEMALE" />
-                                            <Picker.Item label={t('profile.gender_options.other')} value="OTHER" />
+                                            <Picker.Item label="English" value="en" />
+                                            <Picker.Item label="Français" value="fr" />
+                                            <Picker.Item label="Español" value="es" />
                                         </Picker>
                                     </View>
                                 </View>

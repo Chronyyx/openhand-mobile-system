@@ -73,6 +73,8 @@ const storeUser = async (user: unknown) => {
     await setItem('userToken', JSON.stringify(user));
 };
 
+import { getProfile } from './profile.service';
+
 const AuthService = {
     register,
     login,
@@ -81,6 +83,7 @@ const AuthService = {
     forgotPassword,
     resetPassword,
     storeUser,
+    getProfile
 };
 
 export default AuthService;

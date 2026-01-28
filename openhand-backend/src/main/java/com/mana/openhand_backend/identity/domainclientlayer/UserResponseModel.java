@@ -18,9 +18,11 @@ public class UserResponseModel {
     private String profilePictureUrl;
     private String memberStatus;
     private LocalDateTime statusChangedAt;
+    private String preferredLanguage;
 
     public UserResponseModel(Long id, String email, Set<String> roles, String name, String phoneNumber, String gender,
-            Integer age, String profilePictureUrl, String memberStatus, LocalDateTime statusChangedAt) {
+            Integer age, String profilePictureUrl, String memberStatus, LocalDateTime statusChangedAt,
+            String preferredLanguage) {
         this.id = id;
         this.email = email;
         this.roles = roles;
@@ -31,6 +33,7 @@ public class UserResponseModel {
         this.profilePictureUrl = profilePictureUrl;
         this.memberStatus = memberStatus;
         this.statusChangedAt = statusChangedAt;
+        this.preferredLanguage = preferredLanguage;
     }
 
     public static UserResponseModel fromEntity(User user) {
@@ -44,7 +47,8 @@ public class UserResponseModel {
                 user.getAge(),
                 user.getProfilePictureUrl(),
                 user.getMemberStatus() != null ? user.getMemberStatus().name() : "ACTIVE",
-                user.getStatusChangedAt());
+                user.getStatusChangedAt(),
+                user.getPreferredLanguage());
     }
 
     public String getName() {
@@ -126,5 +130,12 @@ public class UserResponseModel {
     public void setStatusChangedAt(LocalDateTime statusChangedAt) {
         this.statusChangedAt = statusChangedAt;
     }
-}
 
+    public String getPreferredLanguage() {
+        return preferredLanguage;
+    }
+
+    public void setPreferredLanguage(String preferredLanguage) {
+        this.preferredLanguage = preferredLanguage;
+    }
+}

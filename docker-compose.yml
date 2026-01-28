@@ -37,6 +37,7 @@ services:
         condition: service_healthy
     volumes:
       - backend-build-cache:/root/.gradle
+      - backend-uploads:/app/uploads
 
   mobile-app:
     container_name: openhand-mobile-app
@@ -84,4 +85,5 @@ services:
 volumes:
   mobile-node-modules:
   backend-build-cache:
+  backend-uploads:
   db-data:

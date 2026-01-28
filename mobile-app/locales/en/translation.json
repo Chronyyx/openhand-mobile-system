@@ -2,10 +2,12 @@
   "common": {
     "loading": "Loading...",
     "error": "Error",
+    "success": "Success",
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
     "close": "Close",
+    "edit": "Edit",
     "notAuthenticated": "You need to be logged in."
   },
   "tabs": {
@@ -35,7 +37,11 @@
     "picturePermissionTitle": "Photo Access Needed",
     "picturePermissionMessage": "Enable photo library access to choose a profile picture.",
     "pictureUploadErrorTitle": "Upload Failed",
-    "pictureUploadErrorMessage": "Unable to upload your photo. Please try again."
+    "pictureUploadErrorMessage": "Unable to upload your photo. Please try again.",
+    "namePlaceholder": "Your Name",
+    "updateSuccess": "Profile updated successfully.",
+    "updateError": "Could not update profile.",
+    "preferredLanguage": "Preferred Language"
   },
   "home": {
     "browseEvents": "Browse Events",
@@ -383,7 +389,7 @@
       "management": "Management",
       "adminOnly": "Admin",
       "users": "Users",
-    "inactiveMember": "Your account is deactivated. You cannot register for events.",
+      "inactiveMember": "Your account is deactivated. You cannot register for events.",
       "usersDescription": "View accounts and update their roles",
       "events": "Events",
       "eventsDescription": "Create and manage upcoming events"

@@ -23,6 +23,40 @@ public class UserMemberServiceImpl implements UserMemberService {
     }
 
     @Override
+    public User getProfile(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+    }
+
+    @Override
+    @Transactional
+    public User updateProfile(Long userId,
+            com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+
+        if (request.name() != null) {
+            user.setName(request.name());
+        }
+        if (request.phoneNumber() != null) {
+            user.setPhoneNumber(request.phoneNumber());
+        }
+        if (request.preferredLanguage() != null) {
+            user.setPreferredLanguage(request.preferredLanguage());
+        }
+        if (request.gender() != null) {
+            try {
+                user.setGender(com.mana.openhand_backend.identity.dataaccesslayer.Gender.valueOf(request.gender()));
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid gender values or handle properly
+            }
+        }
+        if (request.age() != null) {
+            user.setAge(request.age());
+        }
+
+        return userRepository.save(user);
+    }
+
+    @Override
     @Transactional
     public User deactivateAccount(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));

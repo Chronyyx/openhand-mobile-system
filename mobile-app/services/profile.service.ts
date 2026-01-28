@@ -2,7 +2,7 @@ import apiClient from './api.client';
 
 export interface ProfileData {
     name: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     preferredLanguage: string;
     gender?: string;
     age?: number;

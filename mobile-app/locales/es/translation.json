@@ -38,6 +38,9 @@
     "picturePermissionMessage": "Habilita el acceso a la biblioteca para elegir una foto.",
     "pictureUploadErrorTitle": "Error al subir",
     "pictureUploadErrorMessage": "No se pudo subir la foto. Inténtalo de nuevo.",
+    "namePlaceholder": "Tu Nombre",
+    "updateSuccess": "Perfil actualizado con éxito.",
+    "updateError": "No se pudo actualizar el perfil.",
     "preferredLanguage": "Idioma preferido"
   },
   "home": {

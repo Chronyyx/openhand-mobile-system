@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { Picker } from '@react-native-picker/picker'; // Still used for Gender/Language
 import { CountryPicker, countryCodes } from 'react-native-country-codes-picker'; // New library
 import { AsYouType, parsePhoneNumber, CountryCode as LibCountryCode } from 'libphonenumber-js';
@@ -12,7 +12,7 @@ import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { getProfilePicture, uploadProfilePicture } from '../../services/profile-picture.service';
-import { updateProfile, getProfile } from '../../services/profile.service';
+import { updateProfile } from '../../services/profile.service';
 import { API_BASE } from '../../utils/api';
 
 const ACCENT = '#0056A8';
@@ -154,27 +154,18 @@ export default function ProfileScreen() {
         }
     }, [user]);
 
-    // Redundant effect removed: We already have user.profilePictureUrl from context.
-    // If we need to fetch fresh, we should do it only once or on mount, not on every user change.
-    // Also, updateUser triggers user change -> loop.
-    useEffect(() => {
-        // Just sync local state if user changes from other sources, but don't re-fetch and re-update context here blindly.
-        if (user?.profilePictureUrl) {
-            setProfilePictureUrl(user.profilePictureUrl);
-        }
-    }, [user]);
 
     const handleSaveProfile = async () => {
         if (!user) return;
         setIsSaving(true);
         try {
-            // Clean payload: +15146071940 (unformatted)
+            // Clean payload: +15141231234 (unformatted)
             const cleanBody = editPhoneBody.replace(/\D/g, '');
-            const finalPhone = `${callingCode}${cleanBody}`; // e.g. +15146071940, +33612345678
+            const finalPhone = cleanBody ? `${callingCode}${cleanBody}` : undefined; // e.g. +15141231234, +33612345678
 
             const updatedData = {
                 name: editName,
-                phoneNumber: finalPhone.trim(),
+                phoneNumber: finalPhone ? finalPhone.trim() : undefined,
                 preferredLanguage: editLanguage,
                 gender: editGender,
                 age: editAge ? parseInt(editAge, 10) : undefined
@@ -190,7 +181,6 @@ export default function ProfileScreen() {
             await updateUser({
                 name: response.name,
                 phoneNumber: response.phoneNumber,
-                // @ts-ignore
                 preferredLanguage: response.preferredLanguage,
                 gender: response.gender,
                 age: response.age
@@ -422,23 +412,8 @@ export default function ProfileScreen() {
                                             style={[styles.input, { flex: 1 }]}
                                             value={editPhoneBody}
                                             onChangeText={(text) => {
-                                                // AsYouType formatting
-                                                // We must strip calling code from input if we are managing it separately, 
-                                                // BUT standard UX often is: Country Picker sets prefix, User types rest.
-                                                // libphonenumber AsYouType works best with full number or partial.
-                                                // If we prepend the calling code, we get full format.
-
-                                                // 1. Clean input to just digits, but keep format if user backspaces?
-                                                // Let's rely on AsYouType().input() which is stateful or new instance.
                                                 const asYouType = new AsYouType(countryCode as LibCountryCode);
                                                 const formatted = asYouType.input(text);
-
-                                                // Problem: AsYouType might include the country code if it detects it.
-                                                // We want to store/display ONLY the body in this input? 
-                                                // Or do we want to allow the input to control it? 
-                                                // The current UI separates the code (+1) from the body. 
-                                                // If user types (514)...
-
                                                 setEditPhoneBody(formatted);
                                             }}
                                             placeholder="(123) 456-7890"
@@ -490,11 +465,11 @@ export default function ProfileScreen() {
                                             const numericValue = parseInt(text.replace(/[^0-9]/g, ''), 10);
                                             if (!text) {
                                                 setEditAge('');
-                                            } else if (!isNaN(numericValue) && numericValue >= 1 && numericValue <= 150) {
+                                            } else if (!isNaN(numericValue) && numericValue >= 13 && numericValue <= 120) {
                                                 setEditAge(numericValue.toString());
                                             }
                                         }}
-                                        placeholder="1-150"
+                                        placeholder="13-120"
                                         keyboardType="numeric"
                                         maxLength={3}
                                     />
@@ -513,12 +488,13 @@ export default function ProfileScreen() {
                                     <Text style={styles.infoLabel}>{t('profile.preferredLanguage')}</Text>
                                     <View style={styles.pickerContainer}>
                                         <Picker
-                                            selectedValue={editLanguage}
-                                            onValueChange={(itemValue) => setEditLanguage(itemValue)}
+                                            selectedValue={editGender}
+                                            onValueChange={(itemValue) => setEditGender(itemValue)}
                                         >
-                                            <Picker.Item label="English" value="en" />
-                                            <Picker.Item label="Français" value="fr" />
-                                            <Picker.Item label="Español" value="es" />
+                                            <Picker.Item label={t('profile.gender_options.prefer_not_to_say')} value="PREFER_NOT_TO_SAY" />
+                                            <Picker.Item label={t('profile.gender_options.male')} value="MALE" />
+                                            <Picker.Item label={t('profile.gender_options.female')} value="FEMALE" />
+                                            <Picker.Item label={t('profile.gender_options.other')} value="OTHER" />
                                         </Picker>
                                     </View>
                                 </View>

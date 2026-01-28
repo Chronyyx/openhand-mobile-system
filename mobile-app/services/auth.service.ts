@@ -1,4 +1,5 @@
 import apiClient from './api.client';
+import { getProfile } from './profile.service';
 import { setItem, getItem, deleteItem } from '../utils/storage';
 
 const register = (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: number) => {
@@ -73,7 +74,6 @@ const storeUser = async (user: unknown) => {
     await setItem('userToken', JSON.stringify(user));
 };
 
-import { getProfile } from './profile.service';
 
 const AuthService = {
     register,

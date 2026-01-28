@@ -95,4 +95,37 @@ class UserProfileControllerTest {
                                 .andExpect(status().isInternalServerError())
                                 .andExpect(jsonPath("$.message").value("Error: Unable to upload profile picture."));
         }
+
+        @Test
+        void getProfile_returnsUser() throws Exception {
+                var user = new com.mana.openhand_backend.identity.dataaccesslayer.User();
+                user.setId(5L);
+                user.setName("John Doe");
+                user.setEmail("john@example.com");
+
+                when(userMemberService.getProfile(5L)).thenReturn(user);
+
+                mockMvc.perform(get("/api/users/profile"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value("John Doe"))
+                                .andExpect(jsonPath("$.email").value("john@example.com"));
+        }
+
+        @Test
+        void updateProfile_returnsUpdatedUser() throws Exception {
+                var updatedUser = new com.mana.openhand_backend.identity.dataaccesslayer.User();
+                updatedUser.setId(5L);
+                updatedUser.setName("Jane Doe");
+
+                when(userMemberService.updateProfile(eq(5L),
+                                any(com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest.class)))
+                                .thenReturn(updatedUser);
+
+                mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .patch("/api/users/profile")
+                                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                                .content("{\"name\":\"Jane Doe\"}"))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.name").value("Jane Doe"));
+        }
 }

@@ -38,6 +38,9 @@
     "picturePermissionMessage": "Activez l'accès à la bibliothèque pour choisir une photo.",
     "pictureUploadErrorTitle": "Échec de l'envoi",
     "pictureUploadErrorMessage": "Impossible d'envoyer la photo. Réessayez.",
+    "namePlaceholder": "Votre Nom",
+    "updateSuccess": "Profil mis à jour avec succès.",
+    "updateError": "Impossible de mettre à jour le profil.",
     "preferredLanguage": "Langue préférée"
   },
   "home": {

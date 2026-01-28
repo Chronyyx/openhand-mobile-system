@@ -46,11 +46,14 @@ public class UserMemberServiceImpl implements UserMemberService {
             try {
                 user.setGender(com.mana.openhand_backend.identity.dataaccesslayer.Gender.valueOf(request.gender()));
             } catch (IllegalArgumentException e) {
-                // Ignore invalid gender values or handle properly
+                throw new IllegalArgumentException("Invalid gender value: " + request.gender(), e);
             }
         }
         if (request.age() != null) {
-            user.setAge(request.age());
+            Integer age = request.age();
+            if (age >= 13 && age <= 120) {
+                user.setAge(age);
+            }
         }
 
         return userRepository.save(user);

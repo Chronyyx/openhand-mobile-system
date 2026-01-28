@@ -42,7 +42,7 @@ public class UserProfileController {
 
         @PatchMapping("/profile")
         public ResponseEntity<com.mana.openhand_backend.identity.domainclientlayer.UserResponseModel> updateProfile(
-                        @RequestBody com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest request) {
+                        @jakarta.validation.Valid @RequestBody com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest request) {
                 UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
                                 .getAuthentication()
                                 .getPrincipal();

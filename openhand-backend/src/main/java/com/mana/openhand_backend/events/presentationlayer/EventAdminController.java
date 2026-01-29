@@ -59,4 +59,23 @@ public class EventAdminController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }
     }
+
+    @PostMapping("/{id}/image")
+    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse uploadEventImage(
+            @PathVariable Long id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            jakarta.servlet.http.HttpServletRequest request) {
+        String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
+                .fromCurrentContextPath().build().toUriString();
+        return eventAdminService.uploadEventImage(id, file, baseUrl);
+    }
+
+    @GetMapping("/{id}/image")
+    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse getEventImage(
+            @PathVariable Long id,
+            jakarta.servlet.http.HttpServletRequest request) {
+        String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
+                .fromCurrentContextPath().build().toUriString();
+        return eventAdminService.getEventImage(id, baseUrl);
+    }
 }

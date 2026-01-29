@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import AuthService from './auth.service';
 import { API_BASE } from '../utils/api';
 
@@ -11,6 +12,7 @@ export type CreateEventPayload = {
     address: string;
     maxCapacity?: number | null;
     category?: string | null;
+    imageUrl?: string | null;
 };
 
 type ManagedEventResponse = {
@@ -25,6 +27,7 @@ type ManagedEventResponse = {
     maxCapacity: number | null;
     currentRegistrations: number | null;
     category?: string | null;
+    imageUrl?: string | null;
 };
 
 const getAuthHeaders = async () => {
@@ -75,4 +78,36 @@ export const markEventCompleted = async (id: number): Promise<ManagedEventRespon
 export const deleteArchivedEvent = async (id: number): Promise<void> => {
     const headers = await getAuthHeaders();
     await axios.delete(`${API_BASE}/employee/events/${id}`, { headers });
+};
+
+export const uploadEventImage = async (
+    id: number,
+    uri: string,
+    fileName?: string,
+    mimeType?: string,
+): Promise<{ url: string | null }> => {
+    const headers = await getAuthHeaders();
+    const formData = new FormData();
+    const name = fileName || `event-${Date.now()}.jpg`;
+    const type = mimeType || 'image/jpeg';
+
+    if (Platform.OS === 'web') {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append('file', blob, name);
+    } else {
+        formData.append('file', {
+            uri,
+            name,
+            type,
+        } as any);
+    }
+
+    const response = await axios.post(`${API_BASE}/admin/events/${id}/image`, formData, {
+        headers: {
+            ...headers,
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
 };

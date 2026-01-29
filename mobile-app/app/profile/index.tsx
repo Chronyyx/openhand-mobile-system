@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
+import { ImageUploader } from '../../components/ImageUploader';
 import { getProfilePicture, uploadProfilePicture } from '../../services/profile-picture.service';
 import { updateProfile } from '../../services/profile.service';
 import { API_BASE } from '../../utils/api';
@@ -222,50 +223,10 @@ export default function ProfileScreen() {
         }
     };
 
-    const handleChangeProfilePicture = async () => {
-        if (!user) return;
-        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!permission.granted) {
-            Alert.alert(t('profile.picturePermissionTitle'), t('profile.picturePermissionMessage'));
-            return;
-        }
-
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 0.8,
-        });
-
-        if (result.canceled) {
-            return;
-        }
-
-        const asset = result.assets[0];
-        if (!asset?.uri) {
-            Alert.alert(t('profile.pictureUploadErrorTitle'), t('profile.pictureUploadErrorMessage'));
-            return;
-        }
-
-        setIsUploading(true);
-        try {
-            const response = await uploadProfilePicture(
-                asset.uri,
-                asset.fileName ?? undefined,
-                asset.mimeType ?? undefined
-            );
-            if (response.url) {
-                setProfilePictureUrl(response.url);
-                await updateUser({ profilePictureUrl: response.url });
-            } else {
-                Alert.alert(t('profile.pictureUploadErrorTitle'), t('profile.pictureUploadErrorMessage'));
-            }
-        } catch (error) {
-            console.error('[Profile] Failed to upload profile picture', error);
-            Alert.alert(t('profile.pictureUploadErrorTitle'), t('profile.pictureUploadErrorMessage'));
-        } finally {
-            setIsUploading(false);
-        }
+    // handleChangeProfilePicture removed (handled by ImageUploader)
+    const handleProfileUploadSuccess = async (url: string) => {
+        setProfilePictureUrl(url);
+        await updateUser({ profilePictureUrl: url });
     };
 
     if (!user) {
@@ -331,30 +292,15 @@ export default function ProfileScreen() {
 
                 <View style={styles.card}>
                     <View style={styles.avatarContainer}>
-                        <View style={styles.avatar}>
-                            {profilePictureUrl ? (
-                                <Image
-                                    source={{ uri: resolveProfileUrl(profilePictureUrl) }}
-                                    style={styles.avatarImage}
-                                    contentFit="cover"
-                                />
-                            ) : (
-                                <Ionicons name="person" size={40} color={ACCENT} />
-                            )}
-                        </View>
-                        <Pressable
-                            style={styles.pictureButton}
-                            onPress={handleChangeProfilePicture}
-                            disabled={isUploading || isEditing}
-                        >
-                            {isUploading ? (
-                                <ActivityIndicator size="small" color="#FFFFFF" />
-                            ) : (
-                                <Text style={styles.pictureButtonText}>
-                                    {t('profile.pictureAction')}
-                                </Text>
-                            )}
-                        </Pressable>
+                        <ImageUploader
+                            imageUrl={profilePictureUrl}
+                            onUploadSuccess={handleProfileUploadSuccess}
+                            uploadFunction={uploadProfilePicture}
+                            editable={!isUploading && !isEditing}
+                            // Styling passed to match existing
+                            containerStyle={{ marginBottom: 16 }}
+                            imageStyle={styles.avatar} // Reusing avatar style (80x80 circle)
+                        />
 
                         {isEditing ? (
                             <TextInput

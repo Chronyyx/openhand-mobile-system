@@ -9,4 +9,10 @@ public interface EventAdminService {
     Event updateEvent(Long id, CreateEventRequest request);
 
     Event cancelEvent(Long id);
+
+    com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse uploadEventImage(Long id,
+            org.springframework.web.multipart.MultipartFile file, String baseUrl);
+
+    com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse getEventImage(Long id,
+            String baseUrl);
 }

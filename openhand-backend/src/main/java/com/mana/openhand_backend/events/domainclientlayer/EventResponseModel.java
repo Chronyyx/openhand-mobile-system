@@ -13,6 +13,7 @@ public class EventResponseModel {
     private Integer maxCapacity;
     private Integer currentRegistrations;
     private String category;
+    private String imageUrl;
 
     public EventResponseModel() {
     }
@@ -27,7 +28,8 @@ public class EventResponseModel {
             String status,
             Integer maxCapacity,
             Integer currentRegistrations,
-            String category) {
+            String category,
+            String imageUrl) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -39,6 +41,7 @@ public class EventResponseModel {
         this.maxCapacity = maxCapacity;
         this.currentRegistrations = currentRegistrations;
         this.category = category;
+        this.imageUrl = imageUrl;
     }
 
     public Long getId() {
@@ -127,5 +130,13 @@ public class EventResponseModel {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

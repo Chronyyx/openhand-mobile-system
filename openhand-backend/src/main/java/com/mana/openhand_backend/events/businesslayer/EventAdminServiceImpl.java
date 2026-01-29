@@ -27,17 +27,20 @@ public class EventAdminServiceImpl implements EventAdminService {
     private final SendGridEmailService sendGridEmailService;
     private final NotificationService notificationService;
     private final EventCompletionService eventCompletionService;
+    private final EventImageService eventImageService;
 
     public EventAdminServiceImpl(EventRepository eventRepository,
             RegistrationRepository registrationRepository,
             SendGridEmailService sendGridEmailService,
             NotificationService notificationService,
-            EventCompletionService eventCompletionService) {
+            EventCompletionService eventCompletionService,
+            EventImageService eventImageService) {
         this.eventRepository = eventRepository;
         this.registrationRepository = registrationRepository;
         this.sendGridEmailService = sendGridEmailService;
         this.notificationService = notificationService;
         this.eventCompletionService = eventCompletionService;
+        this.eventImageService = eventImageService;
     }
 
     @Override
@@ -251,5 +254,17 @@ public class EventAdminServiceImpl implements EventAdminService {
             return EventStatus.NEARLY_FULL;
         }
         return EventStatus.OPEN;
+    }
+
+    @Override
+    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse uploadEventImage(Long id,
+            org.springframework.web.multipart.MultipartFile file, String baseUrl) {
+        return eventImageService.storeEventImage(id, file, baseUrl);
+    }
+
+    @Override
+    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse getEventImage(Long id,
+            String baseUrl) {
+        return eventImageService.getEventImage(id, baseUrl);
     }
 }

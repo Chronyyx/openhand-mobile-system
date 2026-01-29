@@ -15,6 +15,7 @@ export type EventSummary = {
     maxCapacity: number | null;
     currentRegistrations: number | null;
     category?: string | null;
+    imageUrl?: string | null;
 };
 
 // If later you have more fields for the detail, you can extend this.

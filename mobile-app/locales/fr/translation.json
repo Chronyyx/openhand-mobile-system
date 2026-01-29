@@ -340,6 +340,7 @@
       "unknownName": "Participant inconnu",
       "checkedIn": "Présent",
       "notCheckedIn": "Non présent",
+      "checkedInAt": "Présent depuis : {{timestamp}}",
       "registeredCount": "{{count}} inscrits",
       "checkedInCount": "{{count}} présents"
     }

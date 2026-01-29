@@ -339,6 +339,7 @@
       "unknownName": "Asistente desconocido",
       "checkedIn": "Presente",
       "notCheckedIn": "No presente",
+      "checkedInAt": "Presente desde: {{timestamp}}",
       "registeredCount": "{{count}} inscritos",
       "checkedInCount": "{{count}} presentes"
     }

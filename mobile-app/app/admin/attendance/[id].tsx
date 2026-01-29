@@ -27,7 +27,7 @@ import {
 } from '../../../services/attendance.service';
 import { getEventById, type EventDetail } from '../../../services/events.service';
 import { styles as eventStyles } from '../../../styles/events.styles';
-import { formatIsoDate, formatIsoTimeRange } from '../../../utils/date-time';
+import { formatIsoDate, formatIsoTimeRange, formatIsoDateTime } from '../../../utils/date-time';
 import { getTranslatedEventTitle } from '../../../utils/event-translations';
 import { webSocketService } from '../../../utils/websocket';
 
@@ -167,6 +167,11 @@ export default function AttendanceEventDetailScreen() {
                         {item.fullName || item.email || t('attendance.attendees.unknownName')}
                     </ThemedText>
                     <ThemedText style={styles.attendeeEmail}>{item.email}</ThemedText>
+                    {item.checkedIn && item.checkedInAt && (
+                        <ThemedText style={styles.timestampText}>
+                            {t('attendance.attendees.checkedInAt', { timestamp: formatIsoDateTime(item.checkedInAt) })}
+                        </ThemedText>
+                    )}
                     <View style={[styles.statusPill, item.checkedIn ? styles.statusChecked : styles.statusPending]}>
                         <ThemedText
                             style={[
@@ -347,6 +352,12 @@ const styles = StyleSheet.create({
         marginTop: 2,
         fontSize: 12,
         color: '#6F7B91',
+    },
+    timestampText: {
+        fontSize: 12,
+        color: '#1E7C44',
+        marginTop: 4,
+        fontWeight: '500',
     },
     statusPill: {
         marginTop: 8,

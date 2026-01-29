@@ -132,6 +132,10 @@ test.describe('Attendance Dashboard', () => {
     await checkInButton.click();
 
     await expect(page.getByText(/undo check-in|annuler l'arrivée|deshacer llegada/i)).toBeVisible();
+    
+    // Verify timestamp is displayed after check-in
+    await expect(page.getByText(/checked in at|présent depuis|presente desde/i)).toBeVisible();
+    await expect(page.getByText(/2030-06-01 10:10/)).toBeVisible();
   });
 
   test('Employee can undo a check-in and filter attendees', async ({ page }) => {

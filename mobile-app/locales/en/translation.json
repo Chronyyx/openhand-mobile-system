@@ -339,6 +339,7 @@
       "unknownName": "Unknown attendee",
       "checkedIn": "Checked in",
       "notCheckedIn": "Not checked in",
+      "checkedInAt": "Checked in at: {{timestamp}}",
       "registeredCount": "{{count}} registered",
       "checkedInCount": "{{count}} checked in"
     }

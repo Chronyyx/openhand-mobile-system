@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
-import { styles } from '../styles/events.styles';
+import { getStyles } from '../styles/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
 import { type Registration } from '../services/registration.service';
 import { searchUsers, registerParticipantForEvent, type EmployeeSearchResult } from '../services/employee.service';
@@ -12,6 +12,7 @@ import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
 import { getEventImage } from '../constants/event-images';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 // Props Definition
 type EventDetailModalProps = {
@@ -80,6 +81,21 @@ export function EventDetailModal({
     onCapacityRefresh
 }: EventDetailModalProps) {
     const router = useRouter();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
+    const colors = {
+        primary: colorScheme === 'dark' ? '#6AA9FF' : '#0056A8',
+        onPrimary: '#FFFFFF',
+        inputBackground: colorScheme === 'dark' ? '#1F2328' : '#FFFFFF',
+        inputBorder: colorScheme === 'dark' ? '#2F3A4A' : '#E0E7F3',
+        errorBackground: colorScheme === 'dark' ? '#3A1F1F' : '#FFEBEE',
+        errorBorder: colorScheme === 'dark' ? '#EF9A9A' : '#D32F2F',
+        errorText: colorScheme === 'dark' ? '#FFB4AB' : '#C62828',
+        successBackground: colorScheme === 'dark' ? '#1F3323' : '#E8F5E9',
+        successBorder: colorScheme === 'dark' ? '#7BC47F' : '#2E7D32',
+        successText: colorScheme === 'dark' ? '#A5D6A7' : '#2E7D32',
+        textDark: colorScheme === 'dark' ? '#ECEDEE' : '#333333',
+    };
 
     // Fallback if no details yet
     const displayEvent = eventDetail || selectedEvent;
@@ -190,7 +206,7 @@ export function EventDetailModal({
                     <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
                         {loading ? (
                             <View style={styles.modalLoadingContainer}>
-                                <ActivityIndicator size="large" color="#0056A8" />
+                                <ActivityIndicator size="large" color={colors.primary} />
                                 <ThemedText style={styles.modalLoadingText}>
                                     {t('events.loading')}
                                 </ThemedText>
@@ -202,7 +218,7 @@ export function EventDetailModal({
                         ) : showSuccessView && selectedEvent ? (
                             /* Success View */
                             <View style={styles.successContainer}>
-                                <Ionicons name="checkbox" size={64} color="#0056A8" style={{ marginBottom: 16 }} />
+                                <Ionicons name="checkbox" size={64} color={colors.primary} style={{ marginBottom: 16 }} />
                                 <ThemedText type="subtitle" style={styles.successTitle}>
                                     {t('alerts.registerSuccess', 'Inscription confirmée !')}
                                 </ThemedText>
@@ -324,8 +340,9 @@ export function EventDetailModal({
                                         <ThemedText style={styles.sectionTitle}>{t('events.walkin.title')}</ThemedText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                             <TextInput
-                                                style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#E0E7F3' }}
+                                                style={{ flex: 1, backgroundColor: colors.inputBackground, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: colors.inputBorder, color: colorScheme === 'dark' ? '#ECEDEE' : '#333333' }}
                                                 placeholder={t('events.walkin.searchPlaceholder')}
+                                                placeholderTextColor={colorScheme === 'dark' ? '#A0A7B1' : '#999999'}
                                                 value={walkinQuery}
                                                 onChangeText={setWalkinQuery}
                                             />
@@ -334,20 +351,20 @@ export function EventDetailModal({
                                             </Pressable>
                                         </View>
                                         {walkinError && (
-                                            <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
-                                                <ThemedText style={[styles.infoText, { color: '#c62828' }]}>{walkinError}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: colors.errorBorder, borderLeftWidth: 4, backgroundColor: colors.errorBackground }]}> 
+                                                <ThemedText style={[styles.infoText, { color: colors.errorText }]}>{walkinError}</ThemedText>
                                             </View>
                                         )}
                                         {walkinSuccess && (
-                                            <View style={[styles.infoBox, { borderLeftColor: '#2e7d32', borderLeftWidth: 4, backgroundColor: '#e8f5e9' }]}> 
-                                                <ThemedText style={[styles.infoText, { color: '#2e7d32' }]}>{walkinSuccess}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: colors.successBorder, borderLeftWidth: 4, backgroundColor: colors.successBackground }]}> 
+                                                <ThemedText style={[styles.infoText, { color: colors.successText }]}>{walkinSuccess}</ThemedText>
                                             </View>
                                         )}
                                         {walkinResults.length > 0 && (
                                             <View style={{ gap: 8 }}>
                                                 {walkinResults.map(r => (
-                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}> 
-                                                        <ThemedText style={styles.unregisterButtonText}>{r.email}</ThemedText>
+                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [{ backgroundColor: colors.inputBackground, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: walkinSelected?.id === r.id ? colors.primary : colors.inputBorder }, pressed && { opacity: 0.7 }]}> 
+                                                        <ThemedText style={{ color: colors.textDark }}>{r.email}</ThemedText>
                                                     </Pressable>
                                                 ))}
                                             </View>
@@ -358,7 +375,7 @@ export function EventDetailModal({
                                             disabled={walkinSubmitting || !walkinSelected}
                                         >
                                             {walkinSubmitting ? (
-                                                <ActivityIndicator color="#FFFFFF" />
+                                                <ActivityIndicator color={colors.onPrimary} />
                                             ) : (
                                                 <ThemedText style={styles.registerButtonText}>{t('events.walkin.register')}</ThemedText>
                                             )}
@@ -369,8 +386,8 @@ export function EventDetailModal({
                                 {/* Buttons */}
                                 {user ? (
                                     isInactiveMember ? (
-                                        <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
-                                            <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                        <View style={[styles.infoBox, { borderLeftColor: colors.errorBorder, borderLeftWidth: 4, backgroundColor: colors.errorBackground }]}>
+                                            <ThemedText style={[styles.infoText, { color: colors.errorText }]}>
                                                 {t('events.inactiveMember')}
                                             </ThemedText>
                                         </View>
@@ -385,8 +402,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
-                                                        <ThemedText style={[styles.infoText, { color: '#c62828' }]}> 
+                                                    <View style={[styles.infoBox, { borderLeftColor: colors.errorBorder, borderLeftWidth: 4, backgroundColor: colors.errorBackground }]}> 
+                                                        <ThemedText style={[styles.infoText, { color: colors.errorText }]}> 
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>
@@ -399,7 +416,7 @@ export function EventDetailModal({
                                                         disabled={isRegistering}
                                                     >
                                                         {isRegistering ? (
-                                                            <ActivityIndicator color="#FFFFFF" />
+                                                            <ActivityIndicator color={colors.onPrimary} />
                                                         ) : (
                                                             <ThemedText style={styles.unregisterButtonText}>
                                                                 {t('events.actions.unregister', 'Se désinscrire')}
@@ -413,7 +430,7 @@ export function EventDetailModal({
                                                         disabled={isRegistering}
                                                     >
                                                         {isRegistering ? (
-                                                            <ActivityIndicator color="#FFFFFF" />
+                                                            <ActivityIndicator color={colors.onPrimary} />
                                                         ) : (
                                                             <ThemedText style={styles.registerButtonText}>
                                                                 {displayEvent?.status === 'FULL'

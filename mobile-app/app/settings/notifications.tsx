@@ -155,8 +155,8 @@ export default function NotificationPreferencesScreen() {
                     value={pref.enabled || pref.isCritical}
                     onValueChange={(value) => handleToggle(pref.category, value)}
                     disabled={pref.isCritical || isSaving}
-                    trackColor={{ false: '#D4DBE7', true: '#8CC3FF' }}
-                    thumbColor={pref.enabled ? BLUE : '#F5F7FB'}
+                    trackColor={{ false: colorScheme === 'dark' ? '#4A5568' : '#D4DBE7', true: colorScheme === 'dark' ? '#6AA9FF' : '#8CC3FF' }}
+                    thumbColor={pref.enabled ? BLUE : (colorScheme === 'dark' ? '#2A313B' : '#F5F7FB')}
                     testID={`notification-toggle-${pref.category.toLowerCase()}`}
                   />
                 </View>

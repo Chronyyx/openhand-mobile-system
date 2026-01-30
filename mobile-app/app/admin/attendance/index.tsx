@@ -17,12 +17,13 @@ import { MenuLayout } from '../../../components/menu-layout';
 import { ThemedText } from '../../../components/themed-text';
 import { ThemedView } from '../../../components/themed-view';
 import { useAuth } from '../../../context/AuthContext';
+import { useColorScheme } from '../../../hooks/use-color-scheme';
 import {
     getAttendanceEvents,
     type AttendanceEventSummary,
     type AttendanceUpdate,
 } from '../../../services/attendance.service';
-import { styles as eventStyles } from '../../../styles/events.styles';
+import { getStyles as getEventStyles } from '../../../styles/events.styles';
 import { formatIsoDate, formatIsoTimeRange } from '../../../utils/date-time';
 import { getTranslatedEventTitle } from '../../../utils/event-translations';
 import { webSocketService } from '../../../utils/websocket';
@@ -30,7 +31,14 @@ import { webSocketService } from '../../../utils/websocket';
 export default function AttendanceDashboardScreen() {
     const router = useRouter();
     const { t } = useTranslation();
-    const { user, hasRole } = useAuth();
+    const { user, hasRole, isLoading } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
+    const eventStyles = getEventStyles(colorScheme);
+    const isDark = colorScheme === 'dark';
+    const styles = getStyles(isDark);
+    const iconColor = isDark ? '#A0A7B1' : '#666';
+    const placeholderColor = isDark ? '#8B93A1' : '#999';
+    const indicatorColor = isDark ? '#6AA9FF' : '#0056A8';
 
     const [events, setEvents] = useState<AttendanceEventSummary[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -41,7 +49,7 @@ export default function AttendanceDashboardScreen() {
     const canView = user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
 
     const loadEvents = useCallback(async () => {
-        if (!user?.token) {
+        if (!user?.token || isLoading) {
             setError(t('common.notAuthenticated'));
             setLoading(false);
             setRefreshing(false);
@@ -62,14 +70,14 @@ export default function AttendanceDashboardScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [refreshing, t, user?.token]);
+    }, [refreshing, t, user?.token, isLoading]);
 
     useFocusEffect(
         useCallback(() => {
-            if (canView) {
+            if (canView && !isLoading) {
                 loadEvents();
             }
-        }, [canView, loadEvents]),
+        }, [canView, loadEvents, isLoading]),
     );
 
     useEffect(() => {
@@ -203,7 +211,7 @@ export default function AttendanceDashboardScreen() {
     } else if (loading) {
         content = (
             <ThemedView style={eventStyles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
+                <ActivityIndicator size="large" color={indicatorColor} />
                 <ThemedText style={eventStyles.loadingText}>{t('attendance.loading')}</ThemedText>
             </ThemedView>
         );
@@ -227,7 +235,7 @@ export default function AttendanceDashboardScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        colors={['#0056A8']}
+                        colors={[indicatorColor]}
                     />
                 }
                 ListEmptyComponent={
@@ -244,17 +252,17 @@ export default function AttendanceDashboardScreen() {
                 <ThemedText style={styles.subtitle}>{t('attendance.subtitle')}</ThemedText>
 
                 <View style={eventStyles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={eventStyles.searchIcon} />
+                    <Ionicons name="search" size={20} color={iconColor} style={eventStyles.searchIcon} />
                     <TextInput
-                        style={eventStyles.searchInput}
+                        style={[eventStyles.searchInput, { color: isDark ? '#ECEDEE' : '#333' }]}
                         placeholder={t('attendance.searchPlaceholder')}
-                        placeholderTextColor="#999"
+                        placeholderTextColor={placeholderColor}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                            <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
+                            <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
                         </Pressable>
                     )}
                 </View>
@@ -265,76 +273,91 @@ export default function AttendanceDashboardScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    subtitle: {
-        fontSize: 13,
-        color: '#6F7B91',
-        marginBottom: 12,
-        marginTop: -8,
-    },
-    metricsRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 8,
-    },
-    metricCard: {
-        flex: 1,
-        backgroundColor: '#F5F8FF',
-        borderRadius: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#D6E2F5',
-    },
-    metricLabel: {
-        fontSize: 12,
-        color: '#5A6A85',
-        fontWeight: '600',
-    },
-    metricValue: {
-        marginTop: 4,
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#0F2848',
-    },
-    occupancyRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    occupancyLabel: {
-        fontSize: 12,
-        color: '#5A6A85',
-        fontWeight: '600',
-    },
-    occupancyValue: {
-        fontSize: 12,
-        fontWeight: '700',
-        color: '#0F2848',
-    },
-    progressTrack: {
-        marginTop: 8,
-        height: 8,
-        borderRadius: 8,
-        backgroundColor: '#E2E8F2',
-        overflow: 'hidden',
-    },
-    progressFill: {
-        height: '100%',
-        backgroundColor: '#0056A8',
-        borderRadius: 8,
-    },
-    retryButton: {
-        marginTop: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#0056A8',
-    },
-    retryText: {
-        color: '#0056A8',
-        fontWeight: '600',
-    },
-});
+const getStyles = (isDark: boolean) => {
+    const colors = {
+        text: isDark ? '#ECEDEE' : '#0F2848',
+        textMuted: isDark ? '#A0A7B1' : '#5A6A85',
+        textSubtle: isDark ? '#8B93A1' : '#6F7B91',
+        surface: isDark ? '#F5F8FF' : '#F5F8FF',
+        background: isDark ? '#0F1419' : '#F5F7FB',
+        border: isDark ? '#3A3F47' : '#D6E2F5',
+        borderLight: isDark ? '#2A2F37' : '#E2E8F2',
+        bgLight: isDark ? '#1F2328' : '#F5F8FF',
+    };
+
+    return StyleSheet.create({
+        subtitle: {
+            fontSize: 13,
+            color: colors.textSubtle,
+            marginBottom: 12,
+            marginTop: -8,
+        },
+        metricsRow: {
+            flexDirection: 'row',
+            gap: 12,
+            marginTop: 8,
+        },
+        metricCard: {
+            flex: 1,
+            backgroundColor: isDark ? '#1F2328' : '#F5F8FF',
+            borderRadius: 10,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: isDark ? '#3A3F47' : '#D6E2F5',
+        },
+        metricLabel: {
+            fontSize: 12,
+            color: colors.textMuted,
+            fontWeight: '600',
+        },
+        metricValue: {
+            marginTop: 4,
+            fontSize: 20,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        occupancyRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginTop: 10,
+        },
+        occupancyLabel: {
+            fontSize: 12,
+            color: colors.textMuted,
+            fontWeight: '600',
+        },
+        occupancyValue: {
+            fontSize: 12,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        progressTrack: {
+            marginTop: 8,
+            height: 8,
+            borderRadius: 8,
+            backgroundColor: isDark ? '#2A2F37' : '#E2E8F2',
+            overflow: 'hidden',
+        },
+        progressFill: {
+            height: '100%',
+            backgroundColor: '#0056A8',
+            borderRadius: 8,
+        },
+        retryButton: {
+            marginTop: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#0056A8',
+        },
+        retryText: {
+            color: '#0056A8',
+            fontWeight: '600',
+        },
+    });
+};
+
+

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { type Notification } from '../services/notification.service';
 import { getTranslatedEventTitle } from '../utils/event-translations';
 import { getTranslatedNotificationText } from '../utils/notification-translations';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 interface NotificationCardProps {
     notification: Notification;
@@ -29,16 +30,17 @@ function getNotificationIcon(type: string): string {
     }
 }
 
-function getNotificationColor(type: string): string {
+function getNotificationColor(type: string, scheme: 'light' | 'dark'): string {
+    const isDark = scheme === 'dark';
     switch (type) {
         case 'REGISTRATION_CONFIRMATION':
-            return '#28a745';
+            return isDark ? '#7BC47F' : '#28A745';
         case 'CANCELLATION':
-            return '#dc3545';
+            return isDark ? '#FFB4AB' : '#DC3545';
         case 'REMINDER':
-            return '#ffc107';
+            return isDark ? '#FFD580' : '#FFC107';
         default:
-            return '#0056A8';
+            return isDark ? '#9FC3FF' : '#0056A8';
     }
 }
 
@@ -49,6 +51,12 @@ export function NotificationCard({
     onDelete,
 }: NotificationCardProps) {
     const { t, i18n } = useTranslation();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
+    const palette = {
+        primary: colorScheme === 'dark' ? '#9FC3FF' : '#0056A8',
+        danger: colorScheme === 'dark' ? '#FFB4AB' : '#DC3545',
+    };
 
     // Try to translate event title if it's a translation key (fallback to displayed title)
     const displayedEventTitle = getTranslatedEventTitle(
@@ -102,7 +110,7 @@ export function NotificationCard({
 
 
                 {/* Left icon */}
-                <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(notification.notificationType) }]}>
+                <View style={[styles.iconContainer, { backgroundColor: getNotificationColor(notification.notificationType, colorScheme) }]}>
                     <Ionicons
                         name={getNotificationIcon(notification.notificationType) as any}
                         size={24}
@@ -143,14 +151,14 @@ export function NotificationCard({
                             onPress={() => onMarkAsRead?.(notification)}
                             style={styles.actionButton}
                         >
-                            <Ionicons name="checkmark" size={20} color="#0056A8" />
+                            <Ionicons name="checkmark" size={20} color={palette.primary} />
                         </Pressable>
                     )}
                     <Pressable
                         onPress={() => onDelete?.(notification)}
                         style={styles.actionButton}
                     >
-                        <Ionicons name="trash-outline" size={20} color="#dc3545" />
+                        <Ionicons name="trash-outline" size={20} color={palette.danger} />
                     </Pressable>
                 </View>
 
@@ -161,77 +169,80 @@ export function NotificationCard({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: 'row',
-        paddingHorizontal: 12,
-        paddingVertical: 12,
-        marginHorizontal: 8,
-        marginVertical: 6,
-        borderRadius: 8,
-        alignItems: 'center',
-        backgroundColor: '#F5F7FB',
-        borderLeftWidth: 4,
-        borderLeftColor: 'transparent',
-        // Ensure relative positioning for the absolute dot
-        position: 'relative',
-    },
-    unreadContainer: {
-        backgroundColor: '#E6F4FE',
-        borderLeftColor: '#0056A8',
-    },
-    unreadDot: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#dc3545', // Red color
-    },
-    iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    contentContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        paddingRight: 16, // Add padding to avoid overlap with dot if needed, though dot is top-right
-    },
-    eventTitle: {
-        fontSize: 14,
-        fontWeight: '400', // Normal weight for read items
-        marginBottom: 4,
-        color: '#333',
-    },
-    eventTitleBold: {
-        fontWeight: '700', // Bold for unread
-    },
-    notificationText: {
-        fontSize: 13,
-        color: '#666',
-        marginBottom: 4,
-        lineHeight: 18,
-    },
-    notificationTextRead: {
-        color: '#999', // Lighter color for read items
-    },
-    timeText: {
-        fontSize: 11,
-        color: '#999',
-    },
-    actionsContainer: {
-        flexDirection: 'row',
-        marginLeft: 8,
-        gap: 8,
-    },
-    actionButton: {
-        padding: 8,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-});
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    return StyleSheet.create({
+        container: {
+            flexDirection: 'row',
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            marginHorizontal: 8,
+            marginVertical: 6,
+            borderRadius: 8,
+            alignItems: 'center',
+            backgroundColor: isDark ? '#151A20' : '#F5F7FB',
+            borderLeftWidth: 4,
+            borderLeftColor: 'transparent',
+            // Ensure relative positioning for the absolute dot
+            position: 'relative',
+        },
+        unreadContainer: {
+            backgroundColor: isDark ? '#1D2A3A' : '#E6F4FE',
+            borderLeftColor: isDark ? '#9FC3FF' : '#0056A8',
+        },
+        unreadDot: {
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: isDark ? '#FFB4AB' : '#DC3545',
+        },
+        iconContainer: {
+            width: 48,
+            height: 48,
+            borderRadius: 24,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: 12,
+        },
+        contentContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            paddingRight: 16,
+        },
+        eventTitle: {
+            fontSize: 14,
+            fontWeight: '400',
+            marginBottom: 4,
+            color: isDark ? '#ECEDEE' : '#333',
+        },
+        eventTitleBold: {
+            fontWeight: '700',
+        },
+        notificationText: {
+            fontSize: 13,
+            color: isDark ? '#B6BDC7' : '#666',
+            marginBottom: 4,
+            lineHeight: 18,
+        },
+        notificationTextRead: {
+            color: isDark ? '#8C939D' : '#999',
+        },
+        timeText: {
+            fontSize: 11,
+            color: isDark ? '#8C939D' : '#999',
+        },
+        actionsContainer: {
+            flexDirection: 'row',
+            marginLeft: 8,
+            gap: 8,
+        },
+        actionButton: {
+            padding: 8,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+    });
+};

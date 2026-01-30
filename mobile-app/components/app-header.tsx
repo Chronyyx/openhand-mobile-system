@@ -1,12 +1,11 @@
 import React, { useRef } from 'react';
 import { Animated, Image, Pressable, StyleSheet, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 type AppHeaderProps = {
     onMenuPress: () => void;
 };
-
-const BLUE = '#0056A8';
 
 import { useNotifications } from '@/hooks/useNotifications';
 
@@ -15,6 +14,14 @@ import { useNotifications } from '@/hooks/useNotifications';
 export function AppHeader({ onMenuPress }: AppHeaderProps) {
     const menuScale = useRef(new Animated.Value(1)).current;
     const { unreadCount } = useNotifications();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
+    const palette = {
+        primary: colorScheme === 'dark' ? '#9FC3FF' : '#0056A8',
+        surface: colorScheme === 'dark' ? '#151A20' : '#FFFFFF',
+        danger: colorScheme === 'dark' ? '#FFB4AB' : '#FF3B30',
+        surfaceBorder: colorScheme === 'dark' ? '#2A313B' : '#FFFFFF',
+    };
 
     const handlePressIn = () => {
         Animated.spring(menuScale, {
@@ -54,14 +61,14 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
                 ]}
             >
                 <Animated.View style={{ transform: [{ scale: menuScale }] }}>
-                    <Ionicons name="menu" size={28} color={BLUE} />
+                    <Ionicons name="menu" size={28} color={palette.primary} />
                     {unreadCount > 0 && (
                         <View
                             style={{
                                 position: 'absolute',
                                 top: -2,
                                 right: -2,
-                                backgroundColor: '#FF3B30',
+                                backgroundColor: palette.danger,
                                 borderRadius: 8,
                                 minWidth: 16,
                                 height: 16,
@@ -69,7 +76,7 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
                                 justifyContent: 'center',
                                 paddingHorizontal: 4,
                                 borderWidth: 1.5,
-                                borderColor: '#FFFFFF',
+                                borderColor: palette.surfaceBorder,
                             }}
                         >
                             <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
@@ -83,26 +90,29 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
     );
 }
 
-const styles = StyleSheet.create({
-    header: {
-        paddingHorizontal: 16,
-        paddingTop: 40,
-        paddingBottom: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: '#FFFFFF',
-    },
-    logo: {
-        width: 170,
-        height: 40,
-    },
-    menuButton: {
-        padding: 6,
-        borderRadius: 18,
-        backgroundColor: '#FFFFFF',
-    },
-    menuButtonPressed: {
-        backgroundColor: 'rgba(0,86,168,0.08)',
-    },
-});
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    return StyleSheet.create({
+        header: {
+            paddingHorizontal: 16,
+            paddingTop: 40,
+            paddingBottom: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: isDark ? '#151A20' : '#FFFFFF',
+        },
+        logo: {
+            width: 170,
+            height: 40,
+        },
+        menuButton: {
+            padding: 6,
+            borderRadius: 18,
+            backgroundColor: isDark ? '#151A20' : '#FFFFFF',
+        },
+        menuButtonPressed: {
+            backgroundColor: isDark ? 'rgba(159,195,255,0.15)' : 'rgba(0,86,168,0.08)',
+        },
+    });
+};

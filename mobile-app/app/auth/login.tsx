@@ -31,6 +31,7 @@ export default function LoginScreen() {
     const [error, setError] = useState<string | null>(null);
 
     const iconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
+    const placeholderColor = colorScheme === 'dark' ? '#8B93A1' : '#999';
     const forgotPasswordColor = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
 
     const handleLogin = async () => {
@@ -89,7 +90,7 @@ export default function LoginScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder={t("auth.email_placeholder")}
-                                placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                                placeholderTextColor={placeholderColor}
                                 value={email}
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
@@ -102,7 +103,7 @@ export default function LoginScreen() {
                             <TextInput
                                 style={styles.input}
                                 placeholder={t("auth.password_placeholder")}
-                                placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                                placeholderTextColor={placeholderColor}
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!isPasswordVisible}

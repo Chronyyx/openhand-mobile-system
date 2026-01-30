@@ -21,6 +21,8 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
     const isCancelled = event.status === 'CANCELLED';
     const colorScheme = useColorScheme() ?? 'light';
     const globalStyles = getStyles(colorScheme);
+    const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
+    const cancelledTextColor = colorScheme === 'dark' ? '#A0A7B1' : '#757575';
 
     return (
         <View style={[globalStyles.card, isCancelled && styles.cardCancelled, { position: 'relative' }]}>
@@ -31,7 +33,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                     hitSlop={10}
                     accessibilityLabel="Hide cancelled event"
                 >
-                    <Ionicons name="close-circle" size={24} color="#666" />
+                    <Ionicons name="close-circle" size={24} color={closeIconColor} />
                 </Pressable>
             )}
             <Pressable
@@ -46,7 +48,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                         type="subtitle"
                         style={[
                             globalStyles.eventTitle,
-                            isCancelled && { textDecorationLine: 'line-through', color: '#757575' }
+                            isCancelled && { textDecorationLine: 'line-through', color: cancelledTextColor }
                         ]}
                     >
                         {translatedTitle}

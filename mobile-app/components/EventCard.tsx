@@ -2,11 +2,12 @@ import React from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
-import { styles as globalStyles } from '../styles/events.styles';
+import { getStyles } from '../styles/events.styles';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle } from '../utils/event-translations';
 import { type EventSummary } from '../services/events.service';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 type EventCardProps = {
     event: EventSummary;
@@ -18,6 +19,10 @@ type EventCardProps = {
 export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
     const translatedTitle = getTranslatedEventTitle(event, t);
     const isCancelled = event.status === 'CANCELLED';
+    const colorScheme = useColorScheme() ?? 'light';
+    const globalStyles = getStyles(colorScheme);
+    const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
+    const cancelledTextColor = colorScheme === 'dark' ? '#A0A7B1' : '#757575';
 
     return (
         <View style={[globalStyles.card, isCancelled && styles.cardCancelled, { position: 'relative' }]}>
@@ -28,7 +33,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                     hitSlop={10}
                     accessibilityLabel="Hide cancelled event"
                 >
-                    <Ionicons name="close-circle" size={24} color="#666" />
+                    <Ionicons name="close-circle" size={24} color={closeIconColor} />
                 </Pressable>
             )}
             <Pressable
@@ -43,7 +48,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                         type="subtitle"
                         style={[
                             globalStyles.eventTitle,
-                            isCancelled && { textDecorationLine: 'line-through', color: '#757575' }
+                            isCancelled && { textDecorationLine: 'line-through', color: cancelledTextColor }
                         ]}
                     >
                         {translatedTitle}
@@ -105,7 +110,6 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
 
 const styles = StyleSheet.create({
     statusText: {
-        color: '#FFFFFF',
         fontWeight: '700',
         fontSize: 10,
     },
@@ -118,6 +122,5 @@ const styles = StyleSheet.create({
     },
     cardCancelled: {
         opacity: 0.8,
-        backgroundColor: '#f9f9f9',
     }
 });

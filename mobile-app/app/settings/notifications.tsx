@@ -4,15 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { MenuLayout } from '../../components/menu-layout';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 import {
   getNotificationPreferences,
   updateNotificationPreferences,
   type NotificationPreference,
   type NotificationPreferenceCategory,
 } from '../../services/notification-preferences.service';
-
-const BLUE = '#0056A8';
-const LIGHT_BG = '#F5F7FB';
 
 const CATEGORY_ORDER: NotificationPreferenceCategory[] = [
   'CONFIRMATION',
@@ -22,11 +20,15 @@ const CATEGORY_ORDER: NotificationPreferenceCategory[] = [
 
 export default function NotificationPreferencesScreen() {
   const { t } = useTranslation();
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, isLoading: authIsLoading } = useAuth();
+  const colorScheme = useColorScheme() ?? 'light';
   const [preferences, setPreferences] = useState<NotificationPreference[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const styles = getStyles(colorScheme);
+  const BLUE = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
 
   const isMember = hasRole(['ROLE_MEMBER']);
 
@@ -43,7 +45,7 @@ export default function NotificationPreferencesScreen() {
   }, [preferences]);
 
   const loadPreferences = useCallback(async () => {
-    if (!user?.token) {
+    if (!user?.token || authIsLoading) {
       return;
     }
     setIsLoading(true);
@@ -56,18 +58,21 @@ export default function NotificationPreferencesScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.token, t]);
+  }, [user?.token, t, authIsLoading]);
 
   useEffect(() => {
+    if (authIsLoading) {
+      return;
+    }
     if (!user?.token || !isMember) {
       setIsLoading(false);
       return;
     }
     loadPreferences();
-  }, [user?.token, isMember, loadPreferences]);
+  }, [user?.token, isMember, loadPreferences, authIsLoading]);
 
   const handleToggle = async (category: NotificationPreferenceCategory, enabled: boolean) => {
-    if (!user?.token || isSaving) {
+    if (!user?.token || isSaving || authIsLoading) {
       return;
     }
     const previous = preferences;
@@ -150,8 +155,8 @@ export default function NotificationPreferencesScreen() {
                     value={pref.enabled || pref.isCritical}
                     onValueChange={(value) => handleToggle(pref.category, value)}
                     disabled={pref.isCritical || isSaving}
-                    trackColor={{ false: '#D4DBE7', true: '#8CC3FF' }}
-                    thumbColor={pref.enabled ? BLUE : '#F5F7FB'}
+                    trackColor={{ false: colorScheme === 'dark' ? '#4A5568' : '#D4DBE7', true: colorScheme === 'dark' ? '#6AA9FF' : '#8CC3FF' }}
+                    thumbColor={pref.enabled ? BLUE : (colorScheme === 'dark' ? '#2A313B' : '#F5F7FB')}
                     testID={`notification-toggle-${pref.category.toLowerCase()}`}
                   />
                 </View>
@@ -173,7 +178,12 @@ export default function NotificationPreferencesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => {
+  const isDark = scheme === 'dark';
+  const BLUE = isDark ? '#9FC3FF' : '#0056A8';
+  const LIGHT_BG = isDark ? '#111418' : '#F5F7FB';
+
+  return StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: LIGHT_BG,
@@ -191,17 +201,17 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 15,
-    color: '#4F5D73',
+    color: isDark ? '#A0A7B1' : '#4F5D73',
   },
   list: {
     gap: 14,
   },
   preferenceCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: isDark ? '#151A20' : '#FFFFFF',
     borderRadius: 14,
     padding: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#E4E9F2',
+    borderColor: isDark ? '#2A313B' : '#E4E9F2',
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -217,17 +227,17 @@ const styles = StyleSheet.create({
   preferenceTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#13233B',
+    color: isDark ? '#ECEDEE' : '#13233B',
   },
   preferenceHint: {
     fontSize: 12,
-    color: '#687690',
+    color: isDark ? '#A0A7B1' : '#687690',
     marginTop: 4,
   },
   helperText: {
     marginTop: 10,
     fontSize: 12,
-    color: '#7C8AA5',
+    color: isDark ? '#A0A7B1' : '#7C8AA5',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -235,7 +245,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: {
-    color: '#5C6A80',
+    color: isDark ? '#A0A7B1' : '#5C6A80',
   },
   emptyState: {
     marginTop: 40,
@@ -243,11 +253,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   emptyText: {
-    color: '#5C6A80',
+    color: isDark ? '#A0A7B1' : '#5C6A80',
     textAlign: 'center',
   },
   errorText: {
-    color: '#C62828',
+    color: isDark ? '#FFB4AB' : '#C62828',
     marginBottom: 6,
   },
-});
+  });
+};

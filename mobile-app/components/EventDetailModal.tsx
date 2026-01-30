@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
-import { styles } from '../styles/events.styles';
+import { getStyles } from '../styles/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
 import { type Registration, type RegistrationParticipant } from '../services/registration.service';
 import { searchUsers, registerParticipantForEvent, type EmployeeSearchResult } from '../services/employee.service';
@@ -92,6 +92,39 @@ export function EventDetailModal({
     // Fallback if no details yet
     const displayEvent = eventDetail || selectedEvent;
     const isCompleted = displayEvent?.status === 'COMPLETED';
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const styles = getStyles(colorScheme);
+    const infoPalette = isDark
+        ? {
+            errorBg: '#3A2626',
+            errorBorder: '#8B4545',
+            errorText: '#FFB4AB',
+            successBg: '#1A4620',
+            successBorder: '#2F6F3A',
+            successText: '#8BE28B',
+        }
+        : {
+            errorBg: '#FFEBEE',
+            errorBorder: '#D32F2F',
+            errorText: '#C62828',
+            successBg: '#E8F5E9',
+            successBorder: '#2E7D32',
+            successText: '#2E7D32',
+        };
+    const inputPalette = isDark
+        ? {
+            bg: '#1F2328',
+            border: '#3A3F47',
+            text: '#ECEDEE',
+            placeholder: '#8B93A1',
+        }
+        : {
+            bg: '#FFFFFF',
+            border: '#E0E7F3',
+            text: '#333333',
+            placeholder: '#999999',
+        };
 
     // Employee Walk-in State
     const [walkinQuery, setWalkinQuery] = React.useState('');
@@ -231,7 +264,7 @@ export function EventDetailModal({
                     <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
                         {loading ? (
                             <View style={styles.modalLoadingContainer}>
-                                <ActivityIndicator size="large" color="#0056A8" />
+                                <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                                 <ThemedText style={styles.modalLoadingText}>
                                     {t('events.loading')}
                                 </ThemedText>
@@ -243,7 +276,7 @@ export function EventDetailModal({
                         ) : showSuccessView && selectedEvent ? (
                             /* Success View */
                             <View style={styles.successContainer}>
-                                <Ionicons name="checkbox" size={64} color="#0056A8" style={{ marginBottom: 16 }} />
+                                <Ionicons name="checkbox" size={64} color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} style={{ marginBottom: 16 }} />
                                 <ThemedText type="subtitle" style={styles.successTitle}>
                                     {t('alerts.registerSuccess', 'Inscription confirmée !')}
                                 </ThemedText>
@@ -377,8 +410,9 @@ export function EventDetailModal({
                                         <ThemedText style={styles.sectionTitle}>{t('events.walkin.title')}</ThemedText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                             <TextInput
-                                                style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#E0E7F3' }}
+                                                style={{ flex: 1, backgroundColor: inputPalette.bg, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: inputPalette.border, color: inputPalette.text }}
                                                 placeholder={t('events.walkin.searchPlaceholder')}
+                                                placeholderTextColor={inputPalette.placeholder}
                                                 value={walkinQuery}
                                                 onChangeText={setWalkinQuery}
                                             />
@@ -387,13 +421,13 @@ export function EventDetailModal({
                                             </Pressable>
                                         </View>
                                         {walkinError && (
-                                            <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
-                                                <ThemedText style={[styles.infoText, { color: '#c62828' }]}>{walkinError}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
+                                                <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>{walkinError}</ThemedText>
                                             </View>
                                         )}
                                         {walkinSuccess && (
-                                            <View style={[styles.infoBox, { borderLeftColor: '#2e7d32', borderLeftWidth: 4, backgroundColor: '#e8f5e9' }]}> 
-                                                <ThemedText style={[styles.infoText, { color: '#2e7d32' }]}>{walkinSuccess}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.successBorder, borderLeftWidth: 4, backgroundColor: infoPalette.successBg }]}> 
+                                                <ThemedText style={[styles.infoText, { color: infoPalette.successText }]}>{walkinSuccess}</ThemedText>
                                             </View>
                                         )}
                                         {walkinResults.length > 0 && (
@@ -443,12 +477,14 @@ export function EventDetailModal({
                                                     <TextInput
                                                         style={styles.familyInput}
                                                         placeholder={t('events.family.fullNamePlaceholder', 'Full name')}
+                                                        placeholderTextColor={inputPalette.placeholder}
                                                         value={member.fullName}
                                                         onChangeText={(text) => handleUpdateFamilyMember(member.id, 'fullName', text)}
                                                     />
                                                     <TextInput
                                                         style={styles.familyInput}
                                                         placeholder={t('events.family.agePlaceholder', 'Age')}
+                                                        placeholderTextColor={inputPalette.placeholder}
                                                         keyboardType="numeric"
                                                         value={member.age}
                                                         onChangeText={(text) => handleUpdateFamilyMember(member.id, 'age', text)}
@@ -456,6 +492,7 @@ export function EventDetailModal({
                                                     <TextInput
                                                         style={styles.familyInput}
                                                         placeholder={t('events.family.relationPlaceholder', 'Relation (optional)')}
+                                                        placeholderTextColor={inputPalette.placeholder}
                                                         value={member.relation || ''}
                                                         onChangeText={(text) => handleUpdateFamilyMember(member.id, 'relation', text)}
                                                     />
@@ -477,8 +514,8 @@ export function EventDetailModal({
                                 {/* Buttons */}
                                 {user ? (
                                     isInactiveMember ? (
-                                        <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
-                                            <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                        <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
+                                            <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>
                                                 {t('events.inactiveMember')}
                                             </ThemedText>
                                         </View>
@@ -493,8 +530,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
-                                                        <ThemedText style={[styles.infoText, { color: '#c62828' }]}> 
+                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
+                                                        <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}> 
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>

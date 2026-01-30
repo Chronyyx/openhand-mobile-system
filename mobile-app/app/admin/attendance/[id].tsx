@@ -17,6 +17,7 @@ import { MenuLayout } from '../../../components/menu-layout';
 import { ThemedText } from '../../../components/themed-text';
 import { ThemedView } from '../../../components/themed-view';
 import { useAuth } from '../../../context/AuthContext';
+import { useColorScheme } from '../../../hooks/use-color-scheme';
 import {
     checkInAttendee,
     getAttendanceEventAttendees,
@@ -26,7 +27,7 @@ import {
     type AttendanceUpdate,
 } from '../../../services/attendance.service';
 import { getEventById, type EventDetail } from '../../../services/events.service';
-import { styles as eventStyles } from '../../../styles/events.styles';
+import { getStyles as getEventStyles } from '../../../styles/events.styles';
 import { formatIsoDate, formatIsoTimeRange, formatIsoDateTime } from '../../../utils/date-time';
 import { getTranslatedEventTitle } from '../../../utils/event-translations';
 import { webSocketService } from '../../../utils/websocket';
@@ -34,7 +35,14 @@ import { webSocketService } from '../../../utils/websocket';
 export default function AttendanceEventDetailScreen() {
     const { id } = useLocalSearchParams();
     const { t } = useTranslation();
-    const { user, hasRole } = useAuth();
+    const { user, hasRole, isLoading } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
+    const eventStyles = getEventStyles(colorScheme);
+    const isDark = colorScheme === 'dark';
+    const styles = getStyles(isDark);
+    const indicatorColor = isDark ? '#6AA9FF' : '#0056A8';
+    const iconColor = isDark ? '#A0A7B1' : '#666';
+    const placeholderColor = isDark ? '#8B93A1' : '#999';
 
     const eventId = useMemo(() => {
         if (typeof id === 'string') return parseInt(id, 10);
@@ -59,7 +67,7 @@ export default function AttendanceEventDetailScreen() {
             setRefreshing(false);
             return;
         }
-        if (!user?.token) {
+        if (!user?.token || isLoading) {
             setError(t('common.notAuthenticated'));
             setLoading(false);
             setRefreshing(false);
@@ -84,14 +92,14 @@ export default function AttendanceEventDetailScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [eventId, refreshing, t, user?.token]);
+    }, [eventId, refreshing, t, user?.token, isLoading]);
 
     useFocusEffect(
         useCallback(() => {
-            if (canView) {
+            if (canView && !isLoading) {
                 loadAttendance();
             }
-        }, [canView, loadAttendance]),
+        }, [canView, loadAttendance, isLoading]),
     );
 
     const applyUpdate = useCallback((update: AttendanceUpdate) => {
@@ -218,7 +226,7 @@ export default function AttendanceEventDetailScreen() {
     } else if (loading) {
         content = (
             <ThemedView style={eventStyles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
+                <ActivityIndicator size="large" color={indicatorColor} />
                 <ThemedText style={eventStyles.loadingText}>{t('attendance.attendees.loading')}</ThemedText>
             </ThemedView>
         );
@@ -242,7 +250,7 @@ export default function AttendanceEventDetailScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={['#0056A8']}
+                        colors={[indicatorColor]}
                     />
                 }
                 ListHeaderComponent={
@@ -274,11 +282,11 @@ export default function AttendanceEventDetailScreen() {
                             </ThemedText>
                         </View>
                         <View style={eventStyles.searchContainer}>
-                            <Ionicons name="search" size={20} color="#666" style={eventStyles.searchIcon} />
+                            <Ionicons name="search" size={20} color={iconColor} style={eventStyles.searchIcon} />
                             <TextInput
-                                style={eventStyles.searchInput}
+                                style={[eventStyles.searchInput, { color: isDark ? '#ECEDEE' : '#333' }]}
                                 placeholder={t('attendance.attendees.searchPlaceholder')}
-                                placeholderTextColor="#999"
+                                placeholderTextColor={placeholderColor}
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
                             />
@@ -304,122 +312,137 @@ export default function AttendanceEventDetailScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    header: {
-        marginBottom: 16,
-    },
-    eventTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1A2D4A',
-    },
-    eventMeta: {
-        marginTop: 4,
-        fontSize: 12,
-        color: '#6F7B91',
-    },
-    summaryRow: {
-        marginTop: 8,
-        flexDirection: 'row',
-        gap: 12,
-    },
-    summaryItem: {
-        fontSize: 12,
-        color: '#3D4D65',
-        fontWeight: '600',
-    },
-    attendeeCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 14,
-        borderRadius: 12,
-        backgroundColor: '#FFFFFF',
-        borderWidth: 1,
-        borderColor: '#E0E4EC',
-        marginBottom: 12,
-        gap: 12,
-    },
-    attendeeInfo: {
-        flex: 1,
-    },
-    attendeeName: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#1A2D4A',
-    },
-    attendeeEmail: {
-        marginTop: 2,
-        fontSize: 12,
-        color: '#6F7B91',
-    },
-    timestampText: {
-        fontSize: 12,
-        color: '#1E7C44',
-        marginTop: 4,
-        fontWeight: '500',
-    },
-    statusPill: {
-        marginTop: 8,
-        alignSelf: 'flex-start',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusChecked: {
-        backgroundColor: '#E7F5EC',
-    },
-    statusPending: {
-        backgroundColor: '#F2F4F8',
-    },
-    statusText: {
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    statusCheckedText: {
-        color: '#1E7C44',
-    },
-    statusPendingText: {
-        color: '#4A5568',
-    },
-    checkInButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    confirmButton: {
-        backgroundColor: '#0056A8',
-    },
-    undoButton: {
-        backgroundColor: '#F5F7FB',
-        borderWidth: 1,
-        borderColor: '#C7D2E5',
-    },
-    disabledButton: {
-        opacity: 0.6,
-    },
-    checkInButtonText: {
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    confirmButtonText: {
-        color: '#FFFFFF',
-    },
-    undoButtonText: {
-        color: '#0056A8',
-    },
-    retryButton: {
-        marginTop: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#0056A8',
-    },
-    retryText: {
-        color: '#0056A8',
-        fontWeight: '600',
-    },
-});
+const getStyles = (isDark: boolean) => {
+    const colors = {
+        text: isDark ? '#ECEDEE' : '#1A2D4A',
+        textMuted: isDark ? '#A0A7B1' : '#3D4D65',
+        textSubtle: isDark ? '#8B93A1' : '#6F7B91',
+        surface: isDark ? '#1F2328' : '#FFFFFF',
+        background: isDark ? '#0F1419' : '#F5F7FB',
+        border: isDark ? '#3A3F47' : '#E0E4EC',
+        borderLight: isDark ? '#2A2F37' : '#E8ECEF',
+        successText: isDark ? '#66BB6A' : '#1E7C44',
+        warningText: isDark ? '#FFB74D' : '#4A5568',
+    };
+
+    return StyleSheet.create({
+        header: {
+            marginBottom: 16,
+        },
+        eventTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        eventMeta: {
+            marginTop: 4,
+            fontSize: 12,
+            color: colors.textSubtle,
+        },
+        summaryRow: {
+            marginTop: 8,
+            flexDirection: 'row',
+            gap: 12,
+        },
+        summaryItem: {
+            fontSize: 12,
+            color: colors.textMuted,
+            fontWeight: '600',
+        },
+        attendeeCard: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: 14,
+            borderRadius: 12,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: colors.border,
+            marginBottom: 12,
+            gap: 12,
+        },
+        attendeeInfo: {
+            flex: 1,
+        },
+        attendeeName: {
+            fontSize: 15,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        attendeeEmail: {
+            marginTop: 2,
+            fontSize: 12,
+            color: colors.textSubtle,
+        },
+        timestampText: {
+            fontSize: 12,
+            color: colors.successText,
+            marginTop: 4,
+            fontWeight: '500',
+        },
+        statusPill: {
+            marginTop: 8,
+            alignSelf: 'flex-start',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+        },
+        statusChecked: {
+            backgroundColor: isDark ? '#1B3A1B' : '#E7F5EC',
+        },
+        statusPending: {
+            backgroundColor: isDark ? '#2A2F37' : '#F2F4F8',
+        },
+        statusText: {
+            fontSize: 11,
+            fontWeight: '600',
+        },
+        statusCheckedText: {
+            color: colors.successText,
+        },
+        statusPendingText: {
+            color: colors.textSubtle,
+        },
+        checkInButton: {
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderRadius: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        confirmButton: {
+            backgroundColor: '#0056A8',
+        },
+        undoButton: {
+            backgroundColor: isDark ? '#2A2F37' : '#F5F7FB',
+            borderWidth: 1,
+            borderColor: isDark ? '#3A3F47' : '#C7D2E5',
+        },
+        disabledButton: {
+            opacity: 0.6,
+        },
+        checkInButtonText: {
+            fontSize: 12,
+            fontWeight: '700',
+        },
+        confirmButtonText: {
+            color: '#FFFFFF',
+        },
+        undoButtonText: {
+            color: '#0056A8',
+        },
+        retryButton: {
+            marginTop: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: '#0056A8',
+        },
+        retryText: {
+            color: '#0056A8',
+            fontWeight: '600',
+        },
+    });
+};
+

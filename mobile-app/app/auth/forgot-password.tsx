@@ -10,8 +10,9 @@ import {
     Platform,
     TouchableWithoutFeedback,
     Keyboard,
+    useColorScheme,
 } from "react-native";
-import { styles } from "../../styles/auth.login.styles";
+import { getStyles } from "../../styles/auth.login.styles";
 import { useTranslation } from "react-i18next";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,10 +21,19 @@ import AuthService from "../../services/auth.service";
 export default function ForgotPasswordScreen() {
     const { t } = useTranslation();
     const router = useRouter();
+    const colorScheme = useColorScheme() || 'light';
+    const styles = getStyles(colorScheme);
+    
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    
+    const isDark = colorScheme === 'dark';
+    const accentColor = isDark ? '#6AA9FF' : '#0056A8';
+    const successColor = isDark ? '#81C784' : '#2E7D32';
+    const successBG = isDark ? '#1B3A1B' : '#E8F5E9';
+    const textMuted = isDark ? '#A0A7B1' : '#666';
 
     const handleSubmit = async () => {
         if (!email) {
@@ -68,17 +78,17 @@ export default function ForgotPasswordScreen() {
                     </View>
 
                     <Text style={styles.title}>{t('auth.forgot_password_title')}</Text>
-                    <Text style={{ textAlign: 'center', color: '#666', marginBottom: 20 }}>
+                    <Text style={{ textAlign: 'center', color: textMuted, marginBottom: 20 }}>
                         {t('auth.forgot_password_prompt_title')}
                     </Text>
 
                     <View style={styles.inputContainer}>
                         <View style={styles.inputWrapper}>
-                            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+                            <Ionicons name="mail-outline" size={20} color={textMuted} style={styles.inputIcon} />
                             <TextInput
                                 style={styles.input}
                                 placeholder={t('auth.email_placeholder')}
-                                placeholderTextColor="#999"
+                                placeholderTextColor={textMuted}
                                 value={email}
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
@@ -89,21 +99,21 @@ export default function ForgotPasswordScreen() {
 
                     {error && (
                         <View style={styles.errorContainer}>
-                            <Ionicons name="alert-circle" size={18} color="#D32F2F" />
+                            <Ionicons name="alert-circle" size={18} color={isDark ? '#FFB4AB' : '#D32F2F'} />
                             <Text style={styles.errorText}>{error}</Text>
                         </View>
                     )}
 
                     {message && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: '#E8F5E9', borderRadius: 8 }}>
-                            <Ionicons name="checkmark-circle" size={18} color="#2E7D32" />
-                            <Text style={{ color: '#2E7D32', marginLeft: 8, flex: 1 }}>{message}</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, padding: 10, backgroundColor: successBG, borderRadius: 8 }}>
+                            <Ionicons name="checkmark-circle" size={18} color={successColor} />
+                            <Text style={{ color: successColor, marginLeft: 8, flex: 1 }}>{message}</Text>
                         </View>
                     )}
 
                     <View style={styles.buttonContainer}>
                         {loading ? (
-                            <ActivityIndicator size="large" color="#0056A8" />
+                            <ActivityIndicator size="large" color={accentColor} />
                         ) : (
                             <TouchableOpacity style={styles.loginButton} onPress={handleSubmit} activeOpacity={0.8}>
                                 <Text style={styles.loginButtonText}>{t('auth.send_reset_code_button')}</Text>
@@ -112,7 +122,7 @@ export default function ForgotPasswordScreen() {
                     </View>
 
                     <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
-                        <Text style={{ color: '#0056A8', textAlign: 'center' }}>{t('auth.back_to_login_link')}</Text>
+                        <Text style={{ color: accentColor, textAlign: 'center' }}>{t('auth.back_to_login_link')}</Text>
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>

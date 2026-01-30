@@ -14,6 +14,7 @@ import {
     TextInput,
     TouchableWithoutFeedback,
     View,
+    useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -35,9 +36,6 @@ import {
 } from '../../services/event-management.service';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 import { getStatusColor, getStatusLabel, getStatusTextColor } from '../../utils/event-status';
-
-const ACCENT = '#0056A8';
-const SURFACE = '#F5F7FB';
 
 type FieldErrors = Partial<Record<
     | 'title'
@@ -102,6 +100,9 @@ export default function AdminEventsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { hasRole } = useAuth();
+    const colorScheme = useColorScheme();
+    const styles = getStyles(colorScheme);
+    
     const isAdmin = hasRole(['ROLE_ADMIN']);
     const canCompleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
     const canDeleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
@@ -1052,420 +1053,455 @@ export default function AdminEventsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: SURFACE,
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 18,
-        paddingVertical: 18,
-    },
-    hero: {
-        backgroundColor: '#FFFFFF',
-        padding: 16,
-        borderRadius: 14,
-        alignItems: 'flex-start',
-        gap: 12,
-        shadowColor: '#000',
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 4,
-    },
-    heroHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        width: '100%',
-    },
-    heroIcon: {
-        width: 46,
-        height: 46,
-        borderRadius: 14,
-        backgroundColor: '#EAF1FF',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#0F2848',
-    },
-    subtitle: {
-        color: '#5C6A80',
-        marginTop: 4,
-        fontSize: 14,
-        flexShrink: 1,
-    },
-    createButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: ACCENT,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        borderRadius: 12,
-        gap: 6,
-    },
-    createButtonPressed: {
-        opacity: 0.92,
-    },
-    createButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 13,
-    },
-    errorBox: {
-        marginTop: 12,
-        backgroundColor: '#FDECEA',
-        borderColor: '#F5C6C6',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: 12,
-        padding: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    errorText: {
-        color: '#8A1F1F',
-        flex: 1,
-        fontSize: 13,
-        fontWeight: '600',
-    },
-    centered: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    listContent: {
-        paddingTop: 14,
-        paddingBottom: 18,
-        gap: 12,
-    },
-    sectionHeader: {
-        marginTop: 8,
-        marginBottom: 4,
-        gap: 4,
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1B2F4A',
-    },
-    sectionHint: {
-        fontSize: 12,
-        color: '#6F7B91',
-    },
-    sectionEmpty: {
-        paddingVertical: 8,
-    },
-    emptyState: {
-        alignItems: 'center',
-        paddingVertical: 36,
-        gap: 8,
-    },
-    emptyText: {
-        color: '#5C6A80',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    eventCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 14,
-        padding: 14,
-        position: 'relative',
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 3,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E7F3',
-    },
-    eventCardArchived: {
-        backgroundColor: '#F7F9FC',
-        borderColor: '#E3E8F2',
-    },
-    eventHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    eventIcon: {
-        width: 38,
-        height: 38,
-        borderRadius: 12,
-        backgroundColor: '#F3F7FF',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    eventTitle: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#0F2848',
-    },
-    eventMeta: {
-        marginTop: 3,
-        fontSize: 12,
-        color: '#5C6A80',
-    },
-    eventActions: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    statusPill: {
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        backgroundColor: '#EAF1FF',
-        borderRadius: 999,
-    },
-    statusPillText: {
-        color: ACCENT,
-        fontSize: 12,
-        fontWeight: '800',
-    },
-    menuTrigger: {
-        padding: 6,
-        borderRadius: 10,
-    },
-    menuTriggerPressed: {
-        backgroundColor: '#EEF3FF',
-    },
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-    },
-    menuItemPressed: {
-        backgroundColor: '#F2F6FF',
-    },
-    menuItemText: {
-        color: '#0F2848',
-        fontSize: 14,
-        fontWeight: '700',
-        flex: 1,
-    },
-    menuItemTextDanger: {
-        color: '#D32F2F',
-    },
-    contextOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(15, 28, 48, 0.2)',
-        justifyContent: 'flex-end',
-        padding: 12,
-    },
-    contextCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 14,
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E7F3',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        shadowOffset: { width: 0, height: 5 },
-        elevation: 8,
-        gap: 6,
-    },
-    contextHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        paddingHorizontal: 4,
-        paddingBottom: 4,
-    },
-    contextTitle: {
-        flex: 1,
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#0F2848',
-    },
-    contextItem: {
-        borderRadius: 10,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(15, 28, 48, 0.5)',
-        justifyContent: 'flex-end',
-        position: 'relative',
-    },
-    modalCard: {
-        backgroundColor: '#FFFFFF',
-        borderTopLeftRadius: 18,
-        borderTopRightRadius: 18,
-        padding: 16,
-        maxHeight: '92%',
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    modalTitle: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: '800',
-        color: '#0F2848',
-    },
-    form: {
-        marginTop: 12,
-        gap: 10,
-    },
-    fieldLabel: {
-        fontSize: 12,
-        fontWeight: '800',
-        color: '#1B2F4A',
-        marginTop: 6,
-    },
-    input: {
-        backgroundColor: '#F7F9FD',
-        borderColor: '#DCE4F2',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        color: '#0F2848',
-        fontSize: 14,
-    },
-    inputDisabled: {
-        backgroundColor: '#EEF2F7',
-        color: '#7B8798',
-    },
-    textarea: {
-        backgroundColor: '#F7F9FD',
-        borderColor: '#DCE4F2',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 10,
-        color: '#0F2848',
-        fontSize: 14,
-        minHeight: 90,
-        textAlignVertical: 'top',
-    },
-    inputError: {
-        borderColor: '#C62828',
-    },
-    fieldError: {
-        color: '#8A1F1F',
-        fontSize: 12,
-        fontWeight: '600',
-        marginTop: 4,
-    },
-    pickerField: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: '#F7F9FD',
-        borderColor: '#DCE4F2',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 12,
-        gap: 10,
-    },
-    pickerFieldDisabled: {
-        backgroundColor: '#EEF2F7',
-        borderColor: '#E1E6EF',
-    },
-    pickerFieldPressed: {
-        opacity: 0.92,
-    },
-    pickerFieldText: {
-        flex: 1,
-        color: '#0F2848',
-        fontSize: 14,
-        fontWeight: '700',
-    },
-    pickerFieldPlaceholder: {
-        color: '#9BA5B7',
-        fontWeight: '600',
-    },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-    },
-    modalActions: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 14,
-    },
-    secondaryButton: {
-        flex: 1,
-        borderRadius: 12,
-        paddingVertical: 12,
-        borderWidth: 1,
-        borderColor: '#DCE4F2',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#FFFFFF',
-    },
-    secondaryButtonText: {
-        color: '#1B2F4A',
-        fontWeight: '800',
-        fontSize: 14,
-    },
-    primaryButton: {
-        flex: 1,
-        borderRadius: 12,
-        paddingVertical: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: ACCENT,
-    },
-    primaryButtonPressed: {
-        opacity: 0.92,
-    },
-    primaryButtonDisabled: {
-        opacity: 0.7,
-    },
-    primaryButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '800',
-        fontSize: 14,
-    },
-    cancelEventButton: {
-        marginTop: 24,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        backgroundColor: '#FFEBEE',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#FFCDD2',
-        gap: 8,
-    },
-    cancelEventButtonPressed: {
-        backgroundColor: '#FFCDD2',
-    },
-    cancelEventButtonText: {
-        color: '#D32F2F',
-        fontWeight: '700',
-        fontSize: 14,
-    },
-    dangerButton: {
-        flex: 1,
-        borderRadius: 12,
-        paddingVertical: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#C62828',
-    },
-    dangerButtonPressed: {
-        opacity: 0.92,
-    },
-    dangerButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '800',
-        fontSize: 14,
-        textAlign: 'center',
-        width: '100%',
-    },
-});
+const getStyles = (colorScheme: 'light' | 'dark' | null) => {
+    const isDark = colorScheme === 'dark';
+    
+    // Define all colors dynamically
+    const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
+    const SURFACE = isDark ? '#0F1419' : '#F5F7FB';
+    const TEXT = isDark ? '#ECEDEE' : '#0F2848';
+    const TEXT_MUTED = isDark ? '#A0A7B1' : '#5C6A80';
+    const TEXT_SECONDARY = isDark ? '#A0A7B1' : '#1B2F4A';
+    const BG = isDark ? '#1F2328' : '#FFFFFF';
+    const BG_LIGHT = isDark ? '#2A3138' : '#F7F9FC';
+    const BORDER = isDark ? '#2F3A4A' : '#E0E7F3';
+    const BORDER_LIGHT = isDark ? '#2F3A4A' : '#DCE4F2';
+    const HERO_ICON_BG = isDark ? '#1D2A3A' : '#EAF1FF';
+    const ERROR_BG = isDark ? '#3A1F1F' : '#FDECEA';
+    const ERROR_BORDER = isDark ? '#6B2A2A' : '#F5C6C6';
+    const ERROR_TEXT = isDark ? '#FFB4AB' : '#8A1F1F';
+    const ERROR_DARK = isDark ? '#D32F2F' : '#D32F2F';
+    const CANCEL_BG = isDark ? '#3A1F1F' : '#FFEBEE';
+    const CANCEL_BORDER = isDark ? '#6B2A2A' : '#FFCDD2';
+    const INPUT_BG = isDark ? '#111418' : '#F7F9FD';
+    const INPUT_BORDER = isDark ? '#2F3A4A' : '#DCE4F2';
+    const INPUT_PLACEHOLDER = isDark ? '#6F7B91' : '#9BA5B7';
+    const MENU_OVERLAY = isDark ? 'rgba(0, 0, 0, 0.4)' : 'rgba(15, 28, 48, 0.2)';
+    const MODAL_OVERLAY = isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(15, 28, 48, 0.5)';
+    const INPUT_DISABLED_BG = isDark ? '#1A2330' : '#EEF2F7';
+    const INPUT_DISABLED_TEXT = isDark ? '#6F7B91' : '#7B8798';
+    const MENU_ITEM_PRESSED = isDark ? '#1F2A38' : '#F2F6FF';
+    const BUTTON_BORDER = isDark ? '#2F3A4A' : '#DCE4F2';
+    const STATUS_PILL_BG = isDark ? '#1D2A3A' : '#EAF1FF';
+    const DANGER_COLOR = isDark ? '#FF5252' : '#C62828';
+
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: SURFACE,
+        },
+        content: {
+            flex: 1,
+            paddingHorizontal: 18,
+            paddingVertical: 18,
+        },
+        hero: {
+            backgroundColor: BG,
+            padding: 16,
+            borderRadius: 14,
+            alignItems: 'flex-start',
+            gap: 12,
+            shadowColor: '#000',
+            shadowOpacity: 0.06,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 4,
+        },
+        heroHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            width: '100%',
+        },
+        heroIcon: {
+            width: 46,
+            height: 46,
+            borderRadius: 14,
+            backgroundColor: HERO_ICON_BG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: '700',
+            color: TEXT,
+        },
+        subtitle: {
+            color: TEXT_MUTED,
+            marginTop: 4,
+            fontSize: 14,
+            flexShrink: 1,
+        },
+        createButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: ACCENT,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            borderRadius: 12,
+            gap: 6,
+        },
+        createButtonPressed: {
+            opacity: 0.92,
+        },
+        createButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '700',
+            fontSize: 13,
+        },
+        errorBox: {
+            marginTop: 12,
+            backgroundColor: ERROR_BG,
+            borderColor: ERROR_BORDER,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderRadius: 12,
+            padding: 12,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+        },
+        errorText: {
+            color: ERROR_TEXT,
+            flex: 1,
+            fontSize: 13,
+            fontWeight: '600',
+        },
+        centered: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        listContent: {
+            paddingTop: 14,
+            paddingBottom: 18,
+            gap: 12,
+        },
+        sectionHeader: {
+            marginTop: 8,
+            marginBottom: 4,
+            gap: 4,
+        },
+        sectionTitle: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: TEXT_SECONDARY,
+        },
+        sectionHint: {
+            fontSize: 12,
+            color: TEXT_MUTED,
+        },
+        sectionEmpty: {
+            paddingVertical: 8,
+        },
+        emptyState: {
+            alignItems: 'center',
+            paddingVertical: 36,
+            gap: 8,
+        },
+        emptyText: {
+            color: TEXT_MUTED,
+            fontSize: 14,
+            fontWeight: '600',
+        },
+        eventCard: {
+            backgroundColor: BG,
+            borderRadius: 14,
+            padding: 14,
+            position: 'relative',
+            shadowColor: '#000',
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 3,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: BORDER,
+        },
+        eventCardArchived: {
+            backgroundColor: BG_LIGHT,
+            borderColor: BORDER,
+        },
+        eventHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+        },
+        eventIcon: {
+            width: 38,
+            height: 38,
+            borderRadius: 12,
+            backgroundColor: HERO_ICON_BG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        eventTitle: {
+            fontSize: 15,
+            fontWeight: '700',
+            color: TEXT,
+        },
+        eventMeta: {
+            marginTop: 3,
+            fontSize: 12,
+            color: TEXT_MUTED,
+        },
+        eventActions: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+        },
+        statusPill: {
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            backgroundColor: STATUS_PILL_BG,
+            borderRadius: 999,
+        },
+        statusPillText: {
+            color: ACCENT,
+            fontSize: 12,
+            fontWeight: '800',
+        },
+        menuTrigger: {
+            padding: 6,
+            borderRadius: 10,
+        },
+        menuTriggerPressed: {
+            backgroundColor: MENU_ITEM_PRESSED,
+        },
+        menuItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+        },
+        menuItemPressed: {
+            backgroundColor: MENU_ITEM_PRESSED,
+        },
+        menuItemText: {
+            color: TEXT,
+            fontSize: 14,
+            fontWeight: '700',
+            flex: 1,
+        },
+        menuItemTextDanger: {
+            color: ERROR_DARK,
+        },
+        contextOverlay: {
+            flex: 1,
+            backgroundColor: MENU_OVERLAY,
+            justifyContent: 'flex-end',
+            padding: 12,
+        },
+        contextCard: {
+            backgroundColor: BG,
+            borderRadius: 14,
+            paddingVertical: 10,
+            paddingHorizontal: 12,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: BORDER,
+            shadowColor: '#000',
+            shadowOpacity: 0.08,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 5 },
+            elevation: 8,
+            gap: 6,
+        },
+        contextHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            paddingHorizontal: 4,
+            paddingBottom: 4,
+        },
+        contextTitle: {
+            flex: 1,
+            fontSize: 13,
+            fontWeight: '700',
+            color: TEXT,
+        },
+        contextItem: {
+            borderRadius: 10,
+        },
+        modalOverlay: {
+            flex: 1,
+            backgroundColor: MODAL_OVERLAY,
+            justifyContent: 'flex-end',
+            position: 'relative',
+        },
+        modalCard: {
+            backgroundColor: BG,
+            borderTopLeftRadius: 18,
+            borderTopRightRadius: 18,
+            padding: 16,
+            maxHeight: '92%',
+        },
+        modalHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+        },
+        modalTitle: {
+            flex: 1,
+            fontSize: 16,
+            fontWeight: '800',
+            color: TEXT,
+        },
+        form: {
+            marginTop: 12,
+            gap: 10,
+        },
+        fieldLabel: {
+            fontSize: 12,
+            fontWeight: '800',
+            color: TEXT,
+            marginTop: 6,
+        },
+        input: {
+            backgroundColor: INPUT_BG,
+            borderColor: INPUT_BORDER,
+            borderWidth: 1,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            color: TEXT,
+            fontSize: 14,
+        },
+        inputDisabled: {
+            backgroundColor: INPUT_DISABLED_BG,
+            color: INPUT_DISABLED_TEXT,
+        },
+        textarea: {
+            backgroundColor: INPUT_BG,
+            borderColor: INPUT_BORDER,
+            borderWidth: 1,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            color: TEXT,
+            fontSize: 14,
+            minHeight: 90,
+            textAlignVertical: 'top',
+        },
+        inputError: {
+            borderColor: ERROR_DARK,
+        },
+        fieldError: {
+            color: ERROR_TEXT,
+            fontSize: 12,
+            fontWeight: '600',
+            marginTop: 4,
+        },
+        pickerField: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: INPUT_BG,
+            borderColor: INPUT_BORDER,
+            borderWidth: 1,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            gap: 10,
+        },
+        pickerFieldDisabled: {
+            backgroundColor: INPUT_DISABLED_BG,
+            borderColor: INPUT_BORDER,
+        },
+        pickerFieldPressed: {
+            opacity: 0.92,
+        },
+        pickerFieldText: {
+            flex: 1,
+            color: TEXT,
+            fontSize: 14,
+            fontWeight: '700',
+        },
+        pickerFieldPlaceholder: {
+            color: INPUT_PLACEHOLDER,
+            fontWeight: '600',
+        },
+        row: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+        },
+        modalActions: {
+            flexDirection: 'row',
+            gap: 12,
+            marginTop: 14,
+        },
+        secondaryButton: {
+            flex: 1,
+            borderRadius: 12,
+            paddingVertical: 12,
+            borderWidth: 1,
+            borderColor: BUTTON_BORDER,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: BG,
+        },
+        secondaryButtonText: {
+            color: TEXT,
+            fontWeight: '800',
+            fontSize: 14,
+        },
+        primaryButton: {
+            flex: 1,
+            borderRadius: 12,
+            paddingVertical: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: ACCENT,
+        },
+        primaryButtonPressed: {
+            opacity: 0.92,
+        },
+        primaryButtonDisabled: {
+            opacity: 0.7,
+        },
+        primaryButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '800',
+            fontSize: 14,
+        },
+        cancelEventButton: {
+            marginTop: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            backgroundColor: CANCEL_BG,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: CANCEL_BORDER,
+            gap: 8,
+        },
+        cancelEventButtonPressed: {
+            opacity: 0.92,
+        },
+        cancelEventButtonText: {
+            color: ERROR_DARK,
+            fontWeight: '700',
+            fontSize: 14,
+        },
+        dangerButton: {
+            flex: 1,
+            borderRadius: 12,
+            paddingVertical: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: DANGER_COLOR,
+        },
+        dangerButtonPressed: {
+            opacity: 0.92,
+        },
+        dangerButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '800',
+            fontSize: 14,
+            textAlign: 'center',
+            width: '100%',
+        },
+    });
+};
+
+const styles = getStyles('light');

@@ -14,6 +14,7 @@ import { Redirect, useRouter } from 'expo-router';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 
 import {
     fetchAllUsers,
@@ -22,14 +23,15 @@ import {
     type ManagedUser,
 } from '../../services/user-management.service';
 
-const ACCENT = '#0056A8';
-const SURFACE = '#F5F7FB';
-
 export default function AdminUsersScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { hasRole } = useAuth();
     const isAdmin = hasRole(['ROLE_ADMIN']);
+    const colorScheme = useColorScheme() ?? 'light';
+    const isDark = colorScheme === 'dark';
+    const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
+    const SURFACE = isDark ? '#0F1419' : '#F5F7FB';
 
     const [users, setUsers] = useState<ManagedUser[]>([]);
     const [loading, setLoading] = useState(true);
@@ -135,6 +137,8 @@ export default function AdminUsersScreen() {
             setSaving(false);
         }
     };
+
+    const styles = getStyles(colorScheme);
 
     const renderRoleLabel = (role: string) => roleLabels[role as keyof typeof roleLabels] ?? role;
 
@@ -325,7 +329,21 @@ export default function AdminUsersScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
+    const SURFACE = isDark ? '#0F1419' : '#F5F7FB';
+    const TEXT = isDark ? '#ECEDEE' : '#0F2848';
+    const TEXT_MUTED = isDark ? '#A0A7B1' : '#5C6A80';
+    const BG = isDark ? '#1F2328' : '#FFFFFF';
+    const BORDER = isDark ? '#2F3A4A' : '#E0E6F0';
+    const ERROR_BG = isDark ? '#3A1F1F' : '#FFF0F0';
+    const ERROR_BORDER = isDark ? '#6B2A2A' : '#F5C6CB';
+    const ERROR = isDark ? '#FFB4AB' : '#C62828';
+    const INFO_BG = isDark ? '#1D2A3A' : '#F0F6FF';
+    const INFO_BORDER = isDark ? '#2F4B7D' : '#D7E5FF';
+
+    return StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: SURFACE,
@@ -339,16 +357,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingTop: 18,
         paddingBottom: 12,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: BG,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E6F0',
+        borderColor: BORDER,
     },
     backButton: {
         width: 32,
         height: 32,
         borderRadius: 10,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E6F0',
+        borderColor: BORDER,
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 10,
@@ -356,11 +374,11 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#0F2848',
+        color: TEXT,
     },
     subtitle: {
         fontSize: 13,
-        color: '#5C6A80',
+        color: TEXT_MUTED,
         marginTop: 2,
     },
     centered: {
@@ -371,16 +389,16 @@ const styles = StyleSheet.create({
     errorBox: {
         margin: 16,
         padding: 12,
-        backgroundColor: '#FFF0F0',
+        backgroundColor: ERROR_BG,
         borderRadius: 10,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#F5C6CB',
+        borderColor: ERROR_BORDER,
     },
     errorText: {
-        color: '#C62828',
+        color: ERROR,
         flex: 1,
         fontSize: 14,
     },
@@ -389,7 +407,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     userCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: BG,
         padding: 14,
         borderRadius: 14,
         shadowColor: '#000',
@@ -398,7 +416,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 3 },
         elevation: 3,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E1E7F2',
+        borderColor: BORDER,
     },
     userHeader: {
         flexDirection: 'row',
@@ -409,19 +427,19 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: '#F0F6FF',
+        backgroundColor: INFO_BG,
         alignItems: 'center',
         justifyContent: 'center',
     },
     userNameList: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#0F2848',
+        color: TEXT,
         marginBottom: 2,
     },
     userEmail: {
         fontSize: 13,
-        color: '#5C6A80',
+        color: TEXT_MUTED,
     },
     rolesRow: {
         flexDirection: 'row',
@@ -430,12 +448,12 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     rolePill: {
-        backgroundColor: '#EAF1FF',
+        backgroundColor: INFO_BG,
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 10,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#D7E5FF',
+        borderColor: INFO_BORDER,
     },
     rolePillText: {
         fontSize: 12,
@@ -449,9 +467,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 8,
         borderRadius: 10,
-        backgroundColor: '#F4F8FF',
+        backgroundColor: isDark ? '#1D2A3A' : '#F4F8FF',
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#D7E5FF',
+        borderColor: isDark ? '#2F4B7D' : '#D7E5FF',
     },
     editButtonPressed: {
         opacity: 0.85,
@@ -467,7 +485,7 @@ const styles = StyleSheet.create({
         gap: 10,
     },
     emptyText: {
-        color: '#6B7285',
+        color: isDark ? '#8B93A1' : '#6B7285',
         fontSize: 14,
     },
     modalOverlay: {
@@ -477,7 +495,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: BG,
         width: '100%',
         borderTopLeftRadius: 18,
         borderTopRightRadius: 18,
@@ -497,39 +515,39 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#0F2848',
+        color: TEXT,
     },
     modalSubtitle: {
-        color: '#5C6A80',
+        color: TEXT_MUTED,
         fontSize: 13,
         marginBottom: 6,
     },
     fieldLabel: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#1B2F4A',
+        color: TEXT,
     },
     dropdown: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: '#F7F9FC',
+        backgroundColor: isDark ? '#1D2A3A' : '#F7F9FC',
         borderRadius: 12,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E6F0',
+        borderColor: BORDER,
         paddingHorizontal: 12,
         paddingVertical: 12,
     },
     dropdownValue: {
-        color: '#0F2848',
+        color: TEXT,
         fontWeight: '600',
     },
     dropdownList: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: BG,
         borderRadius: 12,
         marginTop: 10,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E6F0',
+        borderColor: BORDER,
         overflow: 'hidden',
     },
     dropdownItem: {
@@ -540,13 +558,13 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
     },
     dropdownItemPressed: {
-        backgroundColor: '#F6F8FB',
+        backgroundColor: isDark ? '#1D2A3A' : '#F6F8FB',
     },
     dropdownItemSelected: {
-        backgroundColor: '#EAF1FF',
+        backgroundColor: INFO_BG,
     },
     dropdownItemText: {
-        color: '#1B2F4A',
+        color: TEXT,
         fontWeight: '600',
     },
     dropdownItemTextSelected: {
@@ -563,11 +581,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         borderRadius: 10,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E6F0',
-        backgroundColor: '#FFFFFF',
+        borderColor: BORDER,
+        backgroundColor: BG,
     },
     secondaryButtonText: {
-        color: '#1B2F4A',
+        color: TEXT,
         fontWeight: '700',
     },
     primaryButton: {
@@ -587,7 +605,7 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     userInfoBlock: {
-        backgroundColor: '#F7F9FC',
+        backgroundColor: isDark ? '#1D2A3A' : '#F7F9FC',
         padding: 12,
         borderRadius: 12,
         marginBottom: 12,
@@ -595,7 +613,7 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#0F2848',
+        color: TEXT,
         marginBottom: 2,
     },
     infoRow: {
@@ -606,10 +624,11 @@ const styles = StyleSheet.create({
     },
     infoText: {
         fontSize: 13,
-        color: '#5C6A80',
+        color: TEXT_MUTED,
     },
     separator: {
-        color: '#C5CDD9',
+        color: isDark ? '#4A5568' : '#C5CDD9',
         marginHorizontal: 4,
     }
-});
+    });
+};

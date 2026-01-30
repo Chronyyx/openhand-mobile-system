@@ -24,13 +24,16 @@ import {
 } from '../../services/events.service';
 import { registerForEvent, getMyRegistrations, cancelRegistration, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from '../../styles/events.styles';
+import { useColorScheme } from '../../hooks/use-color-scheme';
+import { getStyles } from '../../styles/events.styles';
 import { useCountdownTimer } from '../../hooks/useCountdownTimer';
 
 export default function EventsDetailScreen() {
     const { id } = useLocalSearchParams();
     const { t } = useTranslation();
-    const { user, hasRole } = useAuth();
+    const { user, hasRole, isLoading } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
 
     // Data State
     const [events, setEvents] = useState<EventSummary[]>([]);
@@ -207,7 +210,7 @@ export default function EventsDetailScreen() {
      * - If other error: show error alert
      */
     const handleRegister = async () => {
-        if (!selectedEvent || !user || isRegistering) return;
+        if (!selectedEvent || !user || isRegistering || isLoading) return;
         if (selectedEvent.status === 'COMPLETED') {
             setRegistrationError(t('events.errors.eventCompleted'));
             return;
@@ -335,7 +338,7 @@ export default function EventsDetailScreen() {
                 keyExtractor={(item: EventSummary) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colorScheme === 'dark' ? '#6AA9FF' : '#0056A8']} />
                 }
                 ListEmptyComponent={
                     <ThemedView style={styles.centered}>
@@ -386,7 +389,7 @@ export default function EventsDetailScreen() {
     if (loading) {
         content = (
             <ThemedView style={styles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
+                <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                 <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
             </ThemedView>
         );

@@ -34,17 +34,20 @@ import {
 } from '../../services/events.service';
 import { registerForEvent, cancelRegistration, getMyRegistrations, type Registration } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 
-import { styles } from '../../styles/events.styles';
+import { getStyles } from '../../styles/events.styles';
 
 const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
 const NEARLY_FULL_THRESHOLD = 0.8;
 
 export default function EventsScreen() {
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
-    const { user, hasRole } = useAuth();
+    const { user, hasRole, isLoading } = useAuth();
     const router = useRouter();
     const { notifications, markAllAsRead, markAsRead } = useNotifications();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
 
     // Data State
     const [events, setEvents] = useState<EventSummary[]>([]);
@@ -359,7 +362,7 @@ export default function EventsScreen() {
     // ========================================
 
     const handleRegister = useCallback(async () => {
-        if (!selectedEvent || !user || isRegistering) return;
+        if (!selectedEvent || !user || isRegistering || isLoading) return;
 
         if (selectedEvent.status === 'COMPLETED') {
             setRegistrationError(t('events.errors.eventCompleted'));
@@ -421,10 +424,10 @@ export default function EventsScreen() {
         } finally {
             setIsRegistering(false);
         }
-    }, [selectedEvent, user, isRegistering, isAdmin, t, unhideEvent, startCountdown, onRefresh, loadRegistrationSummary]);
+    }, [selectedEvent, user, isRegistering, isLoading, isAdmin, t, unhideEvent, startCountdown, onRefresh, loadRegistrationSummary]);
 
     const handleUnregister = useCallback(async () => {
-        if (!selectedEvent || !userRegistration || !user) return;
+        if (!selectedEvent || !userRegistration || !user || isLoading) return;
 
         setIsRegistering(true);
         setRegistrationError(null);
@@ -459,27 +462,31 @@ export default function EventsScreen() {
         } finally {
             setIsRegistering(false);
         }
-    }, [selectedEvent, userRegistration, user, eventDetail, isAdmin, t, resetCountdown, onRefresh, loadRegistrationSummary]);
+    }, [selectedEvent, userRegistration, user, eventDetail, isLoading, isAdmin, t, resetCountdown, onRefresh, loadRegistrationSummary]);
 
     // ========================================
     // LIFECYCLE HOOKS
     // ========================================
 
     useEffect(() => {
-        loadEvents();
-        loadHiddenEvents();
-    }, [loadEvents, loadHiddenEvents]);
+        if (!isLoading) {
+            loadEvents();
+            loadHiddenEvents();
+        }
+    }, [loadEvents, loadHiddenEvents, isLoading]);
 
     useEffect(() => {
-        loadMyRegistrations();
-    }, [loadMyRegistrations, refreshing, showSuccessView]);
+        if (!isLoading) {
+            loadMyRegistrations();
+        }
+    }, [loadMyRegistrations, refreshing, showSuccessView, isLoading]);
 
     useFocusEffect(
         useCallback(() => {
-            if (user?.token) {
+            if (user?.token && !isLoading) {
                 markAllAsRead();
             }
-        }, [user, markAllAsRead])
+        }, [user, markAllAsRead, isLoading])
     );
 
     // ========================================
@@ -525,17 +532,17 @@ export default function EventsScreen() {
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                    <Ionicons name="search" size={20} color={colorScheme === 'dark' ? '#A0A7B1' : '#666'} style={styles.searchIcon} />
                     <TextInput
-                        style={styles.searchInput}
+                        style={[styles.searchInput, { color: colorScheme === 'dark' ? '#ECEDEE' : '#333' }]}
                         placeholder={t('events.searchPlaceholder')}
-                        placeholderTextColor="#999"
+                        placeholderTextColor={colorScheme === 'dark' ? '#8B93A1' : '#999'}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                            <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
+                            <Ionicons name="close-circle" size={20} color={colorScheme === 'dark' ? '#A0A7B1' : '#666'} style={{ marginLeft: 8 }} />
                         </Pressable>
                     )}
                 </View>
@@ -543,7 +550,7 @@ export default function EventsScreen() {
                 {/* List */}
                 {loading ? (
                     <View style={styles.centered}>
-                        <ActivityIndicator size="large" color="#0056A8" />
+                        <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                         <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
                     </View>
                 ) : error ? (
@@ -560,7 +567,7 @@ export default function EventsScreen() {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={onRefresh}
-                                colors={['#0056A8']}
+                                colors={[colorScheme === 'dark' ? '#6AA9FF' : '#0056A8']}
                             />
                         }
                         ListEmptyComponent={

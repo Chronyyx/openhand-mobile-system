@@ -40,12 +40,18 @@ import {
     type GroupRegistrationResponse
 } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-
-import { styles } from '../../styles/events.styles';
+import { useColorScheme } from 'react-native';
+import { getStyles } from '../../styles/events.styles';
 
 const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
 
 export default function EventsScreen() {
+    const colorScheme = useColorScheme();
+    const styles = getStyles(colorScheme);
+    const isDark = colorScheme === 'dark';
+    const iconColor = isDark ? '#A0A7B1' : '#666';
+    const placeholderColor = isDark ? '#8B93A1' : '#999';
+    const indicatorColor = isDark ? '#6AA9FF' : '#0056A8';
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
     const { user, hasRole } = useAuth();
     const router = useRouter();
@@ -558,17 +564,17 @@ export default function EventsScreen() {
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                    <Ionicons name="search" size={20} color={iconColor} style={styles.searchIcon} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder={t('events.searchPlaceholder')}
-                        placeholderTextColor="#999"
+                        placeholderTextColor={placeholderColor}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                            <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
+                            <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
                         </Pressable>
                     )}
                 </View>
@@ -576,7 +582,7 @@ export default function EventsScreen() {
                 {/* List */}
                 {loading ? (
                     <View style={styles.centered}>
-                        <ActivityIndicator size="large" color="#0056A8" />
+                        <ActivityIndicator size="large" color={indicatorColor} />
                         <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
                     </View>
                 ) : error ? (
@@ -593,7 +599,7 @@ export default function EventsScreen() {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={onRefresh}
-                                colors={['#0056A8']}
+                                colors={[indicatorColor]}
                             />
                         }
                         ListEmptyComponent={

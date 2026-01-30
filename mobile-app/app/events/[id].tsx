@@ -31,10 +31,14 @@ import {
     type GroupRegistrationResponse
 } from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from '../../styles/events.styles';
 import { useCountdownTimer } from '../../hooks/useCountdownTimer';
+import { useColorScheme } from 'react-native';
+import { getStyles } from '../../styles/events.styles';
 
 export default function EventsDetailScreen() {
+    const colorScheme = useColorScheme();
+    const styles = getStyles(colorScheme);
+    const indicatorColor = colorScheme === 'dark' ? '#6AA9FF' : '#0056A8';
     const { id } = useLocalSearchParams();
     const { t } = useTranslation();
     const { user, hasRole } = useAuth();
@@ -376,7 +380,7 @@ export default function EventsDetailScreen() {
                 keyExtractor={(item: EventSummary) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[indicatorColor]} />
                 }
                 ListEmptyComponent={
                     <ThemedView style={styles.centered}>
@@ -428,7 +432,7 @@ export default function EventsDetailScreen() {
     if (loading) {
         content = (
             <ThemedView style={styles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
+                <ActivityIndicator size="large" color={indicatorColor} />
                 <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
             </ThemedView>
         );

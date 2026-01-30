@@ -172,6 +172,7 @@ public class EventAdminServiceImpl implements EventAdminService {
             List<Registration> registrations = registrationRepository.findByEventId(event.getId());
             registrations.stream()
                     .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
+                    .filter(reg -> reg.getUser() != null)
                     .forEach(reg -> {
                         String language = reg.getUser().getPreferredLanguage() != null
                                 ? reg.getUser().getPreferredLanguage()
@@ -208,6 +209,9 @@ public class EventAdminServiceImpl implements EventAdminService {
     private void notifyCancellation(Event event, List<Registration> recipients) {
         try {
             recipients.forEach(reg -> {
+                if (reg.getUser() == null) {
+                    return;
+                }
                 String language = reg.getUser().getPreferredLanguage() != null
                         ? reg.getUser().getPreferredLanguage()
                         : "en";

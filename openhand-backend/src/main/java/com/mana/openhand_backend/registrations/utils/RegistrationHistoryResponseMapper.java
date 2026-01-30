@@ -5,12 +5,16 @@ import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryEventResponseModel;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryResponseModel;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationTimeCategory;
+import com.mana.openhand_backend.registrations.domainclientlayer.ParticipantResponseModel;
+
+import java.util.List;
 
 public class RegistrationHistoryResponseMapper {
 
     public static RegistrationHistoryResponseModel toResponseModel(
             Registration registration,
-            RegistrationTimeCategory timeCategory) {
+            RegistrationTimeCategory timeCategory,
+            List<ParticipantResponseModel> participants) {
         if (registration == null) {
             return null;
         }
@@ -47,7 +51,8 @@ public class RegistrationHistoryResponseMapper {
                 status,
                 createdAt,
                 timeCategory,
-                eventResponse
+                eventResponse,
+                participants
         );
     }
 }

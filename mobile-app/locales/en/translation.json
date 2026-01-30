@@ -231,6 +231,7 @@
       "eventCompleted": "This event is completed and no longer accepts registrations.",
       "alreadyRegistered": "You are already registered for this event.",
       "inactiveMember": "You are inactive and cannot register for new events. Please contact an administrator.",
+      "accessDenied": "Access denied. Please sign in with a member account.",
       "registrationFailed": "Registration failed. Please try again.",
       "unregisterFailed": "Failed to cancel registration. Please try again."
     },
@@ -251,6 +252,20 @@
     },
     "accessibility": {
       "viewDetails": "View details, {{title}}"
+    },
+    "family": {
+      "title": "Family Members",
+      "addButton": "Add Family Member",
+      "removeButton": "Remove",
+      "hint": "Add family members to register together.",
+      "fullNamePlaceholder": "Full name",
+      "agePlaceholder": "Age",
+      "relationPlaceholder": "Relation (optional)",
+      "totalParticipants": "Total participants",
+      "validationError": "Please enter a name and age for each family member.",
+      "capacityError": "Not enough capacity for your group.",
+      "participantsTitle": "Participants",
+      "unknownParticipant": "Participant"
     },
     "registrationSummary": {
       "title": "Registration Summary",
@@ -355,6 +370,9 @@
     "loginRequired": "Log in to view your registrations.",
     "conflict": "Time conflict",
     "conflictHint": "This overlaps another registration.",
+    "participantsLabel": "Participants",
+    "participantUnknown": "Unknown participant",
+    "participantPrimary": "(Primary)",
     "overlapTitle": "Time conflict detected",
     "overlapMessage": "This event overlaps another you registered for. You can continue anyway.",
     "overlapProceed": "Proceed",

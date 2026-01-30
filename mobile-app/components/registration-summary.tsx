@@ -200,6 +200,20 @@ export function RegistrationSummaryComponent({
                                 <ThemedText style={styles.attendeeEmail}>
                                     {attendee.userEmail}
                                 </ThemedText>
+                                {attendee.participants && attendee.participants.length > 0 && (
+                                    <View style={styles.participantList}>
+                                        {attendee.participants.map((participant, index) => (
+                                            <ThemedText
+                                                key={`${participant.registrationId}-${index}`}
+                                                style={styles.participantItem}
+                                            >
+                                                • {participant.fullName || t('registrations.participantUnknown')}
+                                                {participant.primaryRegistrant ? ` ${t('registrations.participantPrimary')}` : ''}
+                                                {participant.age != null ? ` (${participant.age})` : ''}
+                                            </ThemedText>
+                                        ))}
+                                    </View>
+                                )}
                             </View>
                             <View style={styles.attendeeStatusContainer}>
                                 <View 
@@ -301,6 +315,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 6,
         alignItems: 'center',
+    },
+    participantList: {
+        marginTop: 6,
+        gap: 2,
+    },
+    participantItem: {
+        fontSize: 11,
+        color: '#4b5563',
     },
     memberStatusBadge: {
         paddingHorizontal: 8,

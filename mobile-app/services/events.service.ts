@@ -1,5 +1,6 @@
 // mobile-app/services/events.service.ts
 import apiClient from './api.client';
+import type { RegistrationParticipant } from './registration.service';
 
 export type EventStatus = 'OPEN' | 'NEARLY_FULL' | 'FULL' | 'CANCELLED' | 'COMPLETED';
 
@@ -29,6 +30,7 @@ export type AttendeeInfo = {
     waitlistedPosition: number | null;
     requestedAt: string | null;
     confirmedAt: string | null;
+    participants?: RegistrationParticipant[];
 };
 
 export type RegistrationSummary = {

@@ -64,16 +64,18 @@ public class AttendanceServiceImpl implements AttendanceService {
         );
 
         List<AttendanceAttendeeResponseModel> attendees = registrations.stream()
+                .filter(registration -> registration.getUser() != null)
                 .map(this::toAttendeeResponse)
                 .collect(Collectors.toList());
 
         int checkedInCount = (int) registrations.stream()
+                .filter(registration -> registration.getUser() != null)
                 .filter(registration -> registration.getCheckedInAt() != null)
                 .count();
 
         return new AttendanceEventAttendeesResponseModel(
                 event.getId(),
-                registrations.size(),
+                attendees.size(),
                 checkedInCount,
                 attendees
         );

@@ -32,7 +32,7 @@ class RegistrationSummaryResponseModelTest {
     @Test
     void constructor_setsFieldsWithAttendees() {
         List<AttendeeResponseModel> attendees = List.of(
-                new AttendeeResponseModel(1L, "A", "a@test.com", "CONFIRMED", "ACTIVE", null, null, null)
+                new AttendeeResponseModel(1L, "A", "a@test.com", "CONFIRMED", "ACTIVE", null, null, null, null)
         );
 
         RegistrationSummaryResponseModel model = new RegistrationSummaryResponseModel(

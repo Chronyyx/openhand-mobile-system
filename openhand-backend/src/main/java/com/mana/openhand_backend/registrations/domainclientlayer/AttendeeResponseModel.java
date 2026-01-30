@@ -9,13 +9,15 @@ public class AttendeeResponseModel {
     private Integer waitlistedPosition;
     private String requestedAt;
     private String confirmedAt;
+    private java.util.List<ParticipantResponseModel> participants;
 
     public AttendeeResponseModel() {
     }
 
     public AttendeeResponseModel(Long userId, String userName, String userEmail, 
                                 String registrationStatus, String memberStatus,
-                                Integer waitlistedPosition, String requestedAt, String confirmedAt) {
+                                Integer waitlistedPosition, String requestedAt, String confirmedAt,
+                                java.util.List<ParticipantResponseModel> participants) {
         this.userId = userId;
         this.userName = userName;
         this.userEmail = userEmail;
@@ -24,6 +26,7 @@ public class AttendeeResponseModel {
         this.waitlistedPosition = waitlistedPosition;
         this.requestedAt = requestedAt;
         this.confirmedAt = confirmedAt;
+        this.participants = participants;
     }
 
     public Long getUserId() {
@@ -88,5 +91,13 @@ public class AttendeeResponseModel {
 
     public void setConfirmedAt(String confirmedAt) {
         this.confirmedAt = confirmedAt;
+    }
+
+    public java.util.List<ParticipantResponseModel> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(java.util.List<ParticipantResponseModel> participants) {
+        this.participants = participants;
     }
 }

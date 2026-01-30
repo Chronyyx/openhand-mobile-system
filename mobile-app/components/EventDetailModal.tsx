@@ -6,7 +6,7 @@ import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
 import { styles } from '../styles/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
-import { type Registration } from '../services/registration.service';
+import { type Registration, type RegistrationParticipant } from '../services/registration.service';
 import { searchUsers, registerParticipantForEvent, type EmployeeSearchResult } from '../services/employee.service';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
@@ -14,6 +14,13 @@ import { getEventImage } from '../constants/event-images';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
 
 // Props Definition
+export type FamilyMemberInput = {
+    id: string;
+    fullName: string;
+    age: string;
+    relation?: string;
+};
+
 type EventDetailModalProps = {
     visible: boolean;
     onClose: () => void;
@@ -27,7 +34,7 @@ type EventDetailModalProps = {
 
     // Registration Props
     userRegistration: Registration | null;
-    onRegister: () => void;
+    onRegister: (familyMembers: FamilyMemberInput[]) => void;
     onUnregister: () => void;
 
     // Success State
@@ -46,6 +53,7 @@ type EventDetailModalProps = {
     registrationError?: string | null;
     // Optional callback to refresh capacity/details from parent
     onCapacityRefresh?: () => void;
+    registrationParticipants?: RegistrationParticipant[] | null;
 };
 
 // Use explicit class for Animated View created in index if passed, but here we can just use View or re-create it.
@@ -75,9 +83,9 @@ export function EventDetailModal({
     summaryError,
     onRetrySummary,
     isRegistering = false,
-    registrationError = null
-    ,
-    onCapacityRefresh
+    registrationError = null,
+    onCapacityRefresh,
+    registrationParticipants = null
 }: EventDetailModalProps) {
     const router = useRouter();
 
@@ -92,6 +100,39 @@ export function EventDetailModal({
     const [walkinSubmitting, setWalkinSubmitting] = React.useState(false);
     const [walkinError, setWalkinError] = React.useState<string | null>(null);
     const [walkinSuccess, setWalkinSuccess] = React.useState<string | null>(null);
+    const [familyMembers, setFamilyMembers] = React.useState<FamilyMemberInput[]>([]);
+
+    React.useEffect(() => {
+        if (!visible) {
+            setFamilyMembers([]);
+        }
+    }, [visible, selectedEvent?.id]);
+
+    const handleAddFamilyMember = () => {
+        setFamilyMembers(prev => [
+            ...prev,
+            {
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                fullName: '',
+                age: '',
+                relation: ''
+            }
+        ]);
+    };
+
+    const handleRemoveFamilyMember = (id: string) => {
+        setFamilyMembers(prev => prev.filter(member => member.id !== id));
+    };
+
+    const handleUpdateFamilyMember = (id: string, field: 'fullName' | 'age' | 'relation', value: string) => {
+        setFamilyMembers(prev =>
+            prev.map(member =>
+                member.id === id ? { ...member, [field]: value } : member
+            )
+        );
+    };
+
+    const totalParticipants = 1 + familyMembers.length;
 
     const handleWalkinSearch = async () => {
         setWalkinError(null);
@@ -209,6 +250,18 @@ export function EventDetailModal({
                                 <ThemedText style={styles.successMessage}>
                                     {t('alerts.registerSuccessMessage', "Vous êtes inscrit(e) à l'événement.")}
                                 </ThemedText>
+                                {registrationParticipants && registrationParticipants.length > 0 && (
+                                    <View style={styles.participantsList}>
+                                        <ThemedText style={styles.participantsTitle}>
+                                            {t('events.family.participantsTitle', 'Participants')}
+                                        </ThemedText>
+                                        {registrationParticipants.map((participant) => (
+                                            <ThemedText key={participant.registrationId} style={styles.participantItem}>
+                                                {participant.fullName || t('events.family.unknownParticipant')}
+                                            </ThemedText>
+                                        ))}
+                                    </View>
+                                )}
                                 <Pressable
                                     style={styles.undoButton}
                                     onPress={onUnregister}
@@ -366,6 +419,61 @@ export function EventDetailModal({
                                     </View>
                                 )}
 
+                                {/* Family Registration */}
+                                {selectedEvent && user && hasRole(['ROLE_MEMBER']) && !userRegistration && !isCompleted && (
+                                    <View style={styles.familySection}>
+                                        <View style={styles.familyHeaderRow}>
+                                            <ThemedText style={styles.sectionTitle}>
+                                                {t('events.family.title', 'Family Members')}
+                                            </ThemedText>
+                                            <Pressable style={styles.familyAddButton} onPress={handleAddFamilyMember}>
+                                                <Ionicons name="add" size={16} color="#FFFFFF" />
+                                                <ThemedText style={styles.familyAddButtonText}>
+                                                    {t('events.family.addButton', 'Add Family Member')}
+                                                </ThemedText>
+                                            </Pressable>
+                                        </View>
+                                        {familyMembers.length === 0 ? (
+                                            <ThemedText style={styles.familyHint}>
+                                                {t('events.family.hint', 'Add family members to register together.')}
+                                            </ThemedText>
+                                        ) : (
+                                            familyMembers.map(member => (
+                                                <View key={member.id} style={styles.familyCard}>
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.fullNamePlaceholder', 'Full name')}
+                                                        value={member.fullName}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'fullName', text)}
+                                                    />
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.agePlaceholder', 'Age')}
+                                                        keyboardType="numeric"
+                                                        value={member.age}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'age', text)}
+                                                    />
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.relationPlaceholder', 'Relation (optional)')}
+                                                        value={member.relation || ''}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'relation', text)}
+                                                    />
+                                                    <Pressable
+                                                        style={styles.familyRemoveButton}
+                                                        onPress={() => handleRemoveFamilyMember(member.id)}
+                                                    >
+                                                        <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
+                                                        <ThemedText style={styles.familyRemoveButtonText}>
+                                                            {t('events.family.removeButton', 'Remove')}
+                                                        </ThemedText>
+                                                    </Pressable>
+                                                </View>
+                                            ))
+                                        )}
+                                    </View>
+                                )}
+
                                 {/* Buttons */}
                                 {user ? (
                                     isInactiveMember ? (
@@ -407,21 +515,31 @@ export function EventDetailModal({
                                                         )}
                                                     </Pressable>
                                                 ) : (
-                                                    <Pressable
-                                                        style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
-                                                        onPress={onRegister}
-                                                        disabled={isRegistering}
-                                                    >
-                                                        {isRegistering ? (
-                                                            <ActivityIndicator color="#FFFFFF" />
-                                                        ) : (
-                                                            <ThemedText style={styles.registerButtonText}>
-                                                                {displayEvent?.status === 'FULL'
-                                                                    ? t('events.actions.joinWaitlist')
-                                                                    : t('events.actions.register')}
+                                                    <View style={{ gap: 10 }}>
+                                                        <View style={styles.participantCountRow}>
+                                                            <ThemedText style={styles.participantCountLabel}>
+                                                                {t('events.family.totalParticipants', 'Total participants')}
                                                             </ThemedText>
-                                                        )}
-                                                    </Pressable>
+                                                            <ThemedText style={styles.participantCountValue}>
+                                                                {totalParticipants}
+                                                            </ThemedText>
+                                                        </View>
+                                                        <Pressable
+                                                            style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
+                                                            onPress={() => onRegister(familyMembers)}
+                                                            disabled={isRegistering}
+                                                        >
+                                                            {isRegistering ? (
+                                                                <ActivityIndicator color="#FFFFFF" />
+                                                            ) : (
+                                                                <ThemedText style={styles.registerButtonText}>
+                                                                    {displayEvent?.status === 'FULL'
+                                                                        ? t('events.actions.joinWaitlist')
+                                                                        : t('events.actions.register')}
+                                                                </ThemedText>
+                                                            )}
+                                                        </Pressable>
+                                                    </View>
                                                 )}
                                             </View>
                                         )

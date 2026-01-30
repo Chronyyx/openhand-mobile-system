@@ -3,6 +3,7 @@ package com.mana.openhand_backend.registrations.dataaccesslayer;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +16,7 @@ public class Registration {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,6 +37,27 @@ public class Registration {
     private LocalDateTime checkedInAt;
 
     private Integer waitlistedPosition;
+
+    @Column(name = "registration_group_id")
+    private String registrationGroupId;
+
+    @Column(name = "primary_user_id")
+    private Long primaryUserId;
+
+    @Column(name = "is_primary_registrant")
+    private Boolean primaryRegistrant;
+
+    @Column(name = "participant_full_name")
+    private String participantFullName;
+
+    @Column(name = "participant_age")
+    private Integer participantAge;
+
+    @Column(name = "participant_date_of_birth")
+    private LocalDate participantDateOfBirth;
+
+    @Column(name = "participant_relation")
+    private String participantRelation;
 
     protected Registration() {
     }
@@ -121,5 +143,61 @@ public class Registration {
 
     public void setWaitlistedPosition(Integer waitlistedPosition) {
         this.waitlistedPosition = waitlistedPosition;
+    }
+
+    public String getRegistrationGroupId() {
+        return registrationGroupId;
+    }
+
+    public void setRegistrationGroupId(String registrationGroupId) {
+        this.registrationGroupId = registrationGroupId;
+    }
+
+    public Long getPrimaryUserId() {
+        return primaryUserId;
+    }
+
+    public void setPrimaryUserId(Long primaryUserId) {
+        this.primaryUserId = primaryUserId;
+    }
+
+    public Boolean getPrimaryRegistrant() {
+        return primaryRegistrant;
+    }
+
+    public void setPrimaryRegistrant(Boolean primaryRegistrant) {
+        this.primaryRegistrant = primaryRegistrant;
+    }
+
+    public String getParticipantFullName() {
+        return participantFullName;
+    }
+
+    public void setParticipantFullName(String participantFullName) {
+        this.participantFullName = participantFullName;
+    }
+
+    public Integer getParticipantAge() {
+        return participantAge;
+    }
+
+    public void setParticipantAge(Integer participantAge) {
+        this.participantAge = participantAge;
+    }
+
+    public LocalDate getParticipantDateOfBirth() {
+        return participantDateOfBirth;
+    }
+
+    public void setParticipantDateOfBirth(LocalDate participantDateOfBirth) {
+        this.participantDateOfBirth = participantDateOfBirth;
+    }
+
+    public String getParticipantRelation() {
+        return participantRelation;
+    }
+
+    public void setParticipantRelation(String participantRelation) {
+        this.participantRelation = participantRelation;
     }
 }

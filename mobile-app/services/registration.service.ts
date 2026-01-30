@@ -17,6 +17,31 @@ export type Registration = {
     eventEndDateTime: string | null;
 };
 
+export type FamilyMemberPayload = {
+    fullName: string;
+    age?: number;
+    dateOfBirth?: string;
+    relation?: string;
+};
+
+export type RegistrationParticipant = {
+    registrationId: number;
+    fullName: string | null;
+    age: number | null;
+    dateOfBirth: string | null;
+    relation: string | null;
+    primaryRegistrant: boolean | null;
+    status: RegistrationStatus;
+    waitlistedPosition?: number | null;
+};
+
+export type GroupRegistrationResponse = {
+    eventId: number;
+    primaryRegistrant: RegistrationParticipant;
+    participants: RegistrationParticipant[];
+    remainingCapacity: number | null;
+};
+
 export type RegistrationTimeCategory = 'ACTIVE' | 'PAST';
 
 export type RegistrationHistoryEvent = {
@@ -33,6 +58,7 @@ export type RegistrationHistoryItem = {
     createdAt: string;
     timeCategory: RegistrationTimeCategory;
     event: RegistrationHistoryEvent;
+    participants?: RegistrationParticipant[];
 };
 
 export type RegistrationError = {
@@ -81,6 +107,23 @@ export async function registerForEvent(eventId: number, token: string): Promise<
         body: JSON.stringify({ eventId }),
     });
     return handleResponse<Registration>(res, 'registration');
+}
+
+export async function registerForEventWithFamily(
+    eventId: number,
+    familyMembers: FamilyMemberPayload[],
+    token: string
+): Promise<GroupRegistrationResponse> {
+    const url = `${API_BASE}/events/${eventId}/registrations`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ familyMembers }),
+    });
+    return handleResponse<GroupRegistrationResponse>(res, 'family registration');
 }
 
 export async function getMyRegistrations(token: string): Promise<Registration[]> {

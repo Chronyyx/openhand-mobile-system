@@ -40,7 +40,7 @@ export default function RegisterScreen() {
     const [error, setError] = useState<string | null>(null);
 
     const iconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
-    const placeholderColor = colorScheme === 'dark' ? '#666' : '#999';
+    const placeholderColor = colorScheme === 'dark' ? '#8B93A1' : '#999';
 
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 

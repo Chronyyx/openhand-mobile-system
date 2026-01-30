@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Pressable, useColorScheme } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from './themed-text';
 import { RegistrationSummary } from '../services/events.service';
@@ -18,6 +18,9 @@ export function RegistrationSummaryComponent({
     onRetry,
 }: RegistrationSummaryComponentProps) {
     const { t } = useTranslation();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const styles = getStyles(isDark);
 
     if (loading) {
         return (
@@ -252,230 +255,252 @@ export function RegistrationSummaryComponent({
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        marginTop: 16,
-        paddingHorizontal: 0,
-    },
-    sectionTitle: {
-        fontWeight: '700',
-        fontSize: 16,
-        marginBottom: 12,
-    },
-    attendeesSection: {
-        marginTop: 20,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
-    },
-    attendeesSectionTitle: {
-        fontWeight: '700',
-        fontSize: 14,
-        marginBottom: 12,
-        color: '#333',
-    },
-    attendeeItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
-    },
-    attendeeInfo: {
-        flex: 1,
-        marginRight: 12,
-    },
-    attendeeName: {
-        fontWeight: '600',
-        fontSize: 13,
-        color: '#333',
-        marginBottom: 2,
-    },
-    attendeeEmail: {
-        fontSize: 11,
-        color: '#999',
-    },
-    attendeeStatusContainer: {
-        flexDirection: 'row',
-        gap: 6,
-        alignItems: 'center',
-    },
-    memberStatusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    activeStatus: {
-        backgroundColor: '#E8F5E9',
-    },
-    inactiveStatus: {
-        backgroundColor: '#FFEBEE',
-    },
-    memberStatusText: {
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    activeStatusText: {
-        color: '#2E7D32',
-    },
-    inactiveStatusText: {
-        color: '#C62828',
-    },
-    registrationStatusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    confirmedStatus: {
-        backgroundColor: '#C8E6C9',
-    },
-    waitlistedStatus: {
-        backgroundColor: '#FFF9C4',
-    },
-    registrationStatusText: {
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    confirmedStatusText: {
-        color: '#1B5E20',
-    },
-    waitlistedStatusText: {
-        color: '#F57F17',
-    },
-    statsRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 16,
-    },
-    statItem: {
-        flex: 1,
-        backgroundColor: '#E8F4FD',
-        borderRadius: 8,
-        padding: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#0057B8',
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 4,
-        fontWeight: '600',
-    },
-    statValue: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: '#0057B8',
-    },
-    capacityRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-    },
-    capacityLabel: {
-        fontWeight: '600',
-        color: '#666',
-        fontSize: 14,
-    },
-    capacityValue: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#333',
-    },
-    noSpotsText: {
-        color: '#D32F2F',
-    },
-    limitedSpotsText: {
-        color: '#F57C00',
-    },
-    progressContainer: {
-        marginVertical: 12,
-        gap: 8,
-    },
-    progressBar: {
-        height: 20,
-        backgroundColor: '#E0E0E0',
-        borderRadius: 10,
-        overflow: 'hidden',
-        flexDirection: 'row',
-    },
-    progressFill: {
-        height: '100%',
-        borderRadius: 10,
-    },
-    percentageText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#666',
-        textAlign: 'center',
-    },
-    messageBox: {
-        backgroundColor: '#FFF3CD',
-        borderRadius: 8,
-        padding: 10,
-        marginTop: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#FFC107',
-    },
-    messageText: {
-        fontSize: 13,
-        color: '#856404',
-        lineHeight: 18,
-    },
-    emptyStateBox: {
-        backgroundColor: '#F5F5F5',
-        borderRadius: 8,
-        padding: 16,
-        marginTop: 12,
-        alignItems: 'center',
-    },
-    emptyStateText: {
-        color: '#999',
-        fontSize: 14,
-        fontStyle: 'italic',
-    },
-    loadingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        paddingVertical: 12,
-    },
-    loadingText: {
-        fontSize: 14,
-        color: '#666',
-    },
-    errorContainer: {
-        backgroundColor: '#FFEBEE',
-        borderRadius: 8,
-        padding: 12,
-        gap: 8,
-        borderLeftWidth: 4,
-        borderLeftColor: '#D32F2F',
-    },
-    errorText: {
-        color: '#D32F2F',
-        fontWeight: '600',
-        fontSize: 13,
-    },
-    errorHint: {
-        color: '#666',
-        fontSize: 12,
-    },
-    retryButton: {
-        backgroundColor: '#D32F2F',
-        borderRadius: 6,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        marginTop: 4,
-        alignItems: 'center',
-    },
-    retryButtonText: {
-        color: '#ffffff',
-        fontWeight: '600',
-        fontSize: 12,
-    },
-});
+const getStyles = (isDark: boolean) => {
+    const colors = {
+        text: isDark ? '#ECEDEE' : '#333',
+        textMuted: isDark ? '#A0A7B1' : '#666',
+        textSubtle: isDark ? '#8A9199' : '#999',
+        surface: isDark ? '#1F2328' : '#FFFFFF',
+        background: isDark ? '#0F1419' : '#F5F5F5',
+        border: isDark ? '#2F3A4A' : '#E0E0E0',
+        borderLight: isDark ? '#2A313B' : '#F0F0F0',
+        statBg: isDark ? '#1D2A3A' : '#E8F4FD',
+        statAccent: isDark ? '#6AA9FF' : '#0057B8',
+        successBg: isDark ? '#1B3A1B' : '#E8F5E9',
+        successText: isDark ? '#81C784' : '#2E7D32',
+        warningBg: isDark ? '#3A2A1A' : '#FFF3CD',
+        warningText: isDark ? '#FFB74D' : '#856404',
+        errorBg: isDark ? '#3A1F1F' : '#FFEBEE',
+        errorText: isDark ? '#FFB4AB' : '#D32F2F',
+        dangerText: isDark ? '#FF5252' : '#D32F2F',
+        warningColor: isDark ? '#FFA726' : '#F57C00',
+    };
+
+    return StyleSheet.create({
+        container: {
+            marginTop: 16,
+            paddingHorizontal: 0,
+        },
+        sectionTitle: {
+            fontWeight: '700',
+            fontSize: 16,
+            marginBottom: 12,
+        },
+        attendeesSection: {
+            marginTop: 20,
+            paddingTop: 16,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+        },
+        attendeesSectionTitle: {
+            fontWeight: '700',
+            fontSize: 14,
+            marginBottom: 12,
+            color: colors.text,
+        },
+        attendeeItem: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingVertical: 10,
+            paddingHorizontal: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.borderLight,
+        },
+        attendeeInfo: {
+            flex: 1,
+            marginRight: 12,
+        },
+        attendeeName: {
+            fontWeight: '600',
+            fontSize: 13,
+            color: colors.text,
+            marginBottom: 2,
+        },
+        attendeeEmail: {
+            fontSize: 11,
+            color: colors.textSubtle,
+        },
+        attendeeStatusContainer: {
+            flexDirection: 'row',
+            gap: 6,
+            alignItems: 'center',
+        },
+        memberStatusBadge: {
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+        },
+        activeStatus: {
+            backgroundColor: isDark ? '#1B3A1B' : '#E8F5E9',
+        },
+        inactiveStatus: {
+            backgroundColor: isDark ? '#3A1F1F' : '#FFEBEE',
+        },
+        memberStatusText: {
+            fontSize: 11,
+            fontWeight: '600',
+        },
+        activeStatusText: {
+            color: isDark ? '#81C784' : '#2E7D32',
+        },
+        inactiveStatusText: {
+            color: isDark ? '#FFB4AB' : '#C62828',
+        },
+        registrationStatusBadge: {
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+        },
+        confirmedStatus: {
+            backgroundColor: isDark ? '#1D3A1D' : '#C8E6C9',
+        },
+        waitlistedStatus: {
+            backgroundColor: isDark ? '#3A3A1A' : '#FFF9C4',
+        },
+        registrationStatusText: {
+            fontSize: 11,
+            fontWeight: '600',
+        },
+        confirmedStatusText: {
+            color: isDark ? '#81C784' : '#1B5E20',
+        },
+        waitlistedStatusText: {
+            color: isDark ? '#FFB74D' : '#F57F17',
+        },
+        statsRow: {
+            flexDirection: 'row',
+            gap: 12,
+            marginBottom: 16,
+        },
+        statItem: {
+            flex: 1,
+            backgroundColor: colors.statBg,
+            borderRadius: 8,
+            padding: 12,
+            borderLeftWidth: 4,
+            borderLeftColor: colors.statAccent,
+        },
+        statLabel: {
+            fontSize: 12,
+            color: colors.textMuted,
+            marginBottom: 4,
+            fontWeight: '600',
+        },
+        statValue: {
+            fontSize: 24,
+            fontWeight: '700',
+            color: colors.statAccent,
+        },
+        capacityRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingVertical: 8,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+        },
+        capacityLabel: {
+            fontWeight: '600',
+            color: colors.textMuted,
+            fontSize: 14,
+        },
+        capacityValue: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        noSpotsText: {
+            color: colors.dangerText,
+        },
+        limitedSpotsText: {
+            color: colors.warningColor,
+        },
+        progressContainer: {
+            marginVertical: 12,
+            gap: 8,
+        },
+        progressBar: {
+            height: 20,
+            backgroundColor: colors.border,
+            borderRadius: 10,
+            overflow: 'hidden',
+            flexDirection: 'row',
+        },
+        progressFill: {
+            height: '100%',
+            borderRadius: 10,
+        },
+        percentageText: {
+            fontSize: 12,
+            fontWeight: '600',
+            color: colors.text,
+            textAlign: 'center',
+        },
+        messageBox: {
+            backgroundColor: colors.warningBg,
+            borderRadius: 8,
+            padding: 10,
+            marginTop: 12,
+            borderLeftWidth: 4,
+            borderLeftColor: colors.warningColor,
+        },
+        messageText: {
+            fontSize: 13,
+            color: colors.warningText,
+            lineHeight: 18,
+        },
+        emptyStateBox: {
+            backgroundColor: colors.background,
+            borderRadius: 8,
+            padding: 16,
+            marginTop: 12,
+            alignItems: 'center',
+        },
+        emptyStateText: {
+            color: colors.textSubtle,
+            fontSize: 14,
+            fontStyle: 'italic',
+        },
+        loadingContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            paddingVertical: 12,
+        },
+        loadingText: {
+            fontSize: 14,
+            color: colors.textMuted,
+        },
+        errorContainer: {
+            backgroundColor: colors.errorBg,
+            borderRadius: 8,
+            padding: 12,
+            gap: 8,
+            borderLeftWidth: 4,
+            borderLeftColor: colors.dangerText,
+        },
+        errorText: {
+            color: colors.dangerText,
+            fontWeight: '600',
+            fontSize: 13,
+        },
+        errorHint: {
+            color: colors.textMuted,
+            fontSize: 12,
+        },
+        retryButton: {
+            backgroundColor: colors.dangerText,
+            borderRadius: 6,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            marginTop: 4,
+            alignItems: 'center',
+        },
+        retryButtonText: {
+            color: '#ffffff',
+            fontWeight: '600',
+            fontSize: 12,
+        },
+    });
+};

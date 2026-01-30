@@ -14,7 +14,6 @@ import {
     TextInput,
     TouchableWithoutFeedback,
     View,
-    useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +23,7 @@ import { AppHeader } from '../../components/app-header';
 import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 import { type EventSummary } from '../../services/events.service';
 import {
     createEvent,
@@ -100,7 +100,8 @@ export default function AdminEventsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { hasRole } = useAuth();
-    const colorScheme = useColorScheme();
+    const colorScheme = useColorScheme() ?? 'light';
+    const isDark = colorScheme === 'dark';
     const styles = getStyles(colorScheme);
     
     const isAdmin = hasRole(['ROLE_ADMIN']);

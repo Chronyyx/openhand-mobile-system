@@ -4,6 +4,7 @@ import {
     FlatList,
     RefreshControl,
     View,
+    useColorScheme,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
@@ -20,7 +21,7 @@ import {
     type EventDetail,
 } from '../../../services/events.service';
 import { getTranslatedEventTitle } from '../../../utils/event-translations';
-import { styles } from '../../../styles/events.styles';
+import { getStyles } from '../../../styles/events.styles';
 
 export default function EventAttendeesScreen() {
     const { id } = useLocalSearchParams();
@@ -33,6 +34,9 @@ export default function EventAttendeesScreen() {
         return NaN;
     }, [id]);
 
+    const colorScheme = useColorScheme();
+    const styles = getStyles(colorScheme);
+    const indicatorColor = colorScheme === 'dark' ? '#6AA9FF' : '#0056A8';
     const [attendees, setAttendees] = useState<EventAttendeesResponse | null>(null);
     const [eventDetail, setEventDetail] = useState<EventDetail | null>(null);
     const [loading, setLoading] = useState(true);
@@ -95,7 +99,7 @@ export default function EventAttendeesScreen() {
     } else if (loading) {
         content = (
             <ThemedView style={styles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
+                <ActivityIndicator size="large" color={indicatorColor} />
                 <ThemedText style={styles.loadingText}>{t('events.attendees.loading')}</ThemedText>
             </ThemedView>
         );
@@ -135,7 +139,7 @@ export default function EventAttendeesScreen() {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={onRefresh}
-                            colors={['#0056A8']}
+                            colors={[indicatorColor]}
                         />
                     }
                     ListHeaderComponent={

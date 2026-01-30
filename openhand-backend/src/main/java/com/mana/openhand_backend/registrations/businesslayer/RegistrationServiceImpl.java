@@ -13,24 +13,31 @@ import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailServic
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
+import com.mana.openhand_backend.registrations.domainclientlayer.FamilyMemberRequestModel;
+import com.mana.openhand_backend.registrations.domainclientlayer.GroupRegistrationResponseModel;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryFilter;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryResponseModel;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationTimeCategory;
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
 import com.mana.openhand_backend.registrations.utils.EventCapacityException;
 import com.mana.openhand_backend.registrations.utils.EventCompletedException;
+import com.mana.openhand_backend.registrations.utils.GroupRegistrationCapacityException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
 import com.mana.openhand_backend.registrations.utils.RegistrationHistoryResponseMapper;
+import com.mana.openhand_backend.registrations.utils.GroupRegistrationResponseMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -88,50 +95,47 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Registration registerForEvent(Long userId, Long eventId) {
-        // Verify user exists
+        return registerSingleParticipant(userId, eventId, true);
+    }
+
+    @Override
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public GroupRegistrationResponseModel registerForEventWithFamily(Long userId, Long eventId,
+            List<FamilyMemberRequestModel> familyMembers) {
+        List<FamilyMemberRequestModel> safeFamilyMembers = familyMembers == null ? List.of() : familyMembers;
+
+        if (safeFamilyMembers.isEmpty()) {
+            Registration registration = registerSingleParticipant(userId, eventId, true);
+            Event event = registration.getEvent();
+            return GroupRegistrationResponseMapper.toResponse(event, List.of(registration));
+        }
+
         @SuppressWarnings("null")
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
 
-        // Check if user is inactive - prevent registration
         if (user.getMemberStatus() != null && user.getMemberStatus().name().equals("INACTIVE")) {
             throw new com.mana.openhand_backend.registrations.utils.InactiveMemberException(userId);
         }
 
-        // Check for existing registration BEFORE locking (quick check)
         Optional<Registration> existingRegistrationOpt = registrationRepository.findByUserIdAndEventId(userId, eventId);
-        Registration registration;
+        Registration primaryRegistration;
 
         if (existingRegistrationOpt.isPresent()) {
             Registration existing = existingRegistrationOpt.get();
             if (existing.getStatus() != RegistrationStatus.CANCELLED) {
                 throw new AlreadyRegisteredException(userId, eventId);
             }
-            // Reactivate cancelled registration
-            registration = existing;
-            registration.setCancelledAt(null);
-            registration.setConfirmedAt(null);
-            registration.setWaitlistedPosition(null);
-            registration.setRequestedAt(LocalDateTime.now());
+            primaryRegistration = existing;
+            primaryRegistration.setCancelledAt(null);
+            primaryRegistration.setConfirmedAt(null);
+            primaryRegistration.setWaitlistedPosition(null);
+            primaryRegistration.setRequestedAt(LocalDateTime.now());
         } else {
-            // Create new registration entity
-            registration = new Registration(user, null);
-            registration.setRequestedAt(LocalDateTime.now());
+            primaryRegistration = new Registration(user, null);
+            primaryRegistration.setRequestedAt(LocalDateTime.now());
         }
 
-        /**
-         * CRITICAL SECTION: Pessimistic lock the event to ensure atomic capacity
-         * checking.
-         * This prevents the following race condition:
-         *
-         * Thread A: Check capacity (capacity = 10, current = 9) → can register
-         * Thread B: Check capacity (capacity = 10, current = 9) → can register
-         * Thread A: Register (increment to 10)
-         * Thread B: Register (increment to 11) ← OVERBOOKING!
-         *
-         * With pessimistic lock, Thread B waits for Thread A's transaction to complete,
-         * then sees current = 10 and triggers waitlist instead.
-         */
         Event lockedEvent = registrationRepository.findEventByIdForUpdate(eventId)
                 .orElseThrow(() -> new EventNotFoundException(eventId));
 
@@ -140,61 +144,41 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new EventCompletedException(eventId);
         }
 
-        // Now we hold an exclusive lock on the event row. Safe to check and update.
-        Integer currentRegs = lockedEvent.getCurrentRegistrations();
-        if (currentRegs == null) {
-            currentRegs = 0;
-        }
+        int currentRegs = lockedEvent.getCurrentRegistrations() != null ? lockedEvent.getCurrentRegistrations() : 0;
+        int totalParticipants = 1 + safeFamilyMembers.size();
 
-        // Atomic capacity check
-        boolean atCapacity = false;
-        if (lockedEvent.getMaxCapacity() != null && currentRegs >= lockedEvent.getMaxCapacity()) {
-            atCapacity = true;
-        }
-
-        if (atCapacity) {
-            // Event is at capacity - add to waitlist
-            long waitlistCount = registrationRepository.countByEventIdAndStatus(eventId, RegistrationStatus.WAITLISTED);
-            registration.setStatus(RegistrationStatus.WAITLISTED);
-            registration.setWaitlistedPosition((int) (waitlistCount + 1));
-            registration.setEvent(lockedEvent);
-            // Note: NOT throwing EventCapacityException here. User is placed on waitlist
-            // instead.
-        } else {
-            // Space available - confirm immediately
-            registration.setStatus(RegistrationStatus.CONFIRMED);
-            registration.setConfirmedAt(LocalDateTime.now());
-            registration.setEvent(lockedEvent);
-
-            // Atomically increment event's current registrations count
-            lockedEvent.setCurrentRegistrations(currentRegs + 1);
-
-            // Update event status based on new capacity
-            if (lockedEvent.getMaxCapacity() != null) {
-                if (lockedEvent.getCurrentRegistrations() >= lockedEvent.getMaxCapacity()) {
-                    lockedEvent.setStatus(EventStatus.FULL);
-                } else if (lockedEvent.getCurrentRegistrations() >= lockedEvent.getMaxCapacity() * 0.8) {
-                    lockedEvent.setStatus(EventStatus.NEARLY_FULL);
-                }
+        if (lockedEvent.getMaxCapacity() != null) {
+            int remainingCapacity = lockedEvent.getMaxCapacity() - currentRegs;
+            if (remainingCapacity < totalParticipants) {
+                throw new GroupRegistrationCapacityException(eventId, totalParticipants, Math.max(0, remainingCapacity));
             }
-
-            // Save the updated event (lock is still held until transaction commits)
-            eventRepository.save(lockedEvent);
         }
 
-        // Save registration and return (event lock is released after transaction
-        // commits)
-        Registration savedRegistration = registrationRepository.save(registration);
+        String groupId = UUID.randomUUID().toString();
 
-        // Note: In-app notifications for registration confirmation are handled outside
-        // this service
-        // (e.g., via event listeners). This method is responsible for persisting the
-        // registration
-        // and triggering the email notification only.
-        if (savedRegistration.getStatus() == RegistrationStatus.CONFIRMED) {
-            sendRegistrationConfirmationEmail(user, lockedEvent);
+        primaryRegistration.setStatus(RegistrationStatus.CONFIRMED);
+        primaryRegistration.setConfirmedAt(LocalDateTime.now());
+        primaryRegistration.setEvent(lockedEvent);
+        primaryRegistration.setRegistrationGroupId(groupId);
+        primaryRegistration.setPrimaryRegistrant(true);
+        primaryRegistration.setPrimaryUserId(userId);
 
-            // Create in-app notification for the participant
+        List<Registration> familyRegistrations = safeFamilyMembers.stream()
+                .map(member -> buildFamilyRegistration(member, lockedEvent, groupId, userId))
+                .collect(Collectors.toList());
+
+        lockedEvent.setCurrentRegistrations(currentRegs + totalParticipants);
+        updateEventStatusForCapacity(lockedEvent);
+        eventRepository.save(lockedEvent);
+
+        Registration savedPrimary = registrationRepository.save(primaryRegistration);
+        List<Registration> savedFamily = familyRegistrations.isEmpty()
+                ? List.of()
+                : registrationRepository.saveAll(familyRegistrations);
+
+        if (savedPrimary.getStatus() == RegistrationStatus.CONFIRMED) {
+            sendRegistrationConfirmationEmail(user, lockedEvent, buildParticipantNames(savedPrimary, savedFamily));
+
             String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
             notificationService.createNotification(
                     user.getId(),
@@ -203,7 +187,11 @@ public class RegistrationServiceImpl implements RegistrationService {
                     language);
         }
 
-        return savedRegistration;
+        List<Registration> allRegistrations = new java.util.ArrayList<>();
+        allRegistrations.add(savedPrimary);
+        allRegistrations.addAll(savedFamily);
+
+        return GroupRegistrationResponseMapper.toResponse(lockedEvent, allRegistrations);
     }
 
     @Override
@@ -234,9 +222,13 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .collect(Collectors.toList());
 
         return categorized.stream()
-                .map(item -> RegistrationHistoryResponseMapper.toResponseModel(
-                        item.registration,
-                        item.timeCategory))
+                .map(item -> {
+                    List<Registration> groupRegistrations = resolveGroupRegistrations(item.registration);
+                    return RegistrationHistoryResponseMapper.toResponseModel(
+                            item.registration,
+                            item.timeCategory,
+                            GroupRegistrationResponseMapper.toParticipants(groupRegistrations));
+                })
                 .collect(Collectors.toList());
     }
 
@@ -253,30 +245,47 @@ public class RegistrationServiceImpl implements RegistrationService {
             throw new EventCompletedException(eventId);
         }
 
-        // If this was a confirmed registration, update event capacity
-        if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
+        Registration cancelledRegistration;
+        String groupId = registration.getRegistrationGroupId();
+
+        if (groupId != null) {
+            List<Registration> groupRegistrations = registrationRepository
+                    .findByEventIdAndRegistrationGroupId(eventId, groupId);
+            int confirmedCount = (int) groupRegistrations.stream()
+                    .filter(reg -> reg.getStatus() == RegistrationStatus.CONFIRMED)
+                    .count();
+
             if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
-                event.setCurrentRegistrations(event.getCurrentRegistrations() - 1);
-
-                // Update event status
-                if (event.getMaxCapacity() != null) {
-                    if (event.getCurrentRegistrations() < event.getMaxCapacity()) {
-                        if (event.getCurrentRegistrations() >= event.getMaxCapacity() * 0.8) {
-                            event.setStatus(EventStatus.NEARLY_FULL);
-                        } else {
-                            event.setStatus(EventStatus.OPEN);
-                        }
-                    }
-                }
-
+                int updatedCount = Math.max(0, event.getCurrentRegistrations() - confirmedCount);
+                event.setCurrentRegistrations(updatedCount);
+                updateEventStatusForCapacity(event);
                 eventRepository.save(event);
             }
+
+            LocalDateTime cancelledAt = LocalDateTime.now();
+            groupRegistrations.forEach(reg -> {
+                reg.setStatus(RegistrationStatus.CANCELLED);
+                reg.setCancelledAt(cancelledAt);
+            });
+
+            List<Registration> cancelledGroup = registrationRepository.saveAll(groupRegistrations);
+            cancelledRegistration = cancelledGroup.stream()
+                    .filter(reg -> Objects.equals(reg.getId(), registration.getId()))
+                    .findFirst()
+                    .orElse(registration);
+        } else {
+            if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
+                if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
+                    event.setCurrentRegistrations(event.getCurrentRegistrations() - 1);
+                    updateEventStatusForCapacity(event);
+                    eventRepository.save(event);
+                }
+            }
+
+            registration.setStatus(RegistrationStatus.CANCELLED);
+            registration.setCancelledAt(LocalDateTime.now());
+            cancelledRegistration = registrationRepository.save(registration);
         }
-
-        registration.setStatus(RegistrationStatus.CANCELLED);
-        registration.setCancelledAt(LocalDateTime.now());
-
-        Registration cancelledRegistration = registrationRepository.save(registration);
 
         // Note: In-app notifications for registration cancellations are now handled
         // outside this service
@@ -348,7 +357,141 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
     }
 
-    private void sendRegistrationConfirmationEmail(User user, Event event) {
+    private List<Registration> resolveGroupRegistrations(Registration registration) {
+        String groupId = registration.getRegistrationGroupId();
+        if (groupId == null || groupId.isBlank()) {
+            return List.of(registration);
+        }
+        List<Registration> groupRegistrations = registrationRepository.findByRegistrationGroupId(groupId);
+        return groupRegistrations.isEmpty() ? List.of(registration) : groupRegistrations;
+    }
+
+    private Registration registerSingleParticipant(Long userId, Long eventId, boolean allowWaitlist) {
+        @SuppressWarnings("null")
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+
+        if (user.getMemberStatus() != null && user.getMemberStatus().name().equals("INACTIVE")) {
+            throw new com.mana.openhand_backend.registrations.utils.InactiveMemberException(userId);
+        }
+
+        Optional<Registration> existingRegistrationOpt = registrationRepository.findByUserIdAndEventId(userId, eventId);
+        Registration registration;
+
+        if (existingRegistrationOpt.isPresent()) {
+            Registration existing = existingRegistrationOpt.get();
+            if (existing.getStatus() != RegistrationStatus.CANCELLED) {
+                throw new AlreadyRegisteredException(userId, eventId);
+            }
+            registration = existing;
+            registration.setCancelledAt(null);
+            registration.setConfirmedAt(null);
+            registration.setWaitlistedPosition(null);
+            registration.setRequestedAt(LocalDateTime.now());
+        } else {
+            registration = new Registration(user, null);
+            registration.setRequestedAt(LocalDateTime.now());
+        }
+
+        Event lockedEvent = registrationRepository.findEventByIdForUpdate(eventId)
+                .orElseThrow(() -> new EventNotFoundException(eventId));
+
+        LocalDateTime now = LocalDateTime.now();
+        if (eventCompletionService.ensureCompletedIfEnded(lockedEvent, now)) {
+            throw new EventCompletedException(eventId);
+        }
+
+        int currentRegs = lockedEvent.getCurrentRegistrations() != null ? lockedEvent.getCurrentRegistrations() : 0;
+        boolean atCapacity = false;
+        if (lockedEvent.getMaxCapacity() != null && currentRegs >= lockedEvent.getMaxCapacity()) {
+            atCapacity = true;
+        }
+
+        if (atCapacity && allowWaitlist) {
+            long waitlistCount = registrationRepository.countByEventIdAndStatus(eventId, RegistrationStatus.WAITLISTED);
+            registration.setStatus(RegistrationStatus.WAITLISTED);
+            registration.setWaitlistedPosition((int) (waitlistCount + 1));
+            registration.setEvent(lockedEvent);
+        } else if (atCapacity) {
+            throw new EventCapacityException(eventId);
+        } else {
+            registration.setStatus(RegistrationStatus.CONFIRMED);
+            registration.setConfirmedAt(LocalDateTime.now());
+            registration.setEvent(lockedEvent);
+
+            lockedEvent.setCurrentRegistrations(currentRegs + 1);
+            updateEventStatusForCapacity(lockedEvent);
+            eventRepository.save(lockedEvent);
+        }
+
+        Registration savedRegistration = registrationRepository.save(registration);
+
+        if (savedRegistration.getStatus() == RegistrationStatus.CONFIRMED) {
+            sendRegistrationConfirmationEmail(user, lockedEvent, List.of(resolveParticipantName(savedRegistration)));
+
+            String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
+            notificationService.createNotification(
+                    user.getId(),
+                    eventId,
+                    "REGISTRATION_CONFIRMATION",
+                    language);
+        }
+
+        return savedRegistration;
+    }
+
+    private Registration buildFamilyRegistration(FamilyMemberRequestModel member, Event event, String groupId,
+            Long primaryUserId) {
+        Registration registration = new Registration(null, event);
+        registration.setStatus(RegistrationStatus.CONFIRMED);
+        registration.setConfirmedAt(LocalDateTime.now());
+        registration.setRegistrationGroupId(groupId);
+        registration.setPrimaryRegistrant(false);
+        registration.setPrimaryUserId(primaryUserId);
+
+        String fullName = member.getFullName() != null ? member.getFullName().trim() : null;
+        registration.setParticipantFullName(fullName);
+        registration.setParticipantAge(member.getAge());
+        registration.setParticipantRelation(member.getRelation());
+
+        if (member.getDateOfBirth() != null && !member.getDateOfBirth().isBlank()) {
+            registration.setParticipantDateOfBirth(LocalDate.parse(member.getDateOfBirth()));
+        }
+
+        return registration;
+    }
+
+    private void updateEventStatusForCapacity(Event event) {
+        if (event.getMaxCapacity() == null) {
+            return;
+        }
+        int current = event.getCurrentRegistrations() != null ? event.getCurrentRegistrations() : 0;
+        if (current >= event.getMaxCapacity()) {
+            event.setStatus(EventStatus.FULL);
+        } else if (current >= event.getMaxCapacity() * 0.8) {
+            event.setStatus(EventStatus.NEARLY_FULL);
+        } else {
+            event.setStatus(EventStatus.OPEN);
+        }
+    }
+
+    private String resolveParticipantName(Registration registration) {
+        if (registration.getUser() != null && registration.getUser().getName() != null) {
+            return registration.getUser().getName();
+        }
+        return registration.getParticipantFullName() != null ? registration.getParticipantFullName() : "Participant";
+    }
+
+    private List<String> buildParticipantNames(Registration primary, List<Registration> family) {
+        List<String> names = new java.util.ArrayList<>();
+        names.add(resolveParticipantName(primary));
+        for (Registration registration : family) {
+            names.add(resolveParticipantName(registration));
+        }
+        return names;
+    }
+
+    private void sendRegistrationConfirmationEmail(User user, Event event, List<String> participantNames) {
         try {
             String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
             String resolvedEventTitle = EventTitleResolver.resolve(event.getTitle(), language);
@@ -356,7 +499,8 @@ public class RegistrationServiceImpl implements RegistrationService {
                     user.getEmail(),
                     user.getName(),
                     resolvedEventTitle,
-                    language);
+                    language,
+                    participantNames);
         } catch (Exception ex) {
             logger.error("Failed to send registration confirmation email for user {} and event {}: {}",
                     user.getId(), event.getId(), ex.getMessage());

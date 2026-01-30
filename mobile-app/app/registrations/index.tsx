@@ -5,7 +5,6 @@ import {
     SectionList,
     StyleSheet,
     View,
-    useColorScheme,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
@@ -60,9 +59,7 @@ function computeConflictIds(registrations: RegistrationHistoryItem[]): Set<numbe
 
 export default function MyRegistrationsScreen() {
     const { t } = useTranslation();
-    const { user, isLoading } = useAuth();
-    const colorScheme = useColorScheme();
-    const styles = getStyles(colorScheme);
+    const { user } = useAuth();
 
     const [registrations, setRegistrations] = useState<RegistrationWithConflict[]>([]);
     const [loading, setLoading] = useState(true);
@@ -70,7 +67,7 @@ export default function MyRegistrationsScreen() {
     const [error, setError] = useState<string | null>(null);
 
     const loadRegistrations = useCallback(async () => {
-        if (!user?.token || isLoading) {
+        if (!user?.token) {
             setRegistrations([]);
             setLoading(false);
             setRefreshing(false);
@@ -95,14 +92,12 @@ export default function MyRegistrationsScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [t, user?.token, isLoading]);
+    }, [t, user?.token]);
 
     useFocusEffect(
         useCallback(() => {
-            if (!isLoading) {
-                loadRegistrations();
-            }
-        }, [loadRegistrations, isLoading]),
+            loadRegistrations();
+        }, [loadRegistrations]),
     );
 
     const onRefresh = useCallback(() => {
@@ -142,7 +137,7 @@ export default function MyRegistrationsScreen() {
                     <ThemedText type="subtitle" style={styles.eventTitle}>
                         {translatedTitle}
                     </ThemedText>
-                    <View style={[styles.statusBadge, getStatusStyle(item.status, styles)]}>
+                    <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
                         <ThemedText style={styles.statusText}>
                             {t(`registrations.status.${item.status}`, { defaultValue: item.status })}
                         </ThemedText>
@@ -170,6 +165,26 @@ export default function MyRegistrationsScreen() {
                         {t(`registrations.status.${item.status}`, { defaultValue: item.status })}
                     </ThemedText>
                 </View>
+
+                {item.participants && item.participants.length > 0 && (
+                    <View style={styles.participantsSection}>
+                        <ThemedText style={styles.label}>
+                            {t('registrations.participantsLabel')}
+                        </ThemedText>
+                        <View style={styles.participantsList}>
+                            {item.participants.map((participant, index) => {
+                                const name = participant.fullName || t('registrations.participantUnknown');
+                                const age = participant.age != null ? ` (${participant.age})` : '';
+                                const primary = participant.primaryRegistrant ? ` ${t('registrations.participantPrimary')}` : '';
+                                return (
+                                    <ThemedText key={`${participant.registrationId}-${index}`} style={styles.participantItem}>
+                                        • {name}{age}{primary}
+                                    </ThemedText>
+                                );
+                            })}
+                        </View>
+                    </View>
+                )}
 
                 {item.hasConflict && (
                     <View style={styles.conflictBox}>
@@ -253,7 +268,7 @@ export default function MyRegistrationsScreen() {
     );
 }
 
-function getStatusStyle(status: RegistrationStatus, styles: any) {
+function getStatusStyle(status: RegistrationStatus) {
     switch (status) {
         case 'CONFIRMED':
             return styles.statusConfirmed;
@@ -266,148 +281,140 @@ function getStatusStyle(status: RegistrationStatus, styles: any) {
     }
 }
 
-const getStyles = (colorScheme: 'light' | 'dark' | null) => {
-    const isDark = colorScheme === 'dark';
-    
-    const TEXT_MUTED = isDark ? '#A0A7B1' : '#6b7280';
-    const BG = isDark ? '#1F2328' : '#ffffff';
-    const SURFACE = isDark ? '#0F1419' : 'transparent';
-    const BORDER = isDark ? '#2F3A4A' : 'transparent';
-    const ERROR_TEXT = isDark ? '#FFB4AB' : '#DC2626';
-    const CONFLICT_BG = isDark ? '#3A1F1F' : '#fff7ed';
-    const CONFLICT_BORDER = isDark ? '#6B2A2A' : '#f59e0b';
-    const CONFLICT_TEXT = isDark ? '#FFB4AB' : '#9a3412';
-    const STATUS_GREEN = isDark ? '#66BB6A' : '#16a34a';
-    const STATUS_YELLOW = isDark ? '#FFA726' : '#f59e0b';
-    const STATUS_GRAY = isDark ? '#9E9E9E' : '#9ca3af';
-    const STATUS_BLUE = isDark ? '#42A5F5' : '#2563eb';
-
-    return StyleSheet.create({
-        container: {
-            flex: 1,
-            paddingHorizontal: 16,
-            paddingTop: 16,
-            paddingBottom: 24,
-        },
-        screenTitle: {
-            marginBottom: 16,
-            fontWeight: '700',
-        },
-        centered: {
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-        },
-        loadingText: {
-            marginTop: 12,
-        },
-        errorText: {
-            color: ERROR_TEXT,
-            textAlign: 'center',
-        },
-        listContent: {
-            paddingBottom: 24,
-        },
-        sectionHeader: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginTop: 10,
-            marginBottom: 6,
-        },
-        sectionTitle: {
-            fontWeight: '700',
-        },
-        sectionCount: {
-            color: TEXT_MUTED,
-            fontSize: 12,
-        },
-        sectionEmptyText: {
-            color: TEXT_MUTED,
-            marginBottom: 12,
-        },
-        card: {
-            backgroundColor: BG,
-            borderRadius: 12,
-            padding: 16,
-            marginBottom: 12,
-            shadowColor: '#000',
-            shadowOpacity: 0.06,
-            shadowRadius: 6,
-            shadowOffset: { width: 0, height: 2 },
-            elevation: 2,
-        },
-        cardHeader: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 10,
-        },
-        eventTitle: {
-            flex: 1,
-            marginRight: 10,
-            fontWeight: '700',
-        },
-        row: {
-            flexDirection: 'row',
-            marginBottom: 6,
-        },
-        label: {
-            width: 80,
-            fontWeight: '600',
-        },
-        value: {
-            flex: 1,
-        },
-        statusBadge: {
-            borderRadius: 999,
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-        },
-        statusText: {
-            color: '#ffffff',
-            fontWeight: '600',
-            fontSize: 12,
-        },
-        statusConfirmed: {
-            backgroundColor: STATUS_GREEN,
-        },
-        statusWaitlisted: {
-            backgroundColor: STATUS_YELLOW,
-        },
-        statusCancelled: {
-            backgroundColor: STATUS_GRAY,
-        },
-        statusDefault: {
-            backgroundColor: STATUS_BLUE,
-        },
-        conflictBox: {
-            marginTop: 10,
-            padding: 10,
-            borderRadius: 10,
-            backgroundColor: CONFLICT_BG,
-            borderWidth: StyleSheet.hairlineWidth,
-            borderColor: CONFLICT_BORDER,
-            gap: 6,
-        },
-        conflictBadge: {
-            alignSelf: 'flex-start',
-            backgroundColor: ERROR_TEXT,
-            borderRadius: 8,
-            paddingHorizontal: 8,
-            paddingVertical: 4,
-        },
-        conflictText: {
-            color: '#fff',
-            fontWeight: '700',
-            fontSize: 12,
-        },
-        conflictHint: {
-            color: CONFLICT_TEXT,
-            fontSize: 12,
-        },
-    });
-};
-
-const styles = getStyles('light');
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 24,
+    },
+    screenTitle: {
+        marginBottom: 16,
+        fontWeight: '700',
+    },
+    centered: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+    },
+    loadingText: {
+        marginTop: 12,
+    },
+    errorText: {
+        color: 'red',
+        textAlign: 'center',
+    },
+    listContent: {
+        paddingBottom: 24,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 10,
+        marginBottom: 6,
+    },
+    sectionTitle: {
+        fontWeight: '700',
+    },
+    sectionCount: {
+        color: '#6b7280',
+        fontSize: 12,
+    },
+    sectionEmptyText: {
+        color: '#6b7280',
+        marginBottom: 12,
+    },
+    card: {
+        backgroundColor: '#ffffff',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        shadowColor: '#000',
+        shadowOpacity: 0.06,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 2,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    eventTitle: {
+        flex: 1,
+        marginRight: 10,
+        fontWeight: '700',
+    },
+    row: {
+        flexDirection: 'row',
+        marginBottom: 6,
+    },
+    label: {
+        width: 80,
+        fontWeight: '600',
+    },
+    value: {
+        flex: 1,
+    },
+    participantsSection: {
+        marginTop: 8,
+    },
+    participantsList: {
+        marginTop: 4,
+        gap: 2,
+    },
+    participantItem: {
+        fontSize: 13,
+        color: '#374151',
+    },
+    statusBadge: {
+        borderRadius: 999,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+    },
+    statusText: {
+        color: '#ffffff',
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    statusConfirmed: {
+        backgroundColor: '#16a34a',
+    },
+    statusWaitlisted: {
+        backgroundColor: '#f59e0b',
+    },
+    statusCancelled: {
+        backgroundColor: '#9ca3af',
+    },
+    statusDefault: {
+        backgroundColor: '#2563eb',
+    },
+    conflictBox: {
+        marginTop: 10,
+        padding: 10,
+        borderRadius: 10,
+        backgroundColor: '#fff7ed',
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: '#f59e0b',
+        gap: 6,
+    },
+    conflictBadge: {
+        alignSelf: 'flex-start',
+        backgroundColor: '#dc2626',
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+    conflictText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 12,
+    },
+    conflictHint: {
+        color: '#9a3412',
+        fontSize: 12,
+    },
+});

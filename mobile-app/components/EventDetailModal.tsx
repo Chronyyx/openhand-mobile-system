@@ -4,17 +4,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
-import { getStyles } from '../styles/events.styles';
+import { styles } from '../styles/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
-import { type Registration } from '../services/registration.service';
+import { type Registration, type RegistrationParticipant } from '../services/registration.service';
 import { searchUsers, registerParticipantForEvent, type EmployeeSearchResult } from '../services/employee.service';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
 import { getEventImage } from '../constants/event-images';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
-import { useColorScheme } from '../hooks/use-color-scheme';
 
 // Props Definition
+export type FamilyMemberInput = {
+    id: string;
+    fullName: string;
+    age: string;
+    relation?: string;
+};
+
 type EventDetailModalProps = {
     visible: boolean;
     onClose: () => void;
@@ -28,7 +34,7 @@ type EventDetailModalProps = {
 
     // Registration Props
     userRegistration: Registration | null;
-    onRegister: () => void;
+    onRegister: (familyMembers: FamilyMemberInput[]) => void;
     onUnregister: () => void;
 
     // Success State
@@ -47,6 +53,7 @@ type EventDetailModalProps = {
     registrationError?: string | null;
     // Optional callback to refresh capacity/details from parent
     onCapacityRefresh?: () => void;
+    registrationParticipants?: RegistrationParticipant[] | null;
 };
 
 // Use explicit class for Animated View created in index if passed, but here we can just use View or re-create it.
@@ -76,26 +83,11 @@ export function EventDetailModal({
     summaryError,
     onRetrySummary,
     isRegistering = false,
-    registrationError = null
-    ,
-    onCapacityRefresh
+    registrationError = null,
+    onCapacityRefresh,
+    registrationParticipants = null
 }: EventDetailModalProps) {
     const router = useRouter();
-    const colorScheme = useColorScheme() ?? 'light';
-    const styles = getStyles(colorScheme);
-    const colors = {
-        primary: colorScheme === 'dark' ? '#6AA9FF' : '#0056A8',
-        onPrimary: '#FFFFFF',
-        inputBackground: colorScheme === 'dark' ? '#1F2328' : '#FFFFFF',
-        inputBorder: colorScheme === 'dark' ? '#2F3A4A' : '#E0E7F3',
-        errorBackground: colorScheme === 'dark' ? '#3A1F1F' : '#FFEBEE',
-        errorBorder: colorScheme === 'dark' ? '#EF9A9A' : '#D32F2F',
-        errorText: colorScheme === 'dark' ? '#FFB4AB' : '#C62828',
-        successBackground: colorScheme === 'dark' ? '#1F3323' : '#E8F5E9',
-        successBorder: colorScheme === 'dark' ? '#7BC47F' : '#2E7D32',
-        successText: colorScheme === 'dark' ? '#A5D6A7' : '#2E7D32',
-        textDark: colorScheme === 'dark' ? '#ECEDEE' : '#333333',
-    };
 
     // Fallback if no details yet
     const displayEvent = eventDetail || selectedEvent;
@@ -108,6 +100,39 @@ export function EventDetailModal({
     const [walkinSubmitting, setWalkinSubmitting] = React.useState(false);
     const [walkinError, setWalkinError] = React.useState<string | null>(null);
     const [walkinSuccess, setWalkinSuccess] = React.useState<string | null>(null);
+    const [familyMembers, setFamilyMembers] = React.useState<FamilyMemberInput[]>([]);
+
+    React.useEffect(() => {
+        if (!visible) {
+            setFamilyMembers([]);
+        }
+    }, [visible, selectedEvent?.id]);
+
+    const handleAddFamilyMember = () => {
+        setFamilyMembers(prev => [
+            ...prev,
+            {
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                fullName: '',
+                age: '',
+                relation: ''
+            }
+        ]);
+    };
+
+    const handleRemoveFamilyMember = (id: string) => {
+        setFamilyMembers(prev => prev.filter(member => member.id !== id));
+    };
+
+    const handleUpdateFamilyMember = (id: string, field: 'fullName' | 'age' | 'relation', value: string) => {
+        setFamilyMembers(prev =>
+            prev.map(member =>
+                member.id === id ? { ...member, [field]: value } : member
+            )
+        );
+    };
+
+    const totalParticipants = 1 + familyMembers.length;
 
     const handleWalkinSearch = async () => {
         setWalkinError(null);
@@ -206,7 +231,7 @@ export function EventDetailModal({
                     <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
                         {loading ? (
                             <View style={styles.modalLoadingContainer}>
-                                <ActivityIndicator size="large" color={colors.primary} />
+                                <ActivityIndicator size="large" color="#0056A8" />
                                 <ThemedText style={styles.modalLoadingText}>
                                     {t('events.loading')}
                                 </ThemedText>
@@ -218,13 +243,25 @@ export function EventDetailModal({
                         ) : showSuccessView && selectedEvent ? (
                             /* Success View */
                             <View style={styles.successContainer}>
-                                <Ionicons name="checkbox" size={64} color={colors.primary} style={{ marginBottom: 16 }} />
+                                <Ionicons name="checkbox" size={64} color="#0056A8" style={{ marginBottom: 16 }} />
                                 <ThemedText type="subtitle" style={styles.successTitle}>
                                     {t('alerts.registerSuccess', 'Inscription confirmée !')}
                                 </ThemedText>
                                 <ThemedText style={styles.successMessage}>
                                     {t('alerts.registerSuccessMessage', "Vous êtes inscrit(e) à l'événement.")}
                                 </ThemedText>
+                                {registrationParticipants && registrationParticipants.length > 0 && (
+                                    <View style={styles.participantsList}>
+                                        <ThemedText style={styles.participantsTitle}>
+                                            {t('events.family.participantsTitle', 'Participants')}
+                                        </ThemedText>
+                                        {registrationParticipants.map((participant) => (
+                                            <ThemedText key={participant.registrationId} style={styles.participantItem}>
+                                                {participant.fullName || t('events.family.unknownParticipant')}
+                                            </ThemedText>
+                                        ))}
+                                    </View>
+                                )}
                                 <Pressable
                                     style={styles.undoButton}
                                     onPress={onUnregister}
@@ -340,9 +377,8 @@ export function EventDetailModal({
                                         <ThemedText style={styles.sectionTitle}>{t('events.walkin.title')}</ThemedText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                             <TextInput
-                                                style={{ flex: 1, backgroundColor: colors.inputBackground, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: colors.inputBorder, color: colorScheme === 'dark' ? '#ECEDEE' : '#333333' }}
+                                                style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#E0E7F3' }}
                                                 placeholder={t('events.walkin.searchPlaceholder')}
-                                                placeholderTextColor={colorScheme === 'dark' ? '#A0A7B1' : '#999999'}
                                                 value={walkinQuery}
                                                 onChangeText={setWalkinQuery}
                                             />
@@ -351,20 +387,20 @@ export function EventDetailModal({
                                             </Pressable>
                                         </View>
                                         {walkinError && (
-                                            <View style={[styles.infoBox, { borderLeftColor: colors.errorBorder, borderLeftWidth: 4, backgroundColor: colors.errorBackground }]}> 
-                                                <ThemedText style={[styles.infoText, { color: colors.errorText }]}>{walkinError}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
+                                                <ThemedText style={[styles.infoText, { color: '#c62828' }]}>{walkinError}</ThemedText>
                                             </View>
                                         )}
                                         {walkinSuccess && (
-                                            <View style={[styles.infoBox, { borderLeftColor: colors.successBorder, borderLeftWidth: 4, backgroundColor: colors.successBackground }]}> 
-                                                <ThemedText style={[styles.infoText, { color: colors.successText }]}>{walkinSuccess}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: '#2e7d32', borderLeftWidth: 4, backgroundColor: '#e8f5e9' }]}> 
+                                                <ThemedText style={[styles.infoText, { color: '#2e7d32' }]}>{walkinSuccess}</ThemedText>
                                             </View>
                                         )}
                                         {walkinResults.length > 0 && (
                                             <View style={{ gap: 8 }}>
                                                 {walkinResults.map(r => (
-                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [{ backgroundColor: colors.inputBackground, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: walkinSelected?.id === r.id ? colors.primary : colors.inputBorder }, pressed && { opacity: 0.7 }]}> 
-                                                        <ThemedText style={{ color: colors.textDark }}>{r.email}</ThemedText>
+                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}> 
+                                                        <ThemedText style={styles.unregisterButtonText}>{r.email}</ThemedText>
                                                     </Pressable>
                                                 ))}
                                             </View>
@@ -375,7 +411,7 @@ export function EventDetailModal({
                                             disabled={walkinSubmitting || !walkinSelected}
                                         >
                                             {walkinSubmitting ? (
-                                                <ActivityIndicator color={colors.onPrimary} />
+                                                <ActivityIndicator color="#FFFFFF" />
                                             ) : (
                                                 <ThemedText style={styles.registerButtonText}>{t('events.walkin.register')}</ThemedText>
                                             )}
@@ -383,11 +419,66 @@ export function EventDetailModal({
                                     </View>
                                 )}
 
+                                {/* Family Registration */}
+                                {selectedEvent && user && hasRole(['ROLE_MEMBER']) && !userRegistration && !isCompleted && (
+                                    <View style={styles.familySection}>
+                                        <View style={styles.familyHeaderRow}>
+                                            <ThemedText style={styles.sectionTitle}>
+                                                {t('events.family.title', 'Family Members')}
+                                            </ThemedText>
+                                            <Pressable style={styles.familyAddButton} onPress={handleAddFamilyMember}>
+                                                <Ionicons name="add" size={16} color="#FFFFFF" />
+                                                <ThemedText style={styles.familyAddButtonText}>
+                                                    {t('events.family.addButton', 'Add Family Member')}
+                                                </ThemedText>
+                                            </Pressable>
+                                        </View>
+                                        {familyMembers.length === 0 ? (
+                                            <ThemedText style={styles.familyHint}>
+                                                {t('events.family.hint', 'Add family members to register together.')}
+                                            </ThemedText>
+                                        ) : (
+                                            familyMembers.map(member => (
+                                                <View key={member.id} style={styles.familyCard}>
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.fullNamePlaceholder', 'Full name')}
+                                                        value={member.fullName}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'fullName', text)}
+                                                    />
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.agePlaceholder', 'Age')}
+                                                        keyboardType="numeric"
+                                                        value={member.age}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'age', text)}
+                                                    />
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.relationPlaceholder', 'Relation (optional)')}
+                                                        value={member.relation || ''}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'relation', text)}
+                                                    />
+                                                    <Pressable
+                                                        style={styles.familyRemoveButton}
+                                                        onPress={() => handleRemoveFamilyMember(member.id)}
+                                                    >
+                                                        <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
+                                                        <ThemedText style={styles.familyRemoveButtonText}>
+                                                            {t('events.family.removeButton', 'Remove')}
+                                                        </ThemedText>
+                                                    </Pressable>
+                                                </View>
+                                            ))
+                                        )}
+                                    </View>
+                                )}
+
                                 {/* Buttons */}
                                 {user ? (
                                     isInactiveMember ? (
-                                        <View style={[styles.infoBox, { borderLeftColor: colors.errorBorder, borderLeftWidth: 4, backgroundColor: colors.errorBackground }]}>
-                                            <ThemedText style={[styles.infoText, { color: colors.errorText }]}>
+                                        <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
+                                            <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
                                                 {t('events.inactiveMember')}
                                             </ThemedText>
                                         </View>
@@ -402,8 +493,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: colors.errorBorder, borderLeftWidth: 4, backgroundColor: colors.errorBackground }]}> 
-                                                        <ThemedText style={[styles.infoText, { color: colors.errorText }]}> 
+                                                    <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}> 
+                                                        <ThemedText style={[styles.infoText, { color: '#c62828' }]}> 
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>
@@ -416,7 +507,7 @@ export function EventDetailModal({
                                                         disabled={isRegistering}
                                                     >
                                                         {isRegistering ? (
-                                                            <ActivityIndicator color={colors.onPrimary} />
+                                                            <ActivityIndicator color="#FFFFFF" />
                                                         ) : (
                                                             <ThemedText style={styles.unregisterButtonText}>
                                                                 {t('events.actions.unregister', 'Se désinscrire')}
@@ -424,21 +515,31 @@ export function EventDetailModal({
                                                         )}
                                                     </Pressable>
                                                 ) : (
-                                                    <Pressable
-                                                        style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
-                                                        onPress={onRegister}
-                                                        disabled={isRegistering}
-                                                    >
-                                                        {isRegistering ? (
-                                                            <ActivityIndicator color={colors.onPrimary} />
-                                                        ) : (
-                                                            <ThemedText style={styles.registerButtonText}>
-                                                                {displayEvent?.status === 'FULL'
-                                                                    ? t('events.actions.joinWaitlist')
-                                                                    : t('events.actions.register')}
+                                                    <View style={{ gap: 10 }}>
+                                                        <View style={styles.participantCountRow}>
+                                                            <ThemedText style={styles.participantCountLabel}>
+                                                                {t('events.family.totalParticipants', 'Total participants')}
                                                             </ThemedText>
-                                                        )}
-                                                    </Pressable>
+                                                            <ThemedText style={styles.participantCountValue}>
+                                                                {totalParticipants}
+                                                            </ThemedText>
+                                                        </View>
+                                                        <Pressable
+                                                            style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
+                                                            onPress={() => onRegister(familyMembers)}
+                                                            disabled={isRegistering}
+                                                        >
+                                                            {isRegistering ? (
+                                                                <ActivityIndicator color="#FFFFFF" />
+                                                            ) : (
+                                                                <ThemedText style={styles.registerButtonText}>
+                                                                    {displayEvent?.status === 'FULL'
+                                                                        ? t('events.actions.joinWaitlist')
+                                                                        : t('events.actions.register')}
+                                                                </ThemedText>
+                                                            )}
+                                                        </Pressable>
+                                                    </View>
                                                 )}
                                             </View>
                                         )

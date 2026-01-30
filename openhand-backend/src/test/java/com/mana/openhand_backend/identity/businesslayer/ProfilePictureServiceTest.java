@@ -39,6 +39,8 @@ class ProfilePictureServiceTest {
                 service.toPublicUrl("http://localhost:8080", "http://cdn.example.com/pic.jpg"));
         assertEquals("http://localhost:8080/uploads/profile-pictures/a.png",
                 service.toPublicUrl("http://localhost:8080/", "/uploads/profile-pictures/a.png"));
+        assertEquals("http://localhost:8080/uploads/profile-pictures/a.png",
+                service.toPublicUrl("http://localhost:8080", "uploads/profile-pictures/a.png"));
     }
 
     @Test
@@ -85,6 +87,48 @@ class ProfilePictureServiceTest {
         );
 
         assertThrows(IllegalArgumentException.class, () -> service.storeProfilePicture(1L, file, "http://localhost"));
+    }
+
+    @Test
+    void storeProfilePicture_rejectsEmptyFile() {
+        ProfilePictureService service = new ProfilePictureService(userRepository, tempDir.toString(), 1024);
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "pic.jpg",
+                "image/jpeg",
+                new byte[0]
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> service.storeProfilePicture(1L, file, "http://localhost"));
+    }
+
+    @Test
+    void storeProfilePicture_rejectsNullFile() {
+        ProfilePictureService service = new ProfilePictureService(userRepository, tempDir.toString(), 1024);
+
+        assertThrows(IllegalArgumentException.class, () -> service.storeProfilePicture(1L, null, "http://localhost"));
+    }
+
+    @Test
+    void storeProfilePicture_usesWebpExtensionWhenMissing() throws IOException {
+        ProfilePictureService service = new ProfilePictureService(userRepository, tempDir.toString(), 1024 * 1024);
+
+        User user = new User("user@example.com", "pwd", Set.of("ROLE_MEMBER"));
+        user.setId(9L);
+        when(userRepository.findById(9L)).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        MockMultipartFile file = new MockMultipartFile(
+                "file",
+                "profile",
+                "image/webp",
+                "data".getBytes()
+        );
+
+        ProfilePictureResponse response = service.storeProfilePicture(9L, file, "http://localhost:8080");
+
+        assertNotNull(response.getUrl());
+        assertTrue(response.getUrl().endsWith(".webp"));
     }
 
     @Test

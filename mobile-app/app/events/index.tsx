@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '../../components/themed-view';
 import { ThemedText } from '../../components/themed-text';
 import { EventCard } from '../../components/EventCard';
-import { EventDetailModal } from '../../components/EventDetailModal';
+import { EventDetailModal, type FamilyMemberInput } from '../../components/EventDetailModal';
 import { MenuLayout } from '../../components/menu-layout';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../../utils/event-translations';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -30,24 +30,26 @@ import {
     type EventSummary,
     type EventDetail,
     type RegistrationSummary,
-    type EventStatus,
 } from '../../services/events.service';
-import { registerForEvent, cancelRegistration, getMyRegistrations, type Registration } from '../../services/registration.service';
+import {
+    registerForEventWithFamily,
+    cancelRegistration,
+    getMyRegistrations,
+    type Registration,
+    type FamilyMemberPayload,
+    type GroupRegistrationResponse
+} from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-import { useColorScheme } from '../../hooks/use-color-scheme';
 
-import { getStyles } from '../../styles/events.styles';
+import { styles } from '../../styles/events.styles';
 
 const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
-const NEARLY_FULL_THRESHOLD = 0.8;
 
 export default function EventsScreen() {
     const { t } = useTranslation() as { t: (key: string, options?: any) => string };
-    const { user, hasRole, isLoading } = useAuth();
+    const { user, hasRole } = useAuth();
     const router = useRouter();
     const { notifications, markAllAsRead, markAsRead } = useNotifications();
-    const colorScheme = useColorScheme() ?? 'light';
-    const styles = getStyles(colorScheme);
 
     // Data State
     const [events, setEvents] = useState<EventSummary[]>([]);
@@ -69,6 +71,7 @@ export default function EventsScreen() {
     const [myRegistrations, setMyRegistrations] = useState<Registration[]>([]);
     const [isRegistering, setIsRegistering] = useState(false);
     const [registrationError, setRegistrationError] = useState<string | null>(null);
+    const [registrationParticipants, setRegistrationParticipants] = useState<GroupRegistrationResponse['participants'] | null>(null);
 
     // Admin/Employee Stats
     const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
@@ -100,26 +103,6 @@ export default function EventsScreen() {
     // ========================================
     // HELPER FUNCTIONS
     // ========================================
-
-    const calculateEventStatus = (currentRegistrations: number, maxCapacity?: number): EventStatus => {
-        if (!maxCapacity) return 'OPEN';
-        if (currentRegistrations >= maxCapacity) return 'FULL';
-        if (currentRegistrations >= maxCapacity * NEARLY_FULL_THRESHOLD) return 'NEARLY_FULL';
-        return 'OPEN';
-    };
-
-    const updateEventCapacity = (event: EventSummary | EventDetail, delta: number) => {
-        const updated = {
-            ...event,
-            currentRegistrations: (event.currentRegistrations || 0) + delta
-        };
-
-        if (updated.maxCapacity && delta !== 0) {
-            updated.status = calculateEventStatus(updated.currentRegistrations, updated.maxCapacity);
-        }
-
-        return updated;
-    };
 
     // ========================================
     // DATA LOADING
@@ -322,6 +305,7 @@ export default function EventsScreen() {
         setDetailsError(null);
         setShowSuccessView(false);
         setRegistrationError(null);
+        setRegistrationParticipants(null);
         resetCountdown();
 
         // Check user registration
@@ -355,39 +339,81 @@ export default function EventsScreen() {
         setShowSuccessView(false);
         setIsRegistering(false);
         setRegistrationError(null);
+        setRegistrationParticipants(null);
     }, []);
 
     // ========================================
     // REGISTRATION HANDLERS
     // ========================================
 
-    const handleRegister = useCallback(async () => {
-        if (!selectedEvent || !user || isRegistering || isLoading) return;
+    const handleRegister = useCallback(async (familyMembers: FamilyMemberInput[]) => {
+        if (!selectedEvent || !user || isRegistering) return;
 
         if (selectedEvent.status === 'COMPLETED') {
             setRegistrationError(t('events.errors.eventCompleted'));
             return;
         }
 
+        const normalizedFamily: FamilyMemberPayload[] = [];
+        for (const member of familyMembers) {
+            const name = member.fullName?.trim() || '';
+            const relation = member.relation?.trim() || undefined;
+            const ageText = member.age?.trim() || '';
+            const ageValue = ageText ? Number(ageText) : NaN;
+            const isEmpty = !name && !ageText && !relation;
+
+            if (isEmpty) {
+                continue;
+            }
+
+            if (!name || !Number.isFinite(ageValue) || ageValue <= 0) {
+                setRegistrationError(t('events.family.validationError', 'Please enter a name and age for each family member.'));
+                return;
+            }
+
+            normalizedFamily.push({
+                fullName: name,
+                age: Math.floor(ageValue),
+                relation
+            });
+        }
+
         setIsRegistering(true);
         setRegistrationError(null);
 
         try {
-            const newReg = await registerForEvent(selectedEvent.id, user.token);
+            const response = await registerForEventWithFamily(selectedEvent.id, normalizedFamily, user.token);
+            setRegistrationParticipants(response.participants || []);
 
-            setUserRegistration(newReg);
+            const primary = response.primaryRegistrant;
+            if (primary) {
+                const newReg: Registration = {
+                    id: primary.registrationId,
+                    userId: user.id ?? 0,
+                    eventId: selectedEvent.id,
+                    eventTitle: selectedEvent.title,
+                    status: primary.status,
+                    requestedAt: new Date().toISOString(),
+                    confirmedAt: primary.status === 'CONFIRMED' ? new Date().toISOString() : null,
+                    cancelledAt: null,
+                    waitlistedPosition: primary.waitlistedPosition ?? null,
+                    eventStartDateTime: selectedEvent.startDateTime,
+                    eventEndDateTime: selectedEvent.endDateTime
+                };
+                setUserRegistration(newReg);
+            }
+
             unhideEvent(selectedEvent.id);
 
-            if (newReg.status === 'CONFIRMED') {
+            if (primary?.status === 'CONFIRMED') {
                 setShowSuccessView(true);
                 startCountdown();
-            } else if (newReg.status === 'WAITLISTED') {
+            } else if (primary?.status === 'WAITLISTED') {
                 setRegistrationError(
-                    t('alerts.registerWaitlistMessage', { position: newReg.waitlistedPosition })
+                    t('alerts.registerWaitlistMessage', { position: primary.waitlistedPosition })
                 );
             }
 
-            // Refresh data
             await Promise.all([
                 onRefresh(),
                 isAdmin && selectedEvent ? loadRegistrationSummary(selectedEvent.id) : Promise.resolve()
@@ -396,7 +422,11 @@ export default function EventsScreen() {
         } catch (e: any) {
             const errorMessage = e.errorData?.message || e.message;
 
-            if (e.status === 409) {
+            if (e.status === 403) {
+                setRegistrationError(t('events.errors.accessDenied'));
+            } else if (e.status === 400 && errorMessage.toLowerCase().includes('capacity')) {
+                setRegistrationError(t('events.family.capacityError', 'Not enough capacity for your group.'));
+            } else if (e.status === 409) {
                 if (errorMessage.includes('capacity')) {
                     setRegistrationError(t('events.errors.eventFull'));
                 } else if (errorMessage.toLowerCase().includes('completed')) {
@@ -407,7 +437,6 @@ export default function EventsScreen() {
                     setRegistrationError(errorMessage);
                 }
 
-                // Refresh current registration state
                 try {
                     const regs = await getMyRegistrations(user.token);
                     const reg = regs.find(r =>
@@ -424,10 +453,10 @@ export default function EventsScreen() {
         } finally {
             setIsRegistering(false);
         }
-    }, [selectedEvent, user, isRegistering, isLoading, isAdmin, t, unhideEvent, startCountdown, onRefresh, loadRegistrationSummary]);
+    }, [selectedEvent, user, isRegistering, isAdmin, t, unhideEvent, startCountdown, onRefresh, loadRegistrationSummary]);
 
     const handleUnregister = useCallback(async () => {
-        if (!selectedEvent || !userRegistration || !user || isLoading) return;
+        if (!selectedEvent || !userRegistration || !user) return;
 
         setIsRegistering(true);
         setRegistrationError(null);
@@ -435,18 +464,19 @@ export default function EventsScreen() {
         try {
             await cancelRegistration(selectedEvent.id, user.token);
 
-            // Update local state optimistically
-            const updatedEvent = updateEventCapacity(selectedEvent, -1);
-            setSelectedEvent(updatedEvent as EventSummary);
-
-            if (eventDetail && eventDetail.id === selectedEvent.id) {
-                const updatedDetail = updateEventCapacity(eventDetail, -1);
-                setEventDetail(updatedDetail as EventDetail);
-            }
-
             setUserRegistration(null);
             setShowSuccessView(false);
             resetCountdown();
+
+            try {
+                if (selectedEvent) {
+                    const refreshed = await getEventById(selectedEvent.id);
+                    setEventDetail(refreshed);
+                    setSelectedEvent(refreshed as EventSummary);
+                }
+            } catch (err) {
+                console.error('Failed to refresh event after unregister', err);
+            }
 
             Alert.alert(t('events.success.unregistered'));
 
@@ -462,31 +492,27 @@ export default function EventsScreen() {
         } finally {
             setIsRegistering(false);
         }
-    }, [selectedEvent, userRegistration, user, eventDetail, isLoading, isAdmin, t, resetCountdown, onRefresh, loadRegistrationSummary]);
+    }, [selectedEvent, userRegistration, user, eventDetail, isAdmin, t, resetCountdown, onRefresh, loadRegistrationSummary]);
 
     // ========================================
     // LIFECYCLE HOOKS
     // ========================================
 
     useEffect(() => {
-        if (!isLoading) {
-            loadEvents();
-            loadHiddenEvents();
-        }
-    }, [loadEvents, loadHiddenEvents, isLoading]);
+        loadEvents();
+        loadHiddenEvents();
+    }, [loadEvents, loadHiddenEvents]);
 
     useEffect(() => {
-        if (!isLoading) {
-            loadMyRegistrations();
-        }
-    }, [loadMyRegistrations, refreshing, showSuccessView, isLoading]);
+        loadMyRegistrations();
+    }, [loadMyRegistrations, refreshing, showSuccessView]);
 
     useFocusEffect(
         useCallback(() => {
-            if (user?.token && !isLoading) {
+            if (user?.token) {
                 markAllAsRead();
             }
-        }, [user, markAllAsRead, isLoading])
+        }, [user, markAllAsRead])
     );
 
     // ========================================
@@ -532,17 +558,17 @@ export default function EventsScreen() {
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                    <Ionicons name="search" size={20} color={colorScheme === 'dark' ? '#A0A7B1' : '#666'} style={styles.searchIcon} />
+                    <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
                     <TextInput
-                        style={[styles.searchInput, { color: colorScheme === 'dark' ? '#ECEDEE' : '#333' }]}
+                        style={styles.searchInput}
                         placeholder={t('events.searchPlaceholder')}
-                        placeholderTextColor={colorScheme === 'dark' ? '#8B93A1' : '#999'}
+                        placeholderTextColor="#999"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                            <Ionicons name="close-circle" size={20} color={colorScheme === 'dark' ? '#A0A7B1' : '#666'} style={{ marginLeft: 8 }} />
+                            <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
                         </Pressable>
                     )}
                 </View>
@@ -550,7 +576,7 @@ export default function EventsScreen() {
                 {/* List */}
                 {loading ? (
                     <View style={styles.centered}>
-                        <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
+                        <ActivityIndicator size="large" color="#0056A8" />
                         <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
                     </View>
                 ) : error ? (
@@ -567,7 +593,7 @@ export default function EventsScreen() {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={onRefresh}
-                                colors={[colorScheme === 'dark' ? '#6AA9FF' : '#0056A8']}
+                                colors={['#0056A8']}
                             />
                         }
                         ListEmptyComponent={
@@ -602,6 +628,7 @@ export default function EventsScreen() {
                     isRegistering={isRegistering}
                     registrationError={registrationError}
                     onCapacityRefresh={handleRefreshCapacity}
+                    registrationParticipants={registrationParticipants}
                 />
             </ThemedView>
         </MenuLayout>

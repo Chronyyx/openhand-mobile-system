@@ -25,7 +25,7 @@ import { styles } from '../../../styles/events.styles';
 export default function EventAttendeesScreen() {
     const { id } = useLocalSearchParams();
     const { t } = useTranslation();
-    const { user, hasRole } = useAuth();
+    const { user, hasRole, isLoading } = useAuth();
 
     const eventId = useMemo(() => {
         if (typeof id === 'string') return parseInt(id, 10);
@@ -48,7 +48,7 @@ export default function EventAttendeesScreen() {
             setRefreshing(false);
             return;
         }
-        if (!user?.token) {
+        if (!user?.token || isLoading) {
             setError(t('common.notAuthenticated'));
             setLoading(false);
             setRefreshing(false);
@@ -71,13 +71,13 @@ export default function EventAttendeesScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [eventId, refreshing, t, user?.token]);
+    }, [eventId, refreshing, t, user?.token, isLoading]);
 
     useEffect(() => {
-        if (canView) {
+        if (canView && !isLoading) {
             loadAttendees();
         }
-    }, [canView, loadAttendees]);
+    }, [canView, loadAttendees, isLoading]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);

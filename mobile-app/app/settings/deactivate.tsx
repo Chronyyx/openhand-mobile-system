@@ -6,19 +6,21 @@ import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { deactivateAccount } from '../../services/account.service';
-
-const ACCENT = '#0056A8';
-const DANGER = '#C62828';
-const SURFACE = '#F5F7FB';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 
 export default function DeactivateAccountScreen() {
     const { t } = useTranslation();
     const router = useRouter();
     const { signOut } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
     const [menuVisible, setMenuVisible] = useState(false);
     const [confirmText, setConfirmText] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const styles = getStyles(colorScheme);
+    const ACCENT = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
+    const DANGER = colorScheme === 'dark' ? '#FFB4AB' : '#C62828';
 
     const handleDeactivate = async () => {
         if (confirmText.trim().toLowerCase() !== 'deactivate') {
@@ -103,7 +105,14 @@ export default function DeactivateAccountScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    const ACCENT = isDark ? '#9FC3FF' : '#0056A8';
+    const DANGER = isDark ? '#FFB4AB' : '#C62828';
+    const DANGER_BG = isDark ? '#3A1F1F' : '#FEF2F2';
+    const SURFACE = isDark ? '#111418' : '#F5F7FB';
+
+    return StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: SURFACE,
@@ -116,14 +125,14 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 22,
         fontWeight: '700',
-        color: '#0F172A',
+        color: isDark ? '#ECEDEE' : '#0F172A',
     },
     subtitle: {
         fontSize: 14,
-        color: '#334155',
+        color: isDark ? '#A0A7B1' : '#334155',
     },
     warningBox: {
-        backgroundColor: '#FEF2F2',
+        backgroundColor: DANGER_BG,
         borderLeftColor: DANGER,
         borderLeftWidth: 4,
         padding: 12,
@@ -135,21 +144,22 @@ const styles = StyleSheet.create({
         marginBottom: 4,
     },
     warningText: {
-        color: '#7F1D1D',
+        color: isDark ? '#EF9A9A' : '#7F1D1D',
     },
     label: {
         fontWeight: '600',
-        color: '#0F172A',
+        color: isDark ? '#ECEDEE' : '#0F172A',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: isDark ? '#2A313B' : '#E2E8F0',
         borderRadius: 8,
         padding: 12,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
+        color: isDark ? '#ECEDEE' : '#0F172A',
     },
     errorBox: {
-        backgroundColor: '#FEF2F2',
+        backgroundColor: DANGER_BG,
         borderLeftColor: DANGER,
         borderLeftWidth: 4,
         padding: 10,
@@ -159,7 +169,7 @@ const styles = StyleSheet.create({
         color: DANGER,
     },
     deactivateButton: {
-        backgroundColor: DANGER,
+        backgroundColor: isDark ? '#8B2E2E' : DANGER,
         padding: 14,
         borderRadius: 10,
         alignItems: 'center',
@@ -177,4 +187,5 @@ const styles = StyleSheet.create({
         color: ACCENT,
         fontWeight: '600',
     },
-});
+    });
+};

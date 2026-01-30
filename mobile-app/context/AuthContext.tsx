@@ -46,25 +46,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const loadUser = async () => {
+            console.log('[AuthContext] loadUser - START');
             try {
                 // 1. Load from storage first for speed
                 const storedUser = await AuthService.getCurrentUser();
+                console.log('[AuthContext] storedUser from storage:', storedUser ? 'Found' : 'NOT FOUND');
                 if (storedUser) {
+                    console.log('[AuthContext] Setting user and isLoading=false IMMEDIATELY');
                     setUser(storedUser);
-                    // 2. Fetch fresh data from API to ensure sync (e.g. invalid token, changed pic)
+                    setIsLoading(false); // ← Set loading false IMMEDIATELY after setting user from storage
+                    // 2. Fetch fresh data from API in background to ensure sync
                     try {
                         const freshUser = await AuthService.getProfile();
-                        setUser(freshUser);
-                        await AuthService.storeUser(freshUser);
+                        console.log('[AuthContext] Fresh user from API:', freshUser ? 'Found' : 'NOT FOUND');
+                        // CRITICAL: Merge fresh profile data with stored tokens
+                        const mergedUser = {
+                            ...freshUser,
+                            token: storedUser.token,
+                            refreshToken: storedUser.refreshToken,
+                            type: storedUser.type,
+                        };
+                        setUser(mergedUser);
+                        await AuthService.storeUser(mergedUser);
                     } catch (refreshError) {
                         console.warn('[Auth] Failed to refresh profile on load', refreshError);
-                        // If 401, maybe logout? For now keep local data or let api interceptor handle it.
+                        // If token is invalid, apiClient interceptor will handle cleanup
                     }
+                } else {
+                    console.log('[AuthContext] No stored user, setting isLoading=false');
+                    setIsLoading(false);
                 }
             } catch (error) {
                 console.error("Failed to load user", error);
                 setUser(null);
-            } finally {
                 setIsLoading(false);
             }
         };

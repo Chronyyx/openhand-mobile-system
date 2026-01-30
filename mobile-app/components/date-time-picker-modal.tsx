@@ -158,6 +158,8 @@ export function DateTimePickerModal({
 
     const handleConfirm = () => onConfirm(clampSeconds(selected));
     const formattedTime = `${pad2(selected.getHours())}:${pad2(selected.getMinutes())}`;
+    const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#5C6A80';
+    const stepperIconColor = colorScheme === 'dark' ? '#ECEDEE' : '#0F2848';
 
     if (!visible) return null;
 
@@ -168,7 +170,7 @@ export function DateTimePickerModal({
                 <View style={styles.header}>
                     <Text style={styles.title}>{title}</Text>
                     <Pressable onPress={onCancel} hitSlop={10}>
-                        <Ionicons name="close" size={20} color="#5C6A80" />
+                        <Ionicons name="close" size={20} color={closeIconColor} />
                     </Pressable>
                 </View>
 
@@ -247,7 +249,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustHours(-1)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="remove" size={16} color="#0F2848" />
+                                <Ionicons name="remove" size={16} color={stepperIconColor} />
                             </Pressable>
                             <Text style={styles.stepperValue}>{pad2(selected.getHours())}</Text>
                             <Pressable
@@ -255,7 +257,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustHours(1)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="add" size={16} color="#0F2848" />
+                                <Ionicons name="add" size={16} color={stepperIconColor} />
                             </Pressable>
                         </View>
                     </View>
@@ -267,7 +269,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustMinutes(-MINUTE_STEP)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="remove" size={16} color="#0F2848" />
+                                <Ionicons name="remove" size={16} color={stepperIconColor} />
                             </Pressable>
                             <Text style={styles.stepperValue}>{pad2(selected.getMinutes())}</Text>
                             <Pressable
@@ -275,7 +277,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustMinutes(MINUTE_STEP)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="add" size={16} color="#0F2848" />
+                                <Ionicons name="add" size={16} color={stepperIconColor} />
                             </Pressable>
                         </View>
                     </View>

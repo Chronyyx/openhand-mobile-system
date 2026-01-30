@@ -3,6 +3,7 @@ package com.mana.openhand_backend.registrations.presentationlayer;
 import com.mana.openhand_backend.registrations.utils.AlreadyRegisteredException;
 import com.mana.openhand_backend.registrations.utils.EventCapacityException;
 import com.mana.openhand_backend.registrations.utils.EventCompletedException;
+import com.mana.openhand_backend.registrations.utils.GroupRegistrationCapacityException;
 import com.mana.openhand_backend.registrations.utils.RegistrationNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -87,5 +88,19 @@ public class RegistrationExceptionHandler {
         errorResponse.put("timestamp", LocalDateTime.now());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    @ExceptionHandler(GroupRegistrationCapacityException.class)
+    public ResponseEntity<Map<String, Object>> handleGroupCapacityException(GroupRegistrationCapacityException ex) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", HttpStatus.BAD_REQUEST.value());
+        errorResponse.put("error", "Insufficient Capacity");
+        errorResponse.put("message", ex.getMessage());
+        errorResponse.put("eventId", ex.getEventId());
+        errorResponse.put("requestedParticipants", ex.getRequestedParticipants());
+        errorResponse.put("remainingCapacity", ex.getRemainingCapacity());
+        errorResponse.put("timestamp", LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 }

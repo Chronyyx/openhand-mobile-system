@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -39,7 +40,13 @@ public class SendGridEmailService {
 
     public EmailSendResult sendRegistrationConfirmation(String toEmail, String recipientName, String eventTitle,
             String language) {
-        LocalizedEmailContent content = registrationContent(eventTitle, language);
+        LocalizedEmailContent content = registrationContent(eventTitle, language, List.of());
+        return sendEmail(toEmail, recipientName, content.subject(), content.body());
+    }
+
+    public EmailSendResult sendRegistrationConfirmation(String toEmail, String recipientName, String eventTitle,
+            String language, List<String> participantNames) {
+        LocalizedEmailContent content = registrationContent(eventTitle, language, participantNames);
         return sendEmail(toEmail, recipientName, content.subject(), content.body());
     }
 
@@ -126,19 +133,28 @@ public class SendGridEmailService {
         }
     }
 
-    private LocalizedEmailContent registrationContent(String eventTitle, String language) {
+    private LocalizedEmailContent registrationContent(String eventTitle, String language, List<String> participantNames) {
         String lang = normalizeLanguage(language);
+        String participants = formatParticipantList(participantNames);
         return switch (lang) {
             case "fr" -> new LocalizedEmailContent(
                     "Confirmation d'inscription : " + eventTitle,
-                    "Vous êtes inscrit à l'événement \"" + eventTitle + "\". Merci de votre inscription.");
+                    "Vous etes inscrit a l'evenement \"" + eventTitle + "\"." + participants + " Merci de votre inscription.");
             case "spa" -> new LocalizedEmailContent(
-                    "Confirmación de registro: " + eventTitle,
-                    "Está registrado en el evento \"" + eventTitle + "\". Gracias por registrarse.");
+                    "Confirmacion de registro: " + eventTitle,
+                    "Esta registrado en el evento \"" + eventTitle + "\"." + participants + " Gracias por registrarse.");
             default -> new LocalizedEmailContent(
                     "Registration confirmed: " + eventTitle,
-                    "You are registered for \"" + eventTitle + "\". Thank you for joining us.");
+                    "You are registered for \"" + eventTitle + "\"." + participants + " Thank you for joining us.");
         };
+    }
+
+    private String formatParticipantList(List<String> participantNames) {
+        if (participantNames == null || participantNames.isEmpty()) {
+            return "";
+        }
+        String joined = String.join(", ", participantNames);
+        return " Participants: " + joined + ".";
     }
 
     private LocalizedEmailContent reminderContent(String eventTitle, LocalDateTime startDateTime, String language) {

@@ -166,6 +166,26 @@ export default function MyRegistrationsScreen() {
                     </ThemedText>
                 </View>
 
+                {item.participants && item.participants.length > 0 && (
+                    <View style={styles.participantsSection}>
+                        <ThemedText style={styles.label}>
+                            {t('registrations.participantsLabel')}
+                        </ThemedText>
+                        <View style={styles.participantsList}>
+                            {item.participants.map((participant, index) => {
+                                const name = participant.fullName || t('registrations.participantUnknown');
+                                const age = participant.age != null ? ` (${participant.age})` : '';
+                                const primary = participant.primaryRegistrant ? ` ${t('registrations.participantPrimary')}` : '';
+                                return (
+                                    <ThemedText key={`${participant.registrationId}-${index}`} style={styles.participantItem}>
+                                        • {name}{age}{primary}
+                                    </ThemedText>
+                                );
+                            })}
+                        </View>
+                    </View>
+                )}
+
                 {item.hasConflict && (
                     <View style={styles.conflictBox}>
                         <View style={styles.conflictBadge}>
@@ -338,6 +358,17 @@ const styles = StyleSheet.create({
     },
     value: {
         flex: 1,
+    },
+    participantsSection: {
+        marginTop: 8,
+    },
+    participantsList: {
+        marginTop: 4,
+        gap: 2,
+    },
+    participantItem: {
+        fontSize: 13,
+        color: '#374151',
     },
     statusBadge: {
         borderRadius: 999,

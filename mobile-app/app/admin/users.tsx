@@ -194,7 +194,7 @@ export default function AdminUsersScreen() {
                     </View>
                 ) : error ? (
                     <View style={styles.errorBox}>
-                        <Ionicons name="alert-circle" size={18} color="#C62828" />
+                        <Ionicons name="alert-circle" size={18} color={isDark ? '#FFB4AB' : '#C62828'} />
                         <Text style={styles.errorText}>{error}</Text>
                     </View>
                 ) : (
@@ -205,7 +205,7 @@ export default function AdminUsersScreen() {
                         contentContainerStyle={styles.listContent}
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
-                                <Ionicons name="people-outline" size={26} color="#9BA5B7" />
+                                <Ionicons name="people-outline" size={26} color={isDark ? '#8B93A1' : '#9BA5B7'} />
                                 <Text style={styles.emptyText}>{t('admin.users.empty')}</Text>
                             </View>
                         }
@@ -231,14 +231,14 @@ export default function AdminUsersScreen() {
                             <Text style={styles.userEmail}>{selectedUser?.email}</Text>
 
                             <View style={styles.infoRow}>
-                                <Ionicons name="call-outline" size={14} color="#5C6A80" />
+                                <Ionicons name="call-outline" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
                                 <Text style={styles.infoText}>{selectedUser?.phoneNumber || '-'}</Text>
                             </View>
                             <View style={styles.infoRow}>
-                                <Ionicons name="male-female-outline" size={14} color="#5C6A80" />
+                                <Ionicons name="male-female-outline" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
                                 <Text style={styles.infoText}>{selectedUser?.gender || '-'}</Text>
                                 <Text style={styles.separator}>•</Text>
-                                <Ionicons name="calendar-outline" size={14} color="#5C6A80" />
+                                <Ionicons name="calendar-outline" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
                                 <Text style={styles.infoText}>{selectedUser?.age ? selectedUser.age + ' y.o.' : '-'}</Text>
                             </View>
                         </View>

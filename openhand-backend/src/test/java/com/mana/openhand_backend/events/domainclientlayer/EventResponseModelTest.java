@@ -57,7 +57,8 @@ class EventResponseModelTest {
                 status,
                 maxCapacity,
                 currentRegistrations,
-                "General");
+                "General",
+                "http://example.com/image.jpg");
 
         assertEquals(id, model.getId());
         assertEquals(title, model.getTitle());

@@ -4,22 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Implement ability to duplicate events for admins">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/users.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/users.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/auth/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/auth/login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/user-management.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/tests/login.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/tests/login.spec.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/businesslayer/UserAdminService.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/businesslayer/UserAdminService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/businesslayer/UserAdminServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/businesslayer/UserAdminServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/AuthController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/identity/presentationlayer/UserAdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/businesslayer/UserAdminServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/businesslayer/UserAdminServiceImplTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/identity/presentationlayer/AuthControllerTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -246,7 +231,7 @@
       <workItem from="1765552967494" duration="323000" />
       <workItem from="1765553305280" duration="7988000" />
       <workItem from="1769542282975" duration="4601000" />
-      <workItem from="1769630245937" duration="3221000" />
+      <workItem from="1769630245937" duration="3946000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -344,7 +329,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765750668166</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts.">
+      <option name="closed" value="true" />
+      <created>1769985053482</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1769985053482</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -372,7 +365,8 @@
     <MESSAGE value="establish backend architecture, add bounded-context modules, and configure Jacoco test coverage." />
     <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
     <MESSAGE value="Implement ability to duplicate events for admins" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implement ability to duplicate events for admins" />
+    <MESSAGE value="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

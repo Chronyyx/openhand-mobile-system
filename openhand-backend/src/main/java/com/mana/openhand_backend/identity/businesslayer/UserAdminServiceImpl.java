@@ -28,13 +28,16 @@ public class UserAdminServiceImpl implements UserAdminService {
     private final AuditLogService auditLogService;
     private final HttpServletRequest request;
     private final RefreshTokenService refreshTokenService;
+    private final com.mana.openhand_backend.registrations.businesslayer.RegistrationService registrationService;
 
     public UserAdminServiceImpl(UserRepository userRepository, AuditLogService auditLogService,
-            HttpServletRequest request, RefreshTokenService refreshTokenService) {
+            HttpServletRequest request, RefreshTokenService refreshTokenService,
+            com.mana.openhand_backend.registrations.businesslayer.RegistrationService registrationService) {
         this.userRepository = userRepository;
         this.auditLogService = auditLogService;
         this.request = request;
         this.refreshTokenService = refreshTokenService;
+        this.registrationService = registrationService;
     }
 
     @Override
@@ -141,6 +144,11 @@ public class UserAdminServiceImpl implements UserAdminService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
         if (user.getMemberStatus() == status) {
+            if (status == MemberStatus.INACTIVE) {
+                refreshTokenService.deleteByUserId(userId);
+                registrationService.cancelRegistrationsForUser(userId,
+                        "Registration cancelled due to account deactivation.");
+            }
             return user;
         }
 
@@ -149,6 +157,8 @@ public class UserAdminServiceImpl implements UserAdminService {
 
         if (status == MemberStatus.INACTIVE) {
             refreshTokenService.deleteByUserId(userId);
+            registrationService.cancelRegistrationsForUser(userId,
+                    "Registration cancelled due to account deactivation.");
         }
 
         return userRepository.save(user);

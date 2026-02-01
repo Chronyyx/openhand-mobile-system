@@ -240,15 +240,45 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .orElseThrow(() -> new RuntimeException(
                         "Registration not found for user " + userId + " and event " + eventId));
 
+        return cancelRegistrationInternal(registration, "Registration cancelled by member.", false);
+    }
+
+    @Override
+    @Transactional
+    public void cancelRegistrationsForUser(Long userId, String reason) {
+        List<Registration> registrations = registrationRepository.findByUserId(userId);
+        if (registrations.isEmpty()) {
+            return;
+        }
+
+        for (Registration registration : registrations) {
+            if (registration.getStatus() == RegistrationStatus.CANCELLED) {
+                continue;
+            }
+            try {
+                cancelRegistrationInternal(registration, reason, true);
+            } catch (RuntimeException ex) {
+                logger.warn("Failed to cancel registration {} for deactivated user {}: {}",
+                        registration.getId(), userId, ex.getMessage());
+            }
+        }
+    }
+
+    private Registration cancelRegistrationInternal(Registration registration, String reason, boolean skipCompletionCheck) {
         Event event = registration.getEvent();
-        if (event != null && eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now())) {
-            throw new EventCompletedException(eventId);
+        if (!skipCompletionCheck && event != null
+                && eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now())) {
+            throw new EventCompletedException(event.getId());
         }
 
         Registration cancelledRegistration;
         String groupId = registration.getRegistrationGroupId();
 
         if (groupId != null) {
+            Long eventId = event != null ? event.getId() : null;
+            if (eventId == null) {
+                throw new IllegalStateException("Registration event is missing");
+            }
             List<Registration> groupRegistrations = registrationRepository
                     .findByEventIdAndRegistrationGroupId(eventId, groupId);
             int confirmedCount = (int) groupRegistrations.stream()
@@ -275,7 +305,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .orElse(registration);
         } else {
             if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
-                if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
+                if (event != null && event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
                     event.setCurrentRegistrations(event.getCurrentRegistrations() - 1);
                     updateEventStatusForCapacity(event);
                     eventRepository.save(event);
@@ -287,12 +317,7 @@ public class RegistrationServiceImpl implements RegistrationService {
             cancelledRegistration = registrationRepository.save(registration);
         }
 
-        // Note: In-app notifications for registration cancellations are now handled
-        // outside this service
-        // (e.g., via event listeners). This method is responsible for persisting the
-        // cancellation
-        // and triggering the email notification only.
-        sendCancellationEmail(registration.getUser(), registration.getEvent(), "Registration cancelled by member.");
+        sendCancellationEmail(registration.getUser(), event, reason);
 
         return cancelledRegistration;
     }
@@ -463,6 +488,9 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     private void updateEventStatusForCapacity(Event event) {
         if (event.getMaxCapacity() == null) {
+            return;
+        }
+        if (event.getStatus() == EventStatus.COMPLETED) {
             return;
         }
         int current = event.getCurrentRegistrations() != null ? event.getCurrentRegistrations() : 0;

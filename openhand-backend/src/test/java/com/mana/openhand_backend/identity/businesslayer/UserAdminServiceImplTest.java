@@ -4,6 +4,7 @@ import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.utils.InvalidRoleException;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
+import com.mana.openhand_backend.registrations.businesslayer.RegistrationService;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class UserAdminServiceImplTest {
 
     @Mock
     private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private RegistrationService registrationService;
 
     @InjectMocks
     private UserAdminServiceImpl userAdminService;
@@ -112,5 +116,24 @@ class UserAdminServiceImplTest {
         List<String> roles = userAdminService.getAvailableRoles();
 
         assertEquals(List.of("ROLE_ADMIN", "ROLE_EMPLOYEE", "ROLE_MEMBER"), roles);
+    }
+
+    @Test
+    void updateUserStatus_whenInactive_revokesTokensAndCancelsRegistrations() {
+        User user = new User("user@example.com", "pwd", Set.of("ROLE_MEMBER"));
+        user.setId(55L);
+        user.setMemberStatus(com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus.ACTIVE);
+
+        when(userRepository.findById(55L)).thenReturn(Optional.of(user));
+        when(userRepository.save(user)).thenReturn(user);
+
+        User updated = userAdminService.updateUserStatus(55L,
+                com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus.INACTIVE);
+
+        assertEquals(com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus.INACTIVE, updated.getMemberStatus());
+        assertNotNull(updated.getStatusChangedAt());
+        verify(refreshTokenService).deleteByUserId(55L);
+        verify(registrationService).cancelRegistrationsForUser(55L,
+                "Registration cancelled due to account deactivation.");
     }
 }

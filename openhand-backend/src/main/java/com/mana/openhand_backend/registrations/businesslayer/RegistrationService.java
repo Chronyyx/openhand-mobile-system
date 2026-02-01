@@ -22,4 +22,6 @@ public interface RegistrationService {
     List<RegistrationHistoryResponseModel> getUserRegistrationHistory(Long userId, RegistrationHistoryFilter filter);
 
     Registration cancelRegistration(Long userId, Long eventId);
+
+    void cancelRegistrationsForUser(Long userId, String reason);
 }

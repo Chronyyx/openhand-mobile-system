@@ -23,6 +23,7 @@ import com.mana.openhand_backend.security.services.RefreshTokenService;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
 import com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest;
 import com.mana.openhand_backend.identity.dataaccesslayer.Gender;
+import com.mana.openhand_backend.registrations.businesslayer.RegistrationService;
 
 @ExtendWith(MockitoExtension.class)
 class UserMemberServiceImplTest {
@@ -32,6 +33,9 @@ class UserMemberServiceImplTest {
 
     @Mock
     private RefreshTokenService refreshTokenService;
+
+    @Mock
+    private RegistrationService registrationService;
 
     @InjectMocks
     private UserMemberServiceImpl service;
@@ -55,10 +59,12 @@ class UserMemberServiceImplTest {
         assertThat(result.getMemberStatus()).isEqualTo(MemberStatus.INACTIVE);
         assertThat(result.getStatusChangedAt()).isNotNull();
         verify(refreshTokenService).deleteByUserId(42L);
+        verify(registrationService).cancelRegistrationsForUser(42L,
+                "Registration cancelled due to account deactivation.");
     }
 
     @Test
-    void deactivateAccount_whenAlreadyInactive_doesNotRevokeAgain() {
+    void deactivateAccount_whenAlreadyInactive_stillRevokesTokensAndCancelsRegistrations() {
         // arrange
         User user = new User();
         user.setId(99L);
@@ -70,7 +76,9 @@ class UserMemberServiceImplTest {
 
         // assert
         assertThat(result.getMemberStatus()).isEqualTo(MemberStatus.INACTIVE);
-        verify(refreshTokenService, never()).deleteByUserId(anyLong());
+        verify(refreshTokenService).deleteByUserId(99L);
+        verify(registrationService).cancelRegistrationsForUser(99L,
+                "Registration cancelled due to account deactivation.");
         verify(userRepository, never()).save(any());
     }
 

@@ -300,7 +300,6 @@ export default function AdminEventsScreen() {
                 address: address.trim(),
                 maxCapacity: maxCapacity.trim() ? Number(maxCapacity) : null,
                 category: category.trim() ? category.trim() : null,
-                imageUrl: imageUrl,
             };
 
             if (editingEvent) {

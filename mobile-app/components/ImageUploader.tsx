@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
-import { API_BASE, resolveUrl } from '../utils/api';
+import { resolveUrl } from '../utils/api';
 import { useTranslation } from 'react-i18next';
 
 type ImageUploaderProps = {

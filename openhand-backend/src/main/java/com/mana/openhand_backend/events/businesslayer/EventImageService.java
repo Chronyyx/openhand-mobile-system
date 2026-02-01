@@ -26,7 +26,7 @@ public class EventImageService {
     public EventImageService(EventRepository eventRepository,
             FileStorageService fileStorageService,
             @Value("${openhand.app.eventImagesDir:uploads/event-images}") String uploadDir,
-            @Value("${openhand.app.profilePictureMaxSizeBytes:5242880}") long maxSizeBytes) {
+            @Value("${openhand.app.eventImageMaxSizeBytes:5242880}") long maxSizeBytes) {
         this.eventRepository = eventRepository;
         this.fileStorageService = fileStorageService;
         this.uploadDir = Paths.get(uploadDir).toAbsolutePath().normalize();

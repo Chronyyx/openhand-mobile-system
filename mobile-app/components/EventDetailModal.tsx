@@ -12,7 +12,7 @@ import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
 import { getEventImage } from '../constants/event-images';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
-import { API_BASE, resolveUrl } from '../utils/api';
+import { resolveUrl } from '../utils/api';
 
 // Props Definition
 export type FamilyMemberInput = {
@@ -426,12 +426,12 @@ export function EventDetailModal({
                                             </Pressable>
                                         </View>
                                         {walkinError && (
-                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
                                                 <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>{walkinError}</ThemedText>
                                             </View>
                                         )}
                                         {walkinSuccess && (
-                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.successBorder, borderLeftWidth: 4, backgroundColor: infoPalette.successBg }]}> 
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.successBorder, borderLeftWidth: 4, backgroundColor: infoPalette.successBg }]}>
                                                 <ThemedText style={[styles.infoText, { color: infoPalette.successText }]}>{walkinSuccess}</ThemedText>
                                             </View>
                                         )}
@@ -535,8 +535,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
-                                                        <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}> 
+                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
+                                                        <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>

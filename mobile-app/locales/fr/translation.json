@@ -29,6 +29,12 @@
     "title": "Mon Profil",
     "phone": "Téléphone",
     "gender": "Genre",
+    "genderOptions": {
+      "preferNotToSay": "Préfère ne pas répondre",
+      "male": "Homme",
+      "female": "Femme",
+      "other": "Autre"
+    },
     "age": "Âge",
     "details": "Détails du profil",
     "edit": "Modifier le profil",
@@ -145,6 +151,7 @@
       "invalid_age": "Veuillez entrer un âge valide.",
       "registration_failed": "L'inscription a échoué. Veuillez réessayer.",
       "invalid_credentials": "Email ou mot de passe invalide.",
+      "account_inactive": "Votre compte n'est plus actif. Veuillez contacter les administrateurs en cas d'erreur.",
       "login_failed": "La connexion a échoué. Veuillez réessayer plus tard.",
       "network_error": "Erreur réseau. Veuillez vérifier votre connexion."
     }
@@ -409,7 +416,7 @@
       "management": "Gestion",
       "adminOnly": "Admin",
       "users": "Utilisateurs",
-      "usersDescription": "Consulter les comptes et mettre à jour leurs rôles",
+      "usersDescription": "Consulter les comptes et mettre à jour l’accès ou les détails",
       "events": "Événements",
       "eventsDescription": "Créer et gérer les événements à venir"
     },
@@ -490,21 +497,55 @@
     },
     "users": {
       "title": "Utilisateurs",
-      "subtitle": "Ajustez ce que chaque personne peut faire dans l'application.",
+      "subtitle": "Mettez à jour l’accès et les informations personnelles de chacun.",
       "edit": "Modifier",
       "editRole": "Modifier le rôle",
       "selectRole": "Sélectionner un rôle",
       "save": "Enregistrer",
       "empty": "Aucun utilisateur trouvé.",
+      "emptyDisabled": "Aucun utilisateur désactivé trouvé.",
+      "searchPlaceholder": "Rechercher par nom ou e-mail",
+      "personalInfo": "Informations personnelles",
+      "deactivate": "Désactiver le compte",
+      "reactivate": "Réactiver le compte",
+      "deactivateConfirmTitle": "Désactiver le compte ?",
+      "deactivateConfirmMessage": "Cet utilisateur ne pourra plus se connecter tant qu’il n’est pas réactivé.",
+      "deactivateConfirmAction": "Désactiver",
+      "reactivateConfirmTitle": "Réactiver le compte ?",
+      "reactivateConfirmMessage": "Cet utilisateur pourra se reconnecter immédiatement.",
+      "reactivateConfirmAction": "Réactiver",
+      "emailRequired": "L’e-mail est obligatoire.",
       "loadError": "Impossible de charger les utilisateurs.",
-      "updateError": "Impossible de mettre à jour le rôle de l'utilisateur.",
+      "updateError": "Impossible de mettre à jour l'utilisateur.",
+      "statusUpdateError": "Impossible de mettre à jour le statut du compte.",
       "roles": {
         "admin": "Administrateur",
         "member": "Membre",
         "employee": "Employé"
       },
       "userDetails": "Détails de l'utilisateur",
-      "role": "Rôle"
+      "role": "Rôle",
+      "tabs": {
+        "active": "Actifs",
+        "disabled": "Désactivés"
+      },
+      "status": {
+        "active": "Actif",
+        "inactive": "Inactif"
+      },
+      "fields": {
+        "name": "Nom",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "gender": "Genre",
+        "age": "Âge"
+      },
+      "placeholders": {
+        "name": "Nom complet",
+        "email": "Adresse e-mail",
+        "phone": "Numéro de téléphone",
+        "age": "Âge"
+      }
     }
   },
   "notifications": {

@@ -29,6 +29,12 @@
     "title": "My Profile",
     "phone": "Phone",
     "gender": "Gender",
+    "genderOptions": {
+      "preferNotToSay": "Prefer not to say",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
     "age": "Age",
     "details": "Profile Details",
     "edit": "Edit Profile",
@@ -145,6 +151,7 @@
       "invalid_age": "Please enter a valid age.",
       "registration_failed": "Registration failed. Please try again.",
       "invalid_credentials": "Invalid email or password.",
+      "account_inactive": "Your account is no longer active. Please contact the administrators if there was an error.",
       "login_failed": "Login failed. Please try again later.",
       "network_error": "Network error. Please check your connection."
     }
@@ -409,7 +416,7 @@
       "adminOnly": "Admin",
       "users": "Users",
       "inactiveMember": "Your account is deactivated. You cannot register for events.",
-      "usersDescription": "View accounts and update their roles",
+      "usersDescription": "View accounts and update their access or details",
       "events": "Events",
       "eventsDescription": "Create and manage upcoming events"
     },
@@ -490,21 +497,55 @@
     },
     "users": {
       "title": "Users",
-      "subtitle": "Update what each person can do in the app.",
+      "subtitle": "Update access and personal details for each person.",
       "edit": "Edit",
       "editRole": "Edit user role",
       "selectRole": "Select a role",
       "save": "Save changes",
       "empty": "No users found.",
+      "emptyDisabled": "No disabled users found.",
+      "searchPlaceholder": "Search by name or email",
+      "personalInfo": "Personal information",
+      "deactivate": "Deactivate account",
+      "reactivate": "Reactivate account",
+      "deactivateConfirmTitle": "Deactivate account?",
+      "deactivateConfirmMessage": "This user will no longer be able to sign in until reactivated.",
+      "deactivateConfirmAction": "Deactivate",
+      "reactivateConfirmTitle": "Reactivate account?",
+      "reactivateConfirmMessage": "This user will be able to sign in again immediately.",
+      "reactivateConfirmAction": "Reactivate",
+      "emailRequired": "Email is required.",
       "loadError": "Unable to load users.",
-      "updateError": "Unable to update the user role.",
+      "updateError": "Unable to update the user.",
+      "statusUpdateError": "Unable to update account status.",
       "roles": {
         "admin": "Administrator",
         "member": "Member",
         "employee": "Employee"
       },
       "userDetails": "User Details",
-      "role": "Role"
+      "role": "Role",
+      "tabs": {
+        "active": "Active",
+        "disabled": "Disabled"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "gender": "Gender",
+        "age": "Age"
+      },
+      "placeholders": {
+        "name": "Full name",
+        "email": "Email address",
+        "phone": "Phone number",
+        "age": "Age"
+      }
     }
   },
   "notifications": {

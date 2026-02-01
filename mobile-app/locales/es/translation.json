@@ -29,6 +29,12 @@
     "title": "Mi Perfil",
     "phone": "Teléfono",
     "gender": "Género",
+    "genderOptions": {
+      "preferNotToSay": "Prefiero no decirlo",
+      "male": "Masculino",
+      "female": "Femenino",
+      "other": "Otro"
+    },
     "age": "Edad",
     "details": "Detalles del perfil",
     "edit": "Editar Perfil",
@@ -145,6 +151,7 @@
       "invalid_age": "Por favor ingrese una edad válida.",
       "registration_failed": "El registro falló. Por favor intente de nuevo.",
       "invalid_credentials": "Correo o contraseña inválidos.",
+      "account_inactive": "Tu cuenta ya no está activa. Por favor, contacta con los administradores si hubo un error.",
       "login_failed": "El inicio de sesión falló. Por favor intente más tarde.",
       "network_error": "Error de red. Por favor verifique su conexión."
     }
@@ -409,7 +416,7 @@
       "adminOnly": "Admin",
       "users": "Usuarios",
       "inactiveMember": "Tu cuenta está desactivada. No puedes inscribirte en eventos.",
-      "usersDescription": "Ver cuentas y actualizar sus roles",
+      "usersDescription": "Ver cuentas y actualizar su acceso o detalles",
       "events": "Eventos",
       "eventsDescription": "Crear y gestionar próximos eventos"
     },
@@ -490,21 +497,55 @@
     },
     "users": {
       "title": "Usuarios",
-      "subtitle": "Actualiza lo que cada persona puede hacer en la app.",
+      "subtitle": "Actualiza el acceso y los datos personales de cada persona.",
       "edit": "Editar",
       "editRole": "Editar rol del usuario",
       "selectRole": "Seleccionar un rol",
       "save": "Guardar cambios",
       "empty": "No se encontraron usuarios.",
+      "emptyDisabled": "No se encontraron usuarios desactivados.",
+      "searchPlaceholder": "Buscar por nombre o correo",
+      "personalInfo": "Información personal",
+      "deactivate": "Desactivar cuenta",
+      "reactivate": "Reactivar cuenta",
+      "deactivateConfirmTitle": "¿Desactivar cuenta?",
+      "deactivateConfirmMessage": "Este usuario no podrá iniciar sesión hasta que se reactive.",
+      "deactivateConfirmAction": "Desactivar",
+      "reactivateConfirmTitle": "¿Reactivar cuenta?",
+      "reactivateConfirmMessage": "Este usuario podrá iniciar sesión de nuevo inmediatamente.",
+      "reactivateConfirmAction": "Reactivar",
+      "emailRequired": "El correo es obligatorio.",
       "loadError": "No se pudieron cargar los usuarios.",
-      "updateError": "No se pudo actualizar el rol del usuario.",
+      "updateError": "No se pudo actualizar el usuario.",
+      "statusUpdateError": "No se pudo actualizar el estado de la cuenta.",
       "roles": {
         "admin": "Administrador",
         "member": "Miembro",
         "employee": "Empleado"
       },
       "userDetails": "Detalles del usuario",
-      "role": "Rol"
+      "role": "Rol",
+      "tabs": {
+        "active": "Activos",
+        "disabled": "Desactivados"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "fields": {
+        "name": "Nombre",
+        "email": "Correo",
+        "phone": "Teléfono",
+        "gender": "Género",
+        "age": "Edad"
+      },
+      "placeholders": {
+        "name": "Nombre completo",
+        "email": "Correo electrónico",
+        "phone": "Número de teléfono",
+        "age": "Edad"
+      }
     }
   },
   "notifications": {

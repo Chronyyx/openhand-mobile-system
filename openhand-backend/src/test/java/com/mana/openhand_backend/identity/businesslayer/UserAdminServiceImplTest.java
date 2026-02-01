@@ -4,6 +4,7 @@ import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.identity.utils.InvalidRoleException;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
+import com.mana.openhand_backend.security.services.RefreshTokenService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +36,9 @@ class UserAdminServiceImplTest {
 
     @Mock
     private HttpServletRequest request;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     @InjectMocks
     private UserAdminServiceImpl userAdminService;

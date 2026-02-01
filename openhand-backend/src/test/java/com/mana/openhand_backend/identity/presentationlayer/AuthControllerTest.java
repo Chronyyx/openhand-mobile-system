@@ -477,7 +477,7 @@ class AuthControllerTest {
         }
 
         @Test
-        void authenticateUser_whenUserIsDeactivated_throwsBadCredentialsException() {
+        void authenticateUser_whenUserIsDeactivated_returnsForbiddenResponse() {
                 // arrange
                 LoginRequest loginRequest = new LoginRequest();
                 loginRequest.setEmail("inactive@example.com");
@@ -497,9 +497,11 @@ class AuthControllerTest {
                 user.setMemberStatus(MemberStatus.INACTIVE);
                 when(userRepository.findById(10L)).thenReturn(Optional.of(user));
 
-                // act & assert
-                assertThrows(BadCredentialsException.class,
-                                () -> authController.authenticateUser(loginRequest, request));
+                // act
+                ResponseEntity<?> response = authController.authenticateUser(loginRequest, request);
+
+                // assert
+                assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 
                 verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
                 verify(userRepository).findById(10L);

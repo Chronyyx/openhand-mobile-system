@@ -50,7 +50,9 @@ export default function LoginScreen() {
             await signIn(email, password);
             router.replace("/");
         } catch (e: any) {
-            if (e?.response?.status === 401) {
+            if (e?.response?.status === 403) {
+                setError(t("auth.error.account_inactive"));
+            } else if (e?.response?.status === 401) {
                 setError(t("auth.error.invalid_credentials"));
             } else if (e?.response) {
                 setError(t("auth.error.login_failed"));
@@ -159,4 +161,3 @@ export default function LoginScreen() {
         </Wrapper>
     );
 }
-

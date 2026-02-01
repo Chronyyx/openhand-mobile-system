@@ -72,11 +72,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                         >
                             {translatedTitle}
                         </ThemedText>
-                          
-                    <View style={[globalStyles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
-                        <ThemedText style={[styles.statusText, { color: getStatusTextColor(event.status) }]}>
-                            {getStatusLabel(event.status, t)}
-                        </ThemedText>
+
                         <View style={[globalStyles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
                             <ThemedText style={[styles.statusText, { color: getStatusTextColor(event.status) }]}>
                                 {getStatusLabel(event.status, t)}

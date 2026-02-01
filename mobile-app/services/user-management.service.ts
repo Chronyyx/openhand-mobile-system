@@ -16,6 +16,14 @@ export type ManagedUser = {
     statusChangedAt: string | null;
 };
 
+export type AdminUserProfileUpdate = {
+    name?: string;
+    email?: string;
+    phoneNumber?: string;
+    gender?: string;
+    age?: number;
+};
+
 const getAuthHeaders = async () => {
     const currentUser = await AuthService.getCurrentUser();
     if (!currentUser || !currentUser.token) {
@@ -46,9 +54,14 @@ export const updateUserRoles = async (userId: number, roles: string[]): Promise<
     return response.data;
 };
 
+export const updateUserProfile = async (userId: number, payload: AdminUserProfileUpdate): Promise<ManagedUser> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.put(`${API_BASE}/admin/users/${userId}/profile`, payload, { headers });
+    return response.data;
+};
+
 export const updateUserStatus = async (userId: number, status: 'ACTIVE' | 'INACTIVE'): Promise<ManagedUser> => {
     const headers = await getAuthHeaders();
     const response = await axios.put(`${API_BASE}/admin/users/${userId}/status`, { status }, { headers });
     return response.data;
 };
-

@@ -68,4 +68,29 @@ test.describe('Login Flow', () => {
         await page.waitForTimeout(2000);
         await expect(page).toHaveURL(/\/auth\/login$/);
     });
+
+    test('Shows inactive account message when login is blocked', async ({ page }) => {
+        await page.route('**/auth/login', async (route) => {
+            if (route.request().method() === 'POST') {
+                await route.fulfill({
+                    status: 403,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        message: 'Error: Account is no longer active. Please contact the administrators if this was a mistake.',
+                    }),
+                });
+            } else {
+                await route.continue();
+            }
+        });
+
+        await page.goto('/auth/login', { waitUntil: 'domcontentloaded' });
+
+        await page.getByPlaceholder(/email or phone number/i).fill('inactive@user.com');
+        await page.getByPlaceholder(/password/i).fill('password123');
+
+        await page.getByText(/log in/i).nth(1).click();
+
+        await expect(page.getByText(/account is no longer active/i)).toBeVisible();
+    });
 });

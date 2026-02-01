@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.http.HttpStatus;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -131,7 +132,9 @@ public class AuthController {
         User userEntity = userRepository.findById(userDetails.getId())
             .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
         if (userEntity.getMemberStatus() == MemberStatus.INACTIVE) {
-            throw new BadCredentialsException("Account has been deactivated");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new MessageResponse(
+                            "Error: Account is no longer active. Please contact the administrators if this was a mistake."));
         }
 
         String jwt = jwtUtils.generateJwtToken(authentication);

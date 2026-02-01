@@ -1,14 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     Modal,
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import { Redirect, useRouter } from 'expo-router';
 import { AppHeader } from '../../components/app-header';
@@ -20,6 +24,9 @@ import {
     fetchAllUsers,
     fetchAvailableRoles,
     updateUserRoles,
+    updateUserProfile,
+    updateUserStatus,
+    type AdminUserProfileUpdate,
     type ManagedUser,
 } from '../../services/user-management.service';
 
@@ -31,19 +38,27 @@ export default function AdminUsersScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const isDark = colorScheme === 'dark';
     const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
-    const SURFACE = isDark ? '#0F1419' : '#F5F7FB';
 
     const [users, setUsers] = useState<ManagedUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+    const [activeTab, setActiveTab] = useState<'ACTIVE' | 'INACTIVE'>('ACTIVE');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
     const [rolePickerOpen, setRolePickerOpen] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
     const [menuVisible, setMenuVisible] = useState(false);
+    const [modalError, setModalError] = useState<string | null>(null);
+
+    const [editName, setEditName] = useState('');
+    const [editEmail, setEditEmail] = useState('');
+    const [editPhoneNumber, setEditPhoneNumber] = useState('');
+    const [editGender, setEditGender] = useState('PREFER_NOT_TO_SAY');
+    const [editAge, setEditAge] = useState('');
 
     const roleLabels = useMemo(
         () => ({
@@ -53,6 +68,29 @@ export default function AdminUsersScreen() {
         }),
         [t],
     );
+
+    const activeUsers = useMemo(
+        () => users.filter((user) => user.memberStatus !== 'INACTIVE'),
+        [users],
+    );
+
+    const inactiveUsers = useMemo(
+        () => users.filter((user) => user.memberStatus === 'INACTIVE'),
+        [users],
+    );
+
+    const filteredUsers = useMemo(() => {
+        const pool = activeTab === 'ACTIVE' ? activeUsers : inactiveUsers;
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) {
+            return pool;
+        }
+        return pool.filter((user) => {
+            const name = (user.name ?? '').toLowerCase();
+            const email = (user.email ?? '').toLowerCase();
+            return name.includes(query) || email.includes(query);
+        });
+    }, [activeTab, activeUsers, inactiveUsers, searchQuery]);
 
     useEffect(() => {
         if (isAdmin) {
@@ -84,6 +122,12 @@ export default function AdminUsersScreen() {
         const preferredRole =
             availableRoles.find((role) => user.roles.includes(role)) ?? user.roles[0] ?? null;
         setSelectedRole(preferredRole);
+        setEditName(user.name ?? '');
+        setEditEmail(user.email ?? '');
+        setEditPhoneNumber(user.phoneNumber ?? '');
+        setEditGender(user.gender ?? 'PREFER_NOT_TO_SAY');
+        setEditAge(user.age ? user.age.toString() : '');
+        setModalError(null);
         setRolePickerOpen(false);
         setModalVisible(true);
     };
@@ -93,6 +137,7 @@ export default function AdminUsersScreen() {
         setSelectedUser(null);
         setSelectedRole(null);
         setRolePickerOpen(false);
+        setModalError(null);
     };
 
     const handleNavigateHome = () => {
@@ -120,25 +165,119 @@ export default function AdminUsersScreen() {
         router.push('/profile');
     };
 
-    const saveRoleChange = async () => {
-        if (!selectedUser || !selectedRole) return;
+    const saveUserChanges = async () => {
+        if (!selectedUser) return;
+        const trimmedEmail = editEmail.trim();
+        if (!trimmedEmail) {
+            setModalError(t('admin.users.emailRequired'));
+            return;
+        }
+
+        const profilePayload: AdminUserProfileUpdate = {};
+
+        const trimmedName = editName.trim();
+        if (trimmedName !== (selectedUser.name ?? '')) {
+            profilePayload.name = trimmedName;
+        }
+
+        if (trimmedEmail !== selectedUser.email) {
+            profilePayload.email = trimmedEmail;
+        }
+
+        const trimmedPhone = editPhoneNumber.trim();
+        if (trimmedPhone !== (selectedUser.phoneNumber ?? '')) {
+            profilePayload.phoneNumber = trimmedPhone;
+        }
+
+        if (editGender !== (selectedUser.gender ?? '')) {
+            profilePayload.gender = editGender;
+        }
+
+        const nextAge = editAge.trim() ? parseInt(editAge, 10) : null;
+        if (nextAge !== null && nextAge !== selectedUser.age) {
+            profilePayload.age = nextAge;
+        }
+
+        const roleChanged =
+            selectedRole &&
+            (selectedUser.roles.length !== 1 || selectedUser.roles[0] !== selectedRole);
+
+        const shouldUpdateProfile = Object.keys(profilePayload).length > 0;
+
+        if (!shouldUpdateProfile && !roleChanged) {
+            closeEditor();
+            return;
+        }
+
         setSaving(true);
         setError(null);
+        setModalError(null);
         try {
-            const updated = await updateUserRoles(selectedUser.id, [selectedRole]);
+            let updatedUser = selectedUser;
+            if (shouldUpdateProfile) {
+                updatedUser = await updateUserProfile(selectedUser.id, profilePayload);
+            }
+            if (roleChanged && selectedRole) {
+                updatedUser = await updateUserRoles(selectedUser.id, [selectedRole]);
+            }
+
             setUsers((current) =>
-                current.map((user) => (user.id === updated.id ? updated : user)),
+                current.map((user) => (user.id === updatedUser.id ? updatedUser : user)),
             );
             closeEditor();
         } catch (err) {
-            console.error('Failed to update user role', err);
-            setError(t('admin.users.updateError'));
+            console.error('Failed to update user', err);
+            setModalError(t('admin.users.updateError'));
         } finally {
             setSaving(false);
         }
     };
 
+    const updateStatus = async (status: 'ACTIVE' | 'INACTIVE') => {
+        if (!selectedUser) return;
+        setSaving(true);
+        setError(null);
+        setModalError(null);
+        try {
+            const updated = await updateUserStatus(selectedUser.id, status);
+            setUsers((current) =>
+                current.map((user) => (user.id === updated.id ? updated : user)),
+            );
+            closeEditor();
+        } catch (err) {
+            console.error('Failed to update user status', err);
+            setModalError(t('admin.users.statusUpdateError'));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const confirmStatusChange = (status: 'ACTIVE' | 'INACTIVE') => {
+        if (!selectedUser) return;
+        const isDeactivating = status === 'INACTIVE';
+        Alert.alert(
+            isDeactivating
+                ? t('admin.users.deactivateConfirmTitle')
+                : t('admin.users.reactivateConfirmTitle'),
+            isDeactivating
+                ? t('admin.users.deactivateConfirmMessage')
+                : t('admin.users.reactivateConfirmMessage'),
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: isDeactivating
+                        ? t('admin.users.deactivateConfirmAction')
+                        : t('admin.users.reactivateConfirmAction'),
+                    style: isDeactivating ? 'destructive' : 'default',
+                    onPress: () => updateStatus(status),
+                },
+            ],
+        );
+    };
+
     const styles = getStyles(colorScheme);
+    const activeCount = activeUsers.length;
+    const inactiveCount = inactiveUsers.length;
 
     const renderRoleLabel = (role: string) => roleLabels[role as keyof typeof roleLabels] ?? role;
 
@@ -157,6 +296,29 @@ export default function AdminUsersScreen() {
                                 <Text style={styles.rolePillText}>{renderRoleLabel(role)}</Text>
                             </View>
                         ))}
+                    </View>
+                    <View style={styles.statusRow}>
+                        <View
+                            style={[
+                                styles.statusPill,
+                                item.memberStatus === 'INACTIVE'
+                                    ? styles.statusPillInactive
+                                    : styles.statusPillActive,
+                            ]}
+                        >
+                            <Text
+                                style={[
+                                    styles.statusPillText,
+                                    item.memberStatus === 'INACTIVE'
+                                        ? styles.statusPillTextInactive
+                                        : styles.statusPillTextActive,
+                                ]}
+                            >
+                                {item.memberStatus === 'INACTIVE'
+                                    ? t('admin.users.status.inactive')
+                                    : t('admin.users.status.active')}
+                            </Text>
+                        </View>
                     </View>
                 </View>
                 <Pressable
@@ -188,6 +350,84 @@ export default function AdminUsersScreen() {
                     </View>
                 </View>
 
+                <View style={styles.controls}>
+                    <View style={styles.searchBox}>
+                        <Ionicons name="search-outline" size={18} color={isDark ? '#8B93A1' : '#5C6A80'} />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder={t('admin.users.searchPlaceholder')}
+                            placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            autoCapitalize="none"
+                        />
+                    </View>
+                    <View style={styles.tabs}>
+                        <Pressable
+                            style={[
+                                styles.tabButton,
+                                activeTab === 'ACTIVE' && styles.tabButtonActive,
+                            ]}
+                            onPress={() => setActiveTab('ACTIVE')}
+                        >
+                            <Text
+                                style={[
+                                    styles.tabLabel,
+                                    activeTab === 'ACTIVE' && styles.tabLabelActive,
+                                ]}
+                            >
+                                {t('admin.users.tabs.active')}
+                            </Text>
+                            <View
+                                style={[
+                                    styles.tabCount,
+                                    activeTab === 'ACTIVE' && styles.tabCountActive,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.tabCountText,
+                                        activeTab === 'ACTIVE' && styles.tabCountTextActive,
+                                    ]}
+                                >
+                                    {activeCount}
+                                </Text>
+                            </View>
+                        </Pressable>
+                        <Pressable
+                            style={[
+                                styles.tabButton,
+                                activeTab === 'INACTIVE' && styles.tabButtonActive,
+                            ]}
+                            onPress={() => setActiveTab('INACTIVE')}
+                        >
+                            <Text
+                                style={[
+                                    styles.tabLabel,
+                                    activeTab === 'INACTIVE' && styles.tabLabelActive,
+                                ]}
+                            >
+                                {t('admin.users.tabs.disabled')}
+                            </Text>
+                            <View
+                                style={[
+                                    styles.tabCount,
+                                    activeTab === 'INACTIVE' && styles.tabCountActive,
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        styles.tabCountText,
+                                        activeTab === 'INACTIVE' && styles.tabCountTextActive,
+                                    ]}
+                                >
+                                    {inactiveCount}
+                                </Text>
+                            </View>
+                        </Pressable>
+                    </View>
+                </View>
+
                 {loading ? (
                     <View style={styles.centered}>
                         <ActivityIndicator />
@@ -199,14 +439,18 @@ export default function AdminUsersScreen() {
                     </View>
                 ) : (
                     <FlatList
-                        data={users}
+                        data={filteredUsers}
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={renderUserItem}
                         contentContainerStyle={styles.listContent}
                         ListEmptyComponent={
                             <View style={styles.emptyState}>
                                 <Ionicons name="people-outline" size={26} color={isDark ? '#8B93A1' : '#9BA5B7'} />
-                                <Text style={styles.emptyText}>{t('admin.users.empty')}</Text>
+                                <Text style={styles.emptyText}>
+                                    {activeTab === 'ACTIVE'
+                                        ? t('admin.users.empty')
+                                        : t('admin.users.emptyDisabled')}
+                                </Text>
                             </View>
                         }
                     />
@@ -221,94 +465,188 @@ export default function AdminUsersScreen() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalCard}>
-                        <View style={styles.modalHeader}>
-                            <Ionicons name="person-circle-outline" size={24} color={ACCENT} />
-                            <Text style={styles.modalTitle}>{t('admin.users.userDetails')}</Text>
-                        </View>
-
-                        <View style={styles.userInfoBlock}>
-                            <Text style={styles.userName}>{selectedUser?.name || '-'}</Text>
-                            <Text style={styles.userEmail}>{selectedUser?.email}</Text>
-
-                            <View style={styles.infoRow}>
-                                <Ionicons name="call-outline" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
-                                <Text style={styles.infoText}>{selectedUser?.phoneNumber || '-'}</Text>
+                        <ScrollView contentContainerStyle={styles.modalContent} keyboardShouldPersistTaps="handled">
+                            <View style={styles.modalHeader}>
+                                <Ionicons name="person-circle-outline" size={24} color={ACCENT} />
+                                <Text style={styles.modalTitle}>{t('admin.users.userDetails')}</Text>
                             </View>
-                            <View style={styles.infoRow}>
-                                <Ionicons name="male-female-outline" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
-                                <Text style={styles.infoText}>{selectedUser?.gender || '-'}</Text>
-                                <Text style={styles.separator}>•</Text>
-                                <Ionicons name="calendar-outline" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
-                                <Text style={styles.infoText}>{selectedUser?.age ? selectedUser.age + ' y.o.' : '-'}</Text>
+
+                            <Text style={styles.sectionTitle}>{t('admin.users.personalInfo')}</Text>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('admin.users.fields.name')}</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={editName}
+                                    onChangeText={setEditName}
+                                    placeholder={t('admin.users.placeholders.name')}
+                                    placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                />
                             </View>
-                        </View>
 
-                        <Text style={styles.fieldLabel}>{t('admin.users.role')}</Text>
-                        <Pressable
-                            style={styles.dropdown}
-                            onPress={() => setRolePickerOpen((open) => !open)}
-                        >
-                            <Text style={styles.dropdownValue}>
-                                {selectedRole ? renderRoleLabel(selectedRole) : t('admin.users.selectRole')}
-                            </Text>
-                            <Ionicons
-                                name={rolePickerOpen ? 'chevron-up' : 'chevron-down'}
-                                size={18}
-                                color={ACCENT}
-                            />
-                        </Pressable>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('admin.users.fields.email')}</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={editEmail}
+                                    onChangeText={setEditEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                    placeholder={t('admin.users.placeholders.email')}
+                                    placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                />
+                            </View>
 
-                        {rolePickerOpen && (
-                            <View style={styles.dropdownList}>
-                                {availableRoles.map((role) => (
-                                    <Pressable
-                                        key={role}
-                                        style={({ pressed }) => [
-                                            styles.dropdownItem,
-                                            selectedRole === role && styles.dropdownItemSelected,
-                                            pressed && styles.dropdownItemPressed,
-                                        ]}
-                                        onPress={() => {
-                                            setSelectedRole(role);
-                                            setRolePickerOpen(false);
-                                        }}
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('admin.users.fields.phone')}</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={editPhoneNumber}
+                                    onChangeText={(text) => setEditPhoneNumber(text.replace(/[^0-9+]/g, ''))}
+                                    keyboardType="phone-pad"
+                                    placeholder={t('admin.users.placeholders.phone')}
+                                    placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                />
+                            </View>
+
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('admin.users.fields.gender')}</Text>
+                                <View style={styles.pickerContainer}>
+                                    <Picker
+                                        selectedValue={editGender}
+                                        onValueChange={(itemValue) => setEditGender(itemValue)}
                                     >
-                                        <Text
-                                            style={[
-                                                styles.dropdownItemText,
-                                                selectedRole === role && styles.dropdownItemTextSelected,
-                                            ]}
-                                        >
-                                            {renderRoleLabel(role)}
-                                        </Text>
-                                        {selectedRole === role && (
-                                            <Ionicons name="checkmark" size={16} color={ACCENT} />
-                                        )}
-                                    </Pressable>
-                                ))}
+                                        <Picker.Item label={t('profile.genderOptions.preferNotToSay')} value="PREFER_NOT_TO_SAY" />
+                                        <Picker.Item label={t('profile.genderOptions.male')} value="MALE" />
+                                        <Picker.Item label={t('profile.genderOptions.female')} value="FEMALE" />
+                                        <Picker.Item label={t('profile.genderOptions.other')} value="OTHER" />
+                                    </Picker>
+                                </View>
                             </View>
-                        )}
 
-                        <View style={styles.modalActions}>
-                            <Pressable style={styles.secondaryButton} onPress={closeEditor}>
-                                <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
-                            </Pressable>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.inputLabel}>{t('admin.users.fields.age')}</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={editAge}
+                                    onChangeText={(text) => {
+                                        const numericValue = parseInt(text.replace(/[^0-9]/g, ''), 10);
+                                        if (!text) {
+                                            setEditAge('');
+                                        } else if (!isNaN(numericValue)) {
+                                            setEditAge(numericValue.toString());
+                                        }
+                                    }}
+                                    keyboardType="numeric"
+                                    placeholder={t('admin.users.placeholders.age')}
+                                    placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                    maxLength={3}
+                                />
+                            </View>
+
+                            <Text style={styles.fieldLabel}>{t('admin.users.role')}</Text>
                             <Pressable
-                                style={({ pressed }) => [
-                                    styles.primaryButton,
-                                    (!selectedRole || saving) && styles.primaryButtonDisabled,
-                                    pressed && styles.primaryButtonPressed,
-                                ]}
-                                disabled={!selectedRole || saving}
-                                onPress={saveRoleChange}
+                                style={styles.dropdown}
+                                onPress={() => setRolePickerOpen((open) => !open)}
                             >
-                                {saving ? (
-                                    <ActivityIndicator color="#FFFFFF" />
-                                ) : (
-                                    <Text style={styles.primaryButtonText}>{t('admin.users.save')}</Text>
-                                )}
+                                <Text style={styles.dropdownValue}>
+                                    {selectedRole ? renderRoleLabel(selectedRole) : t('admin.users.selectRole')}
+                                </Text>
+                                <Ionicons
+                                    name={rolePickerOpen ? 'chevron-up' : 'chevron-down'}
+                                    size={18}
+                                    color={ACCENT}
+                                />
                             </Pressable>
-                        </View>
+
+                            {rolePickerOpen && (
+                                <View style={styles.dropdownList}>
+                                    {availableRoles.map((role) => (
+                                        <Pressable
+                                            key={role}
+                                            style={({ pressed }) => [
+                                                styles.dropdownItem,
+                                                selectedRole === role && styles.dropdownItemSelected,
+                                                pressed && styles.dropdownItemPressed,
+                                            ]}
+                                            onPress={() => {
+                                                setSelectedRole(role);
+                                                setRolePickerOpen(false);
+                                            }}
+                                        >
+                                            <Text
+                                                style={[
+                                                    styles.dropdownItemText,
+                                                    selectedRole === role && styles.dropdownItemTextSelected,
+                                                ]}
+                                            >
+                                                {renderRoleLabel(role)}
+                                            </Text>
+                                            {selectedRole === role && (
+                                                <Ionicons name="checkmark" size={16} color={ACCENT} />
+                                            )}
+                                        </Pressable>
+                                    ))}
+                                </View>
+                            )}
+
+                            {modalError && (
+                                <View style={styles.modalErrorBox}>
+                                    <Ionicons name="alert-circle" size={16} color={isDark ? '#FFB4AB' : '#C62828'} />
+                                    <Text style={styles.modalErrorText}>{modalError}</Text>
+                                </View>
+                            )}
+
+                            <Pressable
+                                style={[
+                                    styles.statusButton,
+                                    selectedUser?.memberStatus === 'INACTIVE'
+                                        ? styles.statusButtonActive
+                                        : styles.statusButtonDanger,
+                                    saving && styles.statusButtonDisabled,
+                                ]}
+                                disabled={saving}
+                                onPress={() =>
+                                    confirmStatusChange(
+                                        selectedUser?.memberStatus === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE',
+                                    )
+                                }
+                            >
+                                <Text
+                                    style={[
+                                        styles.statusButtonText,
+                                        selectedUser?.memberStatus === 'INACTIVE'
+                                            ? styles.statusButtonTextActive
+                                            : styles.statusButtonTextDanger,
+                                    ]}
+                                >
+                                    {selectedUser?.memberStatus === 'INACTIVE'
+                                        ? t('admin.users.reactivate')
+                                        : t('admin.users.deactivate')}
+                                </Text>
+                            </Pressable>
+
+                            <View style={styles.modalActions}>
+                                <Pressable style={styles.secondaryButton} onPress={closeEditor}>
+                                    <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
+                                </Pressable>
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.primaryButton,
+                                        (!selectedRole || saving) && styles.primaryButtonDisabled,
+                                        pressed && styles.primaryButtonPressed,
+                                    ]}
+                                    disabled={!selectedRole || saving}
+                                    onPress={saveUserChanges}
+                                >
+                                    {saving ? (
+                                        <ActivityIndicator color="#FFFFFF" />
+                                    ) : (
+                                        <Text style={styles.primaryButtonText}>{t('admin.users.save')}</Text>
+                                    )}
+                                </Pressable>
+                            </View>
+                        </ScrollView>
                     </View>
                 </View>
             </Modal>
@@ -380,6 +718,74 @@ const getStyles = (scheme: 'light' | 'dark') => {
         fontSize: 13,
         color: TEXT_MUTED,
         marginTop: 2,
+    },
+    controls: {
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        gap: 12,
+        backgroundColor: SURFACE,
+    },
+    searchBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: BG,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: BORDER,
+    },
+    searchInput: {
+        flex: 1,
+        color: TEXT,
+        fontSize: 14,
+    },
+    tabs: {
+        flexDirection: 'row',
+        backgroundColor: BG,
+        borderRadius: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: BORDER,
+        overflow: 'hidden',
+    },
+    tabButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        paddingVertical: 10,
+    },
+    tabButtonActive: {
+        backgroundColor: isDark ? '#1D2A3A' : '#F0F6FF',
+    },
+    tabLabel: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: TEXT_MUTED,
+    },
+    tabLabelActive: {
+        color: ACCENT,
+    },
+    tabCount: {
+        minWidth: 24,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        backgroundColor: isDark ? '#2F3A4A' : '#E5EAF3',
+        alignItems: 'center',
+    },
+    tabCountActive: {
+        backgroundColor: isDark ? '#2F4B7D' : '#D7E5FF',
+    },
+    tabCountText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: TEXT_MUTED,
+    },
+    tabCountTextActive: {
+        color: ACCENT,
     },
     centered: {
         flex: 1,
@@ -460,6 +866,34 @@ const getStyles = (scheme: 'light' | 'dark') => {
         fontWeight: '700',
         color: ACCENT,
     },
+    statusRow: {
+        marginTop: 6,
+    },
+    statusPill: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+    },
+    statusPillActive: {
+        backgroundColor: INFO_BG,
+        borderColor: INFO_BORDER,
+    },
+    statusPillInactive: {
+        backgroundColor: ERROR_BG,
+        borderColor: ERROR_BORDER,
+    },
+    statusPillText: {
+        fontSize: 11,
+        fontWeight: '700',
+    },
+    statusPillTextActive: {
+        color: ACCENT,
+    },
+    statusPillTextInactive: {
+        color: ERROR,
+    },
     editButton: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -517,10 +951,38 @@ const getStyles = (scheme: 'light' | 'dark') => {
         fontWeight: '700',
         color: TEXT,
     },
-    modalSubtitle: {
-        color: TEXT_MUTED,
+    modalContent: {
+        gap: 12,
+    },
+    sectionTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: TEXT,
+        marginTop: 4,
+    },
+    inputGroup: {
+        gap: 6,
+    },
+    inputLabel: {
         fontSize: 13,
-        marginBottom: 6,
+        fontWeight: '600',
+        color: TEXT,
+    },
+    input: {
+        backgroundColor: isDark ? '#1D2A3A' : '#F7F9FC',
+        borderRadius: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: BORDER,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        color: TEXT,
+    },
+    pickerContainer: {
+        borderRadius: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: BORDER,
+        overflow: 'hidden',
+        backgroundColor: isDark ? '#1D2A3A' : '#F7F9FC',
     },
     fieldLabel: {
         fontSize: 13,
@@ -570,6 +1032,49 @@ const getStyles = (scheme: 'light' | 'dark') => {
     dropdownItemTextSelected: {
         color: ACCENT,
     },
+    modalErrorBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        padding: 10,
+        borderRadius: 10,
+        backgroundColor: ERROR_BG,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: ERROR_BORDER,
+    },
+    modalErrorText: {
+        color: ERROR,
+        fontSize: 13,
+        flex: 1,
+    },
+    statusButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 10,
+        borderWidth: StyleSheet.hairlineWidth,
+        paddingVertical: 12,
+    },
+    statusButtonDanger: {
+        backgroundColor: ERROR_BG,
+        borderColor: ERROR_BORDER,
+    },
+    statusButtonActive: {
+        backgroundColor: isDark ? '#1F2A22' : '#E7F6ED',
+        borderColor: isDark ? '#2F4A3A' : '#C8E6C9',
+    },
+    statusButtonText: {
+        fontSize: 13,
+        fontWeight: '700',
+    },
+    statusButtonTextDanger: {
+        color: ERROR,
+    },
+    statusButtonTextActive: {
+        color: isDark ? '#8BE9B7' : '#2E7D32',
+    },
+    statusButtonDisabled: {
+        opacity: 0.6,
+    },
     modalActions: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
@@ -604,31 +1109,5 @@ const getStyles = (scheme: 'light' | 'dark') => {
         color: '#FFFFFF',
         fontWeight: '700',
     },
-    userInfoBlock: {
-        backgroundColor: isDark ? '#1D2A3A' : '#F7F9FC',
-        padding: 12,
-        borderRadius: 12,
-        marginBottom: 12,
-    },
-    userName: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: TEXT,
-        marginBottom: 2,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        marginTop: 4,
-    },
-    infoText: {
-        fontSize: 13,
-        color: TEXT_MUTED,
-    },
-    separator: {
-        color: isDark ? '#4A5568' : '#C5CDD9',
-        marginHorizontal: 4,
-    }
     });
 };

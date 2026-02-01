@@ -2,7 +2,9 @@ package com.mana.openhand_backend.identity.presentationlayer;
 
 import com.mana.openhand_backend.identity.businesslayer.UserAdminService;
 import com.mana.openhand_backend.identity.domainclientlayer.UserResponseModel;
+import com.mana.openhand_backend.identity.presentationlayer.payload.UpdateUserProfileRequest;
 import com.mana.openhand_backend.identity.presentationlayer.payload.UpdateUserRolesRequest;
+import com.mana.openhand_backend.identity.presentationlayer.payload.UpdateUserStatusRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +41,22 @@ public class UserAdminController {
                                              @Valid @RequestBody UpdateUserRolesRequest request) {
         return UserResponseModel.fromEntity(
                 userAdminService.updateUserRoles(id, request.getRoles())
+        );
+    }
+
+    @PutMapping("/{id}/profile")
+    public UserResponseModel updateUserProfile(@PathVariable Long id,
+                                               @Valid @RequestBody UpdateUserProfileRequest request) {
+        return UserResponseModel.fromEntity(
+                userAdminService.updateUserProfile(id, request)
+        );
+    }
+
+    @PutMapping("/{id}/status")
+    public UserResponseModel updateUserStatus(@PathVariable Long id,
+                                              @Valid @RequestBody UpdateUserStatusRequest request) {
+        return UserResponseModel.fromEntity(
+                userAdminService.updateUserStatus(id, request.getStatus())
         );
     }
 }

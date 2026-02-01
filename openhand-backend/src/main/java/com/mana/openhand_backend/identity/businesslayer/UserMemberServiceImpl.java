@@ -16,10 +16,14 @@ public class UserMemberServiceImpl implements UserMemberService {
 
     private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
+    private final com.mana.openhand_backend.registrations.businesslayer.RegistrationService registrationService;
 
-    public UserMemberServiceImpl(UserRepository userRepository, RefreshTokenService refreshTokenService) {
+    public UserMemberServiceImpl(UserRepository userRepository,
+            RefreshTokenService refreshTokenService,
+            com.mana.openhand_backend.registrations.businesslayer.RegistrationService registrationService) {
         this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
+        this.registrationService = registrationService;
     }
 
     @Override
@@ -65,6 +69,9 @@ public class UserMemberServiceImpl implements UserMemberService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
         if (user.getMemberStatus() == MemberStatus.INACTIVE) {
+            refreshTokenService.deleteByUserId(userId);
+            registrationService.cancelRegistrationsForUser(userId,
+                    "Registration cancelled due to account deactivation.");
             return user;
         }
 
@@ -73,6 +80,8 @@ public class UserMemberServiceImpl implements UserMemberService {
 
         // Revoke all refresh tokens to ensure any active sessions are closed.
         refreshTokenService.deleteByUserId(userId);
+        registrationService.cancelRegistrationsForUser(userId,
+                "Registration cancelled due to account deactivation.");
 
         return userRepository.save(user);
     }

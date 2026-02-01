@@ -240,7 +240,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .orElseThrow(() -> new RuntimeException(
                         "Registration not found for user " + userId + " and event " + eventId));
 
-        return cancelRegistrationInternal(registration, "Registration cancelled by member.", false);
+        return cancelRegistrationInternal(registration, "Registration cancelled by member.", false, eventId);
     }
 
     @Override
@@ -256,7 +256,8 @@ public class RegistrationServiceImpl implements RegistrationService {
                 continue;
             }
             try {
-                cancelRegistrationInternal(registration, reason, true);
+                Long eventId = registration.getEvent() != null ? registration.getEvent().getId() : null;
+                cancelRegistrationInternal(registration, reason, true, eventId);
             } catch (RuntimeException ex) {
                 logger.warn("Failed to cancel registration {} for deactivated user {}: {}",
                         registration.getId(), userId, ex.getMessage());
@@ -264,28 +265,30 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
     }
 
-    private Registration cancelRegistrationInternal(Registration registration, String reason, boolean skipCompletionCheck) {
+    private Registration cancelRegistrationInternal(Registration registration, String reason, boolean skipCompletionCheck,
+            Long eventIdOverride) {
         Event event = registration.getEvent();
         if (!skipCompletionCheck && event != null
                 && eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now())) {
-            throw new EventCompletedException(event.getId());
+            throw new EventCompletedException(event.getId() != null ? event.getId() : eventIdOverride);
         }
 
         Registration cancelledRegistration;
         String groupId = registration.getRegistrationGroupId();
+        Long eventId = eventIdOverride != null ? eventIdOverride : (event != null ? event.getId() : null);
 
         if (groupId != null) {
-            Long eventId = event != null ? event.getId() : null;
-            if (eventId == null) {
-                throw new IllegalStateException("Registration event is missing");
+            List<Registration> groupRegistrations = eventId != null
+                    ? registrationRepository.findByEventIdAndRegistrationGroupId(eventId, groupId)
+                    : registrationRepository.findByRegistrationGroupId(groupId);
+            if (groupRegistrations.isEmpty()) {
+                groupRegistrations = List.of(registration);
             }
-            List<Registration> groupRegistrations = registrationRepository
-                    .findByEventIdAndRegistrationGroupId(eventId, groupId);
             int confirmedCount = (int) groupRegistrations.stream()
                     .filter(reg -> reg.getStatus() == RegistrationStatus.CONFIRMED)
                     .count();
 
-            if (event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
+            if (event != null && event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
                 int updatedCount = Math.max(0, event.getCurrentRegistrations() - confirmedCount);
                 event.setCurrentRegistrations(updatedCount);
                 updateEventStatusForCapacity(event);

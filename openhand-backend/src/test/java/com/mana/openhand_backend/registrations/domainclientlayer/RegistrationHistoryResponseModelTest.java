@@ -39,7 +39,8 @@ class RegistrationHistoryResponseModelTest {
                 "CONFIRMED",
                 "2026-01-02T09:00",
                 RegistrationTimeCategory.ACTIVE,
-                event
+                event,
+                null
         );
 
         assertEquals(5L, model.getRegistrationId());

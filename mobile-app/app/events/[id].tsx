@@ -11,7 +11,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { EventCard } from '../../components/EventCard';
-import { EventDetailModal } from '../../components/EventDetailModal';
+import { EventDetailModal, type FamilyMemberInput } from '../../components/EventDetailModal';
 import { MenuLayout } from '../../components/menu-layout';
 
 import {
@@ -22,12 +22,23 @@ import {
     type EventDetail,
     type RegistrationSummary,
 } from '../../services/events.service';
-import { registerForEvent, getMyRegistrations, cancelRegistration, type Registration } from '../../services/registration.service';
+import {
+    registerForEventWithFamily,
+    getMyRegistrations,
+    cancelRegistration,
+    type Registration,
+    type FamilyMemberPayload,
+    type GroupRegistrationResponse
+} from '../../services/registration.service';
 import { useAuth } from '../../context/AuthContext';
-import { styles } from '../../styles/events.styles';
 import { useCountdownTimer } from '../../hooks/useCountdownTimer';
+import { useColorScheme } from 'react-native';
+import { getStyles } from '../../styles/events.styles';
 
 export default function EventsDetailScreen() {
+    const colorScheme = useColorScheme();
+    const styles = getStyles(colorScheme);
+    const indicatorColor = colorScheme === 'dark' ? '#6AA9FF' : '#0056A8';
     const { id } = useLocalSearchParams();
     const { t } = useTranslation();
     const { user, hasRole } = useAuth();
@@ -52,6 +63,7 @@ export default function EventsDetailScreen() {
     // Registration Request State - CRITICAL for preventing race conditions
     const [isRegistering, setIsRegistering] = useState(false);
     const [registrationError, setRegistrationError] = useState<string | null>(null);
+    const [registrationParticipants, setRegistrationParticipants] = useState<GroupRegistrationResponse['participants'] | null>(null);
 
     // Admin/Employee Stats
     const [registrationSummary, setRegistrationSummary] = useState<RegistrationSummary | null>(null);
@@ -144,6 +156,7 @@ export default function EventsDetailScreen() {
         setShowSuccessView(false);
         setIsRegistering(false);
         setRegistrationError(null);
+        setRegistrationParticipants(null);
     }
 
     useEffect(() => {
@@ -206,25 +219,73 @@ export default function EventsDetailScreen() {
      * - If 409 conflict (event full): show waitlist message
      * - If other error: show error alert
      */
-    const handleRegister = async () => {
+    const handleRegister = async (familyMembers: FamilyMemberInput[]) => {
         if (!selectedEvent || !user || isRegistering) return;
         if (selectedEvent.status === 'COMPLETED') {
             setRegistrationError(t('events.errors.eventCompleted'));
             return;
         }
 
+        const normalizedFamily: FamilyMemberPayload[] = [];
+        for (const member of familyMembers) {
+            const name = member.fullName?.trim() || '';
+            const relation = member.relation?.trim() || undefined;
+            const ageText = member.age?.trim() || '';
+            const ageValue = ageText ? Number(ageText) : NaN;
+            const isEmpty = !name && !ageText && !relation;
+
+            if (isEmpty) {
+                continue;
+            }
+
+            if (!name || !Number.isFinite(ageValue) || ageValue <= 0) {
+                setRegistrationError(t('events.family.validationError', 'Please enter a name and age for each family member.'));
+                return;
+            }
+
+            normalizedFamily.push({
+                fullName: name,
+                age: Math.floor(ageValue),
+                relation
+            });
+        }
+
         try {
             setIsRegistering(true);
             setRegistrationError(null);
 
-            const newReg = await registerForEvent(selectedEvent.id, user.token);
+            const response = await registerForEventWithFamily(selectedEvent.id, normalizedFamily, user.token);
+            setRegistrationParticipants(response.participants || []);
 
-            // Success - registration confirmed or added to waitlist
+            const primary = response.primaryRegistrant;
+            if (primary) {
+                const newReg: Registration = {
+                    id: primary.registrationId,
+                    userId: user.id ?? 0,
+                    eventId: selectedEvent.id,
+                    eventTitle: selectedEvent.title,
+                    status: primary.status,
+                    requestedAt: new Date().toISOString(),
+                    confirmedAt: primary.status === 'CONFIRMED' ? new Date().toISOString() : null,
+                    cancelledAt: null,
+                    waitlistedPosition: primary.waitlistedPosition ?? null,
+                    eventStartDateTime: selectedEvent.startDateTime,
+                    eventEndDateTime: selectedEvent.endDateTime
+                };
+                setUserRegistration(newReg);
+            }
+
             const updatedRegs = await getMyRegistrations(user.token);
             setMyRegistrations(updatedRegs);
-            setUserRegistration(newReg);
-            setShowSuccessView(true);
-            startCountdown();
+
+            if (primary?.status === 'CONFIRMED') {
+                setShowSuccessView(true);
+                startCountdown();
+            } else if (primary?.status === 'WAITLISTED') {
+                setRegistrationError(
+                    t('alerts.registerWaitlistMessage', { position: primary.waitlistedPosition })
+                );
+            }
 
             if (hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])) {
                 loadRegistrationSummary(selectedEvent.id);
@@ -232,41 +293,32 @@ export default function EventsDetailScreen() {
         } catch (err: any) {
             setIsRegistering(false);
 
-            // Handle different error scenarios
-            if (err.status === 409) {
-                // HTTP 409 Conflict - either already registered or capacity exceeded
-                const errorMessage = err.errorData?.message || err.message;
-
+            const errorMessage = err.errorData?.message || err.message;
+            if (err.status === 403) {
+                setRegistrationError(t('events.errors.accessDenied'));
+            } else if (err.status === 400 && errorMessage.toLowerCase().includes('capacity')) {
+                setRegistrationError(t('events.family.capacityError', 'Not enough capacity for your group.'));
+            } else if (err.status === 409) {
                 if (errorMessage.includes('capacity')) {
-                    // Event reached capacity - user placed on waitlist
                     setRegistrationError(
                         t('events.errors.eventFull',
-                            'L\'événement est complet. Vous avez été ajouté(e) à la liste d\'attente.')
+                            "L'?v?nement est complet. Vous avez ?t? ajout?(e) ? la liste d'attente.")
                     );
                 } else if (errorMessage.toLowerCase().includes('completed')) {
                     setRegistrationError(t('events.errors.eventCompleted'));
                 } else if (errorMessage.includes('Already Registered')) {
-                    // User already has active registration
                     setRegistrationError(
                         t('events.errors.alreadyRegistered',
-                            'Vous êtes déjà inscrit(e) à cet événement.')
+                            "Vous ?tes d?j? inscrit(e) ? cet ?v?nement.")
                     );
                 } else {
                     setRegistrationError(errorMessage);
                 }
 
-                // Refresh registrations to show current state
                 const updatedRegs = await getMyRegistrations(user.token);
                 setMyRegistrations(updatedRegs);
-                checkUserRegistration(selectedEvent.id);
             } else {
-                // Other errors (network, server, etc.)
-                const errorMessage = err.errorData?.message || err.message;
-                setRegistrationError(
-                    t('events.errors.registrationFailed',
-                        'Inscription échouée. Veuillez réessayer.')
-                );
-                console.error('Registration error:', errorMessage);
+                setRegistrationError(t('events.errors.registrationFailed'));
             }
         } finally {
             setIsRegistering(false);
@@ -281,20 +333,13 @@ export default function EventsDetailScreen() {
 
             await cancelRegistration(selectedEvent.id, user.token);
 
-            // Manually update selectedEvent state locally
-            const updatedEvent = {
-                ...selectedEvent,
-                currentRegistrations: (selectedEvent.currentRegistrations || 0) - 1
-            };
-            // Simple client-side status update
-            if (updatedEvent.maxCapacity) {
-                if (updatedEvent.currentRegistrations < updatedEvent.maxCapacity) {
-                    updatedEvent.status = updatedEvent.currentRegistrations >= updatedEvent.maxCapacity * 0.8
-                        ? 'NEARLY_FULL'
-                        : 'OPEN';
-                }
+            try {
+                const refreshed = await getEventById(selectedEvent.id);
+                setEventDetail(refreshed);
+                setSelectedEvent(refreshed as EventSummary);
+            } catch (err) {
+                console.error('Failed to refresh event after unregister', err);
             }
-            setSelectedEvent(updatedEvent);
 
             const updatedRegs = await getMyRegistrations(user.token);
             setMyRegistrations(updatedRegs);
@@ -335,7 +380,7 @@ export default function EventsDetailScreen() {
                 keyExtractor={(item: EventSummary) => item.id.toString()}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0056A8']} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[indicatorColor]} />
                 }
                 ListEmptyComponent={
                     <ThemedView style={styles.centered}>
@@ -379,6 +424,7 @@ export default function EventsDetailScreen() {
                         .then(setEventDetail)
                         .catch(() => {});
                 }}
+                registrationParticipants={registrationParticipants}
             />
         </ThemedView>
     );
@@ -386,7 +432,7 @@ export default function EventsDetailScreen() {
     if (loading) {
         content = (
             <ThemedView style={styles.centered}>
-                <ActivityIndicator size="large" color="#0056A8" />
+                <ActivityIndicator size="large" color={indicatorColor} />
                 <ThemedText style={styles.loadingText}>{t('events.loading')}</ThemedText>
             </ThemedView>
         );

@@ -1,12 +1,12 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
 import { RegistrationSummaryComponent } from './registration-summary';
-import { styles } from '../styles/events.styles';
+import { getStyles } from '../styles/events.styles';
 import { type EventSummary, type EventDetail, type RegistrationSummary } from '../services/events.service';
-import { type Registration } from '../services/registration.service';
+import { type Registration, type RegistrationParticipant } from '../services/registration.service';
 import { searchUsers, registerParticipantForEvent, type EmployeeSearchResult } from '../services/employee.service';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
@@ -15,6 +15,13 @@ import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/eve
 import { API_BASE, resolveUrl } from '../utils/api';
 
 // Props Definition
+export type FamilyMemberInput = {
+    id: string;
+    fullName: string;
+    age: string;
+    relation?: string;
+};
+
 type EventDetailModalProps = {
     visible: boolean;
     onClose: () => void;
@@ -28,7 +35,7 @@ type EventDetailModalProps = {
 
     // Registration Props
     userRegistration: Registration | null;
-    onRegister: () => void;
+    onRegister: (familyMembers: FamilyMemberInput[]) => void;
     onUnregister: () => void;
 
     // Success State
@@ -47,6 +54,7 @@ type EventDetailModalProps = {
     registrationError?: string | null;
     // Optional callback to refresh capacity/details from parent
     onCapacityRefresh?: () => void;
+    registrationParticipants?: RegistrationParticipant[] | null;
 };
 
 // Use explicit class for Animated View created in index if passed, but here we can just use View or re-create it.
@@ -76,15 +84,48 @@ export function EventDetailModal({
     summaryError,
     onRetrySummary,
     isRegistering = false,
-    registrationError = null
-    ,
-    onCapacityRefresh
+    registrationError = null,
+    onCapacityRefresh,
+    registrationParticipants = null
 }: EventDetailModalProps) {
     const router = useRouter();
 
     // Fallback if no details yet
     const displayEvent = eventDetail || selectedEvent;
     const isCompleted = displayEvent?.status === 'COMPLETED';
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const styles = getStyles(colorScheme);
+    const infoPalette = isDark
+        ? {
+            errorBg: '#3A2626',
+            errorBorder: '#8B4545',
+            errorText: '#FFB4AB',
+            successBg: '#1A4620',
+            successBorder: '#2F6F3A',
+            successText: '#8BE28B',
+        }
+        : {
+            errorBg: '#FFEBEE',
+            errorBorder: '#D32F2F',
+            errorText: '#C62828',
+            successBg: '#E8F5E9',
+            successBorder: '#2E7D32',
+            successText: '#2E7D32',
+        };
+    const inputPalette = isDark
+        ? {
+            bg: '#1F2328',
+            border: '#3A3F47',
+            text: '#ECEDEE',
+            placeholder: '#8B93A1',
+        }
+        : {
+            bg: '#FFFFFF',
+            border: '#E0E7F3',
+            text: '#333333',
+            placeholder: '#999999',
+        };
 
     // Employee Walk-in State
     const [walkinQuery, setWalkinQuery] = React.useState('');
@@ -93,6 +134,39 @@ export function EventDetailModal({
     const [walkinSubmitting, setWalkinSubmitting] = React.useState(false);
     const [walkinError, setWalkinError] = React.useState<string | null>(null);
     const [walkinSuccess, setWalkinSuccess] = React.useState<string | null>(null);
+    const [familyMembers, setFamilyMembers] = React.useState<FamilyMemberInput[]>([]);
+
+    React.useEffect(() => {
+        if (!visible) {
+            setFamilyMembers([]);
+        }
+    }, [visible, selectedEvent?.id]);
+
+    const handleAddFamilyMember = () => {
+        setFamilyMembers(prev => [
+            ...prev,
+            {
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                fullName: '',
+                age: '',
+                relation: ''
+            }
+        ]);
+    };
+
+    const handleRemoveFamilyMember = (id: string) => {
+        setFamilyMembers(prev => prev.filter(member => member.id !== id));
+    };
+
+    const handleUpdateFamilyMember = (id: string, field: 'fullName' | 'age' | 'relation', value: string) => {
+        setFamilyMembers(prev =>
+            prev.map(member =>
+                member.id === id ? { ...member, [field]: value } : member
+            )
+        );
+    };
+
+    const totalParticipants = 1 + familyMembers.length;
 
     const handleWalkinSearch = async () => {
         setWalkinError(null);
@@ -195,7 +269,7 @@ export function EventDetailModal({
                     <ScrollView style={styles.modalBody} contentContainerStyle={{ paddingBottom: 16 }}>
                         {loading ? (
                             <View style={styles.modalLoadingContainer}>
-                                <ActivityIndicator size="large" color="#0056A8" />
+                                <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                                 <ThemedText style={styles.modalLoadingText}>
                                     {t('events.loading')}
                                 </ThemedText>
@@ -207,13 +281,25 @@ export function EventDetailModal({
                         ) : showSuccessView && selectedEvent ? (
                             /* Success View */
                             <View style={styles.successContainer}>
-                                <Ionicons name="checkbox" size={64} color="#0056A8" style={{ marginBottom: 16 }} />
+                                <Ionicons name="checkbox" size={64} color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} style={{ marginBottom: 16 }} />
                                 <ThemedText type="subtitle" style={styles.successTitle}>
                                     {t('alerts.registerSuccess', 'Inscription confirmée !')}
                                 </ThemedText>
                                 <ThemedText style={styles.successMessage}>
                                     {t('alerts.registerSuccessMessage', "Vous êtes inscrit(e) à l'événement.")}
                                 </ThemedText>
+                                {registrationParticipants && registrationParticipants.length > 0 && (
+                                    <View style={styles.participantsList}>
+                                        <ThemedText style={styles.participantsTitle}>
+                                            {t('events.family.participantsTitle', 'Participants')}
+                                        </ThemedText>
+                                        {registrationParticipants.map((participant) => (
+                                            <ThemedText key={participant.registrationId} style={styles.participantItem}>
+                                                {participant.fullName || t('events.family.unknownParticipant')}
+                                            </ThemedText>
+                                        ))}
+                                    </View>
+                                )}
                                 <Pressable
                                     style={styles.undoButton}
                                     onPress={onUnregister}
@@ -329,8 +415,9 @@ export function EventDetailModal({
                                         <ThemedText style={styles.sectionTitle}>{t('events.walkin.title')}</ThemedText>
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                             <TextInput
-                                                style={{ flex: 1, backgroundColor: '#FFFFFF', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: '#E0E7F3' }}
+                                                style={{ flex: 1, backgroundColor: inputPalette.bg, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: inputPalette.border, color: inputPalette.text }}
                                                 placeholder={t('events.walkin.searchPlaceholder')}
+                                                placeholderTextColor={inputPalette.placeholder}
                                                 value={walkinQuery}
                                                 onChangeText={setWalkinQuery}
                                             />
@@ -339,13 +426,13 @@ export function EventDetailModal({
                                             </Pressable>
                                         </View>
                                         {walkinError && (
-                                            <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
-                                                <ThemedText style={[styles.infoText, { color: '#c62828' }]}>{walkinError}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
+                                                <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>{walkinError}</ThemedText>
                                             </View>
                                         )}
                                         {walkinSuccess && (
-                                            <View style={[styles.infoBox, { borderLeftColor: '#2e7d32', borderLeftWidth: 4, backgroundColor: '#e8f5e9' }]}>
-                                                <ThemedText style={[styles.infoText, { color: '#2e7d32' }]}>{walkinSuccess}</ThemedText>
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.successBorder, borderLeftWidth: 4, backgroundColor: infoPalette.successBg }]}> 
+                                                <ThemedText style={[styles.infoText, { color: infoPalette.successText }]}>{walkinSuccess}</ThemedText>
                                             </View>
                                         )}
                                         {walkinResults.length > 0 && (
@@ -371,11 +458,69 @@ export function EventDetailModal({
                                     </View>
                                 )}
 
+                                {/* Family Registration */}
+                                {selectedEvent && user && hasRole(['ROLE_MEMBER']) && !userRegistration && !isCompleted && (
+                                    <View style={styles.familySection}>
+                                        <View style={styles.familyHeaderRow}>
+                                            <ThemedText style={styles.sectionTitle}>
+                                                {t('events.family.title', 'Family Members')}
+                                            </ThemedText>
+                                            <Pressable style={styles.familyAddButton} onPress={handleAddFamilyMember}>
+                                                <Ionicons name="add" size={16} color="#FFFFFF" />
+                                                <ThemedText style={styles.familyAddButtonText}>
+                                                    {t('events.family.addButton', 'Add Family Member')}
+                                                </ThemedText>
+                                            </Pressable>
+                                        </View>
+                                        {familyMembers.length === 0 ? (
+                                            <ThemedText style={styles.familyHint}>
+                                                {t('events.family.hint', 'Add family members to register together.')}
+                                            </ThemedText>
+                                        ) : (
+                                            familyMembers.map(member => (
+                                                <View key={member.id} style={styles.familyCard}>
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.fullNamePlaceholder', 'Full name')}
+                                                        placeholderTextColor={inputPalette.placeholder}
+                                                        value={member.fullName}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'fullName', text)}
+                                                    />
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.agePlaceholder', 'Age')}
+                                                        placeholderTextColor={inputPalette.placeholder}
+                                                        keyboardType="numeric"
+                                                        value={member.age}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'age', text)}
+                                                    />
+                                                    <TextInput
+                                                        style={styles.familyInput}
+                                                        placeholder={t('events.family.relationPlaceholder', 'Relation (optional)')}
+                                                        placeholderTextColor={inputPalette.placeholder}
+                                                        value={member.relation || ''}
+                                                        onChangeText={(text) => handleUpdateFamilyMember(member.id, 'relation', text)}
+                                                    />
+                                                    <Pressable
+                                                        style={styles.familyRemoveButton}
+                                                        onPress={() => handleRemoveFamilyMember(member.id)}
+                                                    >
+                                                        <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
+                                                        <ThemedText style={styles.familyRemoveButtonText}>
+                                                            {t('events.family.removeButton', 'Remove')}
+                                                        </ThemedText>
+                                                    </Pressable>
+                                                </View>
+                                            ))
+                                        )}
+                                    </View>
+                                )}
+
                                 {/* Buttons */}
                                 {user ? (
                                     isInactiveMember ? (
-                                        <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
-                                            <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                        <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
+                                            <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>
                                                 {t('events.inactiveMember')}
                                             </ThemedText>
                                         </View>
@@ -390,8 +535,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: '#d32f2f', borderLeftWidth: 4, backgroundColor: '#ffebee' }]}>
-                                                        <ThemedText style={[styles.infoText, { color: '#c62828' }]}>
+                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
+                                                        <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}> 
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>
@@ -412,21 +557,31 @@ export function EventDetailModal({
                                                         )}
                                                     </Pressable>
                                                 ) : (
-                                                    <Pressable
-                                                        style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
-                                                        onPress={onRegister}
-                                                        disabled={isRegistering}
-                                                    >
-                                                        {isRegistering ? (
-                                                            <ActivityIndicator color="#FFFFFF" />
-                                                        ) : (
-                                                            <ThemedText style={styles.registerButtonText}>
-                                                                {displayEvent?.status === 'FULL'
-                                                                    ? t('events.actions.joinWaitlist')
-                                                                    : t('events.actions.register')}
+                                                    <View style={{ gap: 10 }}>
+                                                        <View style={styles.participantCountRow}>
+                                                            <ThemedText style={styles.participantCountLabel}>
+                                                                {t('events.family.totalParticipants', 'Total participants')}
                                                             </ThemedText>
-                                                        )}
-                                                    </Pressable>
+                                                            <ThemedText style={styles.participantCountValue}>
+                                                                {totalParticipants}
+                                                            </ThemedText>
+                                                        </View>
+                                                        <Pressable
+                                                            style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
+                                                            onPress={() => onRegister(familyMembers)}
+                                                            disabled={isRegistering}
+                                                        >
+                                                            {isRegistering ? (
+                                                                <ActivityIndicator color="#FFFFFF" />
+                                                            ) : (
+                                                                <ThemedText style={styles.registerButtonText}>
+                                                                    {displayEvent?.status === 'FULL'
+                                                                        ? t('events.actions.joinWaitlist')
+                                                                        : t('events.actions.register')}
+                                                                </ThemedText>
+                                                            )}
+                                                        </Pressable>
+                                                    </View>
                                                 )}
                                             </View>
                                         )

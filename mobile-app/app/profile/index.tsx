@@ -15,9 +15,7 @@ import { ImageUploader } from '../../components/ImageUploader';
 import { getProfilePicture, uploadProfilePicture } from '../../services/profile-picture.service';
 import { updateProfile } from '../../services/profile.service';
 import { API_BASE } from '../../utils/api';
-
-const ACCENT = '#0056A8';
-const SURFACE = '#F5F7FB';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 
 const formatGender = (gender: string | undefined) => {
     if (!gender) return '-';
@@ -82,7 +80,8 @@ const resolveProfileUrl = (url: string | null | undefined) => {
 export default function ProfileScreen() {
     const router = useRouter();
     const { t, i18n } = useTranslation();
-    const { user, signOut, hasRole, updateUser } = useAuth();
+    const { user, signOut, hasRole, updateUser, isLoading } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
     const [menuVisible, setMenuVisible] = useState(false);
     const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(
         user?.profilePictureUrl ?? null
@@ -102,6 +101,8 @@ export default function ProfileScreen() {
     const [editGender, setEditGender] = useState(user?.gender || 'PREFER_NOT_TO_SAY');
     const [editAge, setEditAge] = useState(user?.age?.toString() || '');
 
+    const styles = getStyles(colorScheme);
+    const ACCENT = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
     const handleNavigateHome = () => {
         setMenuVisible(false);
         router.replace('/');
@@ -157,7 +158,7 @@ export default function ProfileScreen() {
 
 
     const handleSaveProfile = async () => {
-        if (!user) return;
+        if (!user || isLoading) return;
         setIsSaving(true);
         try {
             // Clean payload: +15141231234 (unformatted)
@@ -267,7 +268,6 @@ export default function ProfileScreen() {
                         <Ionicons name="chevron-back" size={24} color={ACCENT} />
                     </Pressable>
                     <Text style={styles.title}>{t('profile.title')}</Text>
-
                     <View style={{ flex: 1 }} />
                     {!isEditing ? (
                         <Pressable style={styles.editButton} onPress={() => setIsEditing(true)}>
@@ -276,8 +276,8 @@ export default function ProfileScreen() {
                         </Pressable>
                     ) : (
                         <View style={{ flexDirection: 'row', gap: 8 }}>
-                            <Pressable disabled={isSaving} onPress={handleCancelEdit}>
-                                <Text style={[styles.editButtonText, { color: '#666' }]}>{t('common.cancel')}</Text>
+                            <Pressable disabled={isSaving} onPress={\CancelEdit}>
+                                <Text style={[styles.editButtonText, { color: colorScheme === 'dark' ? '#A0A7B1' : '#666' }]}>{t('common.cancel')}</Text>
                             </Pressable>
                             {isSaving ? (
                                 <ActivityIndicator size="small" color={ACCENT} />
@@ -370,7 +370,7 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <InfoItem icon="call-outline" label={t('profile.phone')} value={formatPhoneDisplay(user.phoneNumber)} />
+                            <InfoItem icon="call-outline" label={t('profile.phone')} value={formatPhoneDisplay(user.phoneNumber)} colorScheme={colorScheme} />
                         )}
 
                         {isEditing ? (
@@ -394,7 +394,7 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <InfoItem icon="male-female-outline" label={t('profile.gender')} value={formatGender(user.gender)} />
+                            <InfoItem icon="male-female-outline" label={t('profile.gender')} value={formatGender(user.gender)} colorScheme={colorScheme} />
                         )}
 
                         {isEditing ? (
@@ -422,7 +422,7 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <InfoItem icon="calendar-outline" label={t('profile.age')} value={user.age ? user.age.toString() : '-'} />
+                            <InfoItem icon="calendar-outline" label={t('profile.age')} value={user.age ? user.age.toString() : '-'} colorScheme={colorScheme} />
                         )}
 
                         {isEditing ? (
@@ -445,7 +445,7 @@ export default function ProfileScreen() {
                                 </View>
                             </View>
                         ) : (
-                            <InfoItem icon="language-outline" label={t('profile.preferredLanguage')} value={formatLanguage((user as any).preferredLanguage, t)} />
+                            <InfoItem icon="language-outline" label={t('profile.preferredLanguage')} value={formatLanguage((user as any).preferredLanguage, t)} colorScheme={colorScheme} />
                         )}
 
 
@@ -470,18 +470,18 @@ export default function ProfileScreen() {
                             onPress={() => router.push('/settings/deactivate' as Href)}
                         >
                             <View style={styles.settingsItemLeft}>
-                                <Ionicons name="alert-circle-outline" size={20} color="#C62828" />
-                                <Text style={[styles.settingsItemText, { color: '#C62828' }]}>
+                                <Ionicons name="alert-circle-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
+                                <Text style={[styles.settingsItemText, { color: colorScheme === 'dark' ? '#FFB4AB' : '#C62828' }]}>
                                     {t('settings.account.deactivateLink')}
                                 </Text>
                             </View>
-                            <Ionicons name="chevron-forward" size={18} color="#C62828" />
+                            <Ionicons name="chevron-forward" size={18} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
                         </Pressable>
                     </View>
                 )}
 
                 <Pressable style={styles.logoutButton} onPress={signOut}>
-                    <Ionicons name="log-out-outline" size={20} color="#C62828" />
+                    <Ionicons name="log-out-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
                     <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
                 </Pressable>
 
@@ -505,7 +505,9 @@ export default function ProfileScreen() {
     );
 }
 
-function InfoItem({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }) {
+function InfoItem({ icon, label, value, colorScheme }: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string; colorScheme: 'light' | 'dark' }) {
+    const styles = getStyles(colorScheme);
+    const ACCENT = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
     return (
         <View style={styles.infoItem}>
             <View style={styles.iconContainer}>
@@ -519,7 +521,12 @@ function InfoItem({ icon, label, value }: { icon: keyof typeof Ionicons.glyphMap
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    const ACCENT = isDark ? '#9FC3FF' : '#0056A8';
+    const SURFACE = isDark ? '#111418' : '#F5F7FB';
+    
+    return StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: SURFACE,
@@ -545,7 +552,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
     },
     editButton: {
         flexDirection: 'row',
@@ -559,7 +566,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     card: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
         borderRadius: 16,
         padding: 24,
         shadowColor: '#000',
@@ -573,14 +580,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 24,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E6F0',
+        borderColor: isDark ? '#2A313B' : '#E0E6F0',
         paddingBottom: 24,
     },
     avatar: {
         width: 80,
         height: 80,
         borderRadius: 40,
-        backgroundColor: '#EAF1FF',
+        backgroundColor: isDark ? '#1F2A3A' : '#EAF1FF',
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 16,
@@ -607,12 +614,12 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
         marginBottom: 4,
     },
     userEmail: {
         fontSize: 14,
-        color: '#5C6A80',
+        color: isDark ? '#A0A7B1' : '#5C6A80',
         marginBottom: 12,
     },
     rolesRow: {
@@ -621,7 +628,7 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     rolePill: {
-        backgroundColor: '#F0F6FF',
+        backgroundColor: isDark ? '#1F2A3A' : '#F0F6FF',
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
@@ -643,33 +650,33 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: '#F5F9FF',
+        backgroundColor: isDark ? '#1F2A3A' : '#F5F9FF',
         alignItems: 'center',
         justifyContent: 'center',
     },
     infoLabel: {
         fontSize: 12,
-        color: '#5C6A80',
+        color: isDark ? '#A0A7B1' : '#5C6A80',
         marginBottom: 2,
     },
     infoValue: {
         fontSize: 16,
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
         fontWeight: '500',
     },
     logoutButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFF0F0',
+        backgroundColor: isDark ? '#3A1F1F' : '#FFF0F0',
         padding: 16,
         borderRadius: 12,
         gap: 8,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#FFDBDB',
+        borderColor: isDark ? '#6B2A2A' : '#FFDBDB',
     },
     logoutButtonText: {
-        color: '#C62828',
+        color: isDark ? '#FFB4AB' : '#C62828',
         fontWeight: '600',
         fontSize: 16,
     },
@@ -684,7 +691,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     settingsCard: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
         borderRadius: 16,
         paddingVertical: 6,
         paddingHorizontal: 8,
@@ -702,14 +709,14 @@ const styles = StyleSheet.create({
         paddingVertical: 14,
         paddingHorizontal: 10,
         borderRadius: 12,
-        backgroundColor: '#F8FAFE',
+        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#D9E5FF',
+        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
     },
     settingsDangerItem: {
         marginTop: 8,
-        backgroundColor: '#FEF2F2',
-        borderColor: '#F8BBD0',
+        backgroundColor: isDark ? '#3A1F1F' : '#FEF2F2',
+        borderColor: isDark ? '#6B2A2A' : '#F8BBD0',
     },
     settingsItemLeft: {
         flexDirection: 'row',
@@ -719,44 +726,44 @@ const styles = StyleSheet.create({
     settingsItemText: {
         fontSize: 15,
         fontWeight: '600',
-        color: '#1A2D4A',
+        color: isDark ? '#ECEDEE' : '#1A2D4A',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#D9E5FF',
+        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
         borderRadius: 8,
         padding: 8,
         fontSize: 16,
-        color: '#0F2848',
-        backgroundColor: '#F8FAFE',
+        color: isDark ? '#ECEDEE' : '#0F2848',
+        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
     },
     inputName: {
         borderWidth: 1,
-        borderColor: '#D9E5FF',
+        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
         borderRadius: 8,
         padding: 8,
         fontSize: 20,
         fontWeight: '700',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
         marginBottom: 4,
         textAlign: 'center',
-        backgroundColor: '#F8FAFE',
+        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
         minWidth: 200,
     },
     pickerContainer: {
         borderWidth: 1,
-        borderColor: '#D9E5FF',
+        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
         borderRadius: 8,
-        backgroundColor: '#F8FAFE',
+        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
         overflow: 'hidden',
     },
     countryPickerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#D9E5FF',
+        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
         borderRadius: 8,
-        backgroundColor: '#F8FAFE',
+        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
         paddingHorizontal: 8,
         height: 50, // Match input height roughly
     },
@@ -764,16 +771,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#D9E5FF',
+        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
         borderRadius: 8,
-        backgroundColor: '#F8FAFE',
+        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
         paddingHorizontal: 12,
         height: 50,
         minWidth: 80,
     },
     callingCodeText: {
         fontSize: 16,
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
         fontWeight: '500',
     },
-});
+    });
+};

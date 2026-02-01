@@ -14,11 +14,15 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
 import { AppHeader } from "../../components/app-header";
 import { NavigationMenu } from "../../components/navigation-menu";
+import { useColorScheme } from "../../hooks/use-color-scheme";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user, signOut, hasRole } = useAuth();
   const { t } = useTranslation();
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = getStyles(colorScheme);
+  const palette = getPalette(colorScheme);
   const [menuVisible, setMenuVisible] = React.useState(false);
 
   const WHATSAPP_NUMBER = "14388379223"; // +1 438 837 9223
@@ -178,22 +182,25 @@ export default function HomeScreen() {
               icon="home"
               title={t("home.services.welcomeCanada.title")}
               description={t("home.services.welcomeCanada.description")}
+              palette={palette}
             />
             <ServiceCard
               icon="restaurant"
               title={t("home.services.foodAssistance.title")}
               description={t("home.services.foodAssistance.description")}
+              palette={palette}
             />
             <ServiceCard
               icon="school"
               title={t("home.services.schoolSupport.title")}
               description={t("home.services.schoolSupport.description")}
+              palette={palette}
             />
           </View>
         </View>
 
         {/* FOOTER */}
-        <Footer t={t} />
+        <Footer t={t} palette={palette} />
       </ScrollView>
 
       {/* WHATSAPP FLOATING BUTTON */}
@@ -220,25 +227,43 @@ export default function HomeScreen() {
   );
 }
 
+type Palette = {
+  primary: string;
+  onPrimary: string;
+  background: string;
+  surface: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  accent: string;
+  success: string;
+};
+
 type ServiceCardProps = {
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   description: string;
+  palette: Palette;
 };
 
-function ServiceCard({ icon, title, description }: ServiceCardProps) {
+function ServiceCard({ icon, title, description, palette }: ServiceCardProps) {
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = getStyles(colorScheme);
   return (
     <View style={styles.serviceCard}>
-      <Ionicons name={icon} size={24} color="#0056A8" />
+      <Ionicons name={icon} size={24} color={palette.primary} />
       <Text style={styles.serviceTitle}>{title}</Text>
       <Text style={styles.serviceDescription}>{description}</Text>
     </View>
   );
 }
 
-function Footer({ t }: { t: (key: string) => string }) {
+function Footer({ t, palette }: { t: (key: string) => string; palette: Palette }) {
+  const colorScheme = useColorScheme() ?? "light";
+  const styles = getStyles(colorScheme);
   return (
-    <View style={styles.footerContainer}>
+    <View style={[styles.footerContainer, { backgroundColor: palette.primary }]}
+    >
       <Text style={styles.footerText}>
         {t("home.footer.copyright")}
       </Text>
@@ -247,170 +272,181 @@ function Footer({ t }: { t: (key: string) => string }) {
   );
 }
 
-const BLUE = "#0056A8";
-const YELLOW = "#F6B800";
-const LIGHT_BG = "#F5F7FB";
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: LIGHT_BG,
-  },
-  scrollContent: {
-    paddingBottom: 0,
-  },
-  heroImage: {
-    width: "100%",
-    height: 190,
-  },
-  actionsContainer: {
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E0E4EC",
-  },
-  actionButton: {
-    marginBottom: 10,
-  },
-  primaryButton: {
-    backgroundColor: BLUE,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  primaryButtonText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  secondaryButton: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: BLUE,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: BLUE,
-    fontWeight: "500",
-    fontSize: 15,
-  },
-  emotionSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E0E4EC",
-  },
-  emotionTitle: {
-    color: BLUE,
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  emotionSubtitle: {
-    color: "#333333",
-    fontSize: 12,
-    marginTop: 2,
-  },
-  reserveButton: {
-    backgroundColor: YELLOW,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 6,
-  },
-  reserveButtonText: {
-    color: "#000",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingTop: 18,
-    paddingBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: BLUE,
-    marginBottom: 6,
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    color: "#555",
-    marginBottom: 12,
-  },
-  newsRow: {
-    flexDirection: "row",
-    gap: 12,
-    paddingVertical: 8,
-  },
-  newsCard: {
-    width: 220,
-    height: 120,
-    borderRadius: 8,
-  },
-  sloganImage: {
-    width: "100%",
-    height: 70,
-    marginTop: 4,
-  },
-  servicesRow: {
-    marginTop: 10,
-    rowGap: 12,
-  },
-  serviceCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  serviceTitle: {
-    marginTop: 6,
-    fontWeight: "600",
-    color: BLUE,
-    fontSize: 15,
-  },
-  serviceDescription: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#555",
-  },
-  whatsappButton: {
-    position: "absolute",
-    right: 18,
-    bottom: 26,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    backgroundColor: "#25D366",
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  footerContainer: {
-    backgroundColor: BLUE,
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    marginTop: 20,
-  },
-  footerText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    textAlign: "center",
-    marginBottom: 4,
-  },
+const getPalette = (scheme: "light" | "dark"): Palette => ({
+  primary: scheme === "dark" ? "#9FC3FF" : "#0056A8",
+  onPrimary: "#FFFFFF",
+  background: scheme === "dark" ? "#111418" : "#F5F7FB",
+  surface: scheme === "dark" ? "#151A20" : "#FFFFFF",
+  border: scheme === "dark" ? "#2A313B" : "#E0E4EC",
+  text: scheme === "dark" ? "#ECEDEE" : "#333333",
+  textMuted: scheme === "dark" ? "#A0A7B1" : "#555555",
+  accent: "#F6B800",
+  success: "#25D366",
 });
+
+const getStyles = (scheme: "light" | "dark") => {
+  const palette = getPalette(scheme);
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: palette.background,
+    },
+    scrollContent: {
+      paddingBottom: 0,
+    },
+    heroImage: {
+      width: "100%",
+      height: 190,
+    },
+    actionsContainer: {
+      backgroundColor: palette.surface,
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
+    },
+    actionButton: {
+      marginBottom: 10,
+    },
+    primaryButton: {
+      backgroundColor: palette.primary,
+      paddingVertical: 12,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    primaryButtonText: {
+      color: palette.onPrimary,
+      fontWeight: "600",
+      fontSize: 16,
+    },
+    secondaryButton: {
+      backgroundColor: palette.surface,
+      borderWidth: 1,
+      borderColor: palette.primary,
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: "center",
+    },
+    secondaryButtonText: {
+      color: palette.primary,
+      fontWeight: "500",
+      fontSize: 15,
+    },
+    emotionSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      backgroundColor: palette.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: palette.border,
+    },
+    emotionTitle: {
+      color: palette.primary,
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    emotionSubtitle: {
+      color: palette.text,
+      fontSize: 12,
+      marginTop: 2,
+    },
+    reserveButton: {
+      backgroundColor: palette.accent,
+      paddingHorizontal: 18,
+      paddingVertical: 10,
+      borderRadius: 6,
+    },
+    reserveButtonText: {
+      color: "#000",
+      fontWeight: "700",
+      fontSize: 14,
+    },
+    section: {
+      paddingHorizontal: 16,
+      paddingTop: 18,
+      paddingBottom: 8,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: palette.primary,
+      marginBottom: 6,
+    },
+    sectionSubtitle: {
+      fontSize: 13,
+      color: palette.textMuted,
+      marginBottom: 12,
+    },
+    newsRow: {
+      flexDirection: "row",
+      gap: 12,
+      paddingVertical: 8,
+    },
+    newsCard: {
+      width: 220,
+      height: 120,
+      borderRadius: 8,
+    },
+    sloganImage: {
+      width: "100%",
+      height: 70,
+      marginTop: 4,
+    },
+    servicesRow: {
+      marginTop: 10,
+      rowGap: 12,
+    },
+    serviceCard: {
+      backgroundColor: palette.surface,
+      borderRadius: 10,
+      padding: 14,
+      marginBottom: 10,
+      shadowColor: "#000",
+      shadowOpacity: 0.04,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 2,
+    },
+    serviceTitle: {
+      marginTop: 6,
+      fontWeight: "600",
+      color: palette.primary,
+      fontSize: 15,
+    },
+    serviceDescription: {
+      marginTop: 4,
+      fontSize: 12,
+      color: palette.textMuted,
+    },
+    whatsappButton: {
+      position: "absolute",
+      right: 18,
+      bottom: 26,
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      backgroundColor: palette.success,
+      alignItems: "center",
+      justifyContent: "center",
+      elevation: 4,
+      shadowColor: "#000",
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      shadowOffset: { width: 0, height: 2 },
+    },
+    footerContainer: {
+      backgroundColor: palette.primary,
+      paddingVertical: 18,
+      paddingHorizontal: 16,
+      marginTop: 20,
+    },
+    footerText: {
+      color: palette.onPrimary,
+      fontSize: 12,
+      textAlign: "center",
+      marginBottom: 4,
+    },
+  });
+};

@@ -6,6 +6,7 @@ import {
     View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 type Props = {
     visible: boolean;
@@ -25,8 +26,6 @@ type DayCell = {
     inMonth: boolean;
 };
 
-const SURFACE = '#F5F7FB';
-const DEFAULT_ACCENT = '#0056A8';
 const MINUTE_STEP = 5;
 const QUICK_MINUTES = [0, 15, 30, 45];
 
@@ -103,13 +102,19 @@ export function DateTimePickerModal({
     visible,
     title,
     initialValue,
-    accentColor = DEFAULT_ACCENT,
+    accentColor,
     cancelLabel,
     confirmLabel,
     timeLabel,
     onCancel,
     onConfirm,
 }: Props) {
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme, accentColor);
+    const DEFAULT_ACCENT = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
+    const SURFACE = colorScheme === 'dark' ? '#1F2328' : '#F5F7FB';
+    const finalAccent = accentColor || DEFAULT_ACCENT;
+    
     const [selected, setSelected] = useState<Date>(() => roundUpToMinuteStep(initialValue, MINUTE_STEP));
     const [activeMonth, setActiveMonth] = useState<Date>(() => startOfMonth(initialValue));
 
@@ -153,6 +158,8 @@ export function DateTimePickerModal({
 
     const handleConfirm = () => onConfirm(clampSeconds(selected));
     const formattedTime = `${pad2(selected.getHours())}:${pad2(selected.getMinutes())}`;
+    const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#5C6A80';
+    const stepperIconColor = colorScheme === 'dark' ? '#ECEDEE' : '#0F2848';
 
     if (!visible) return null;
 
@@ -163,7 +170,7 @@ export function DateTimePickerModal({
                 <View style={styles.header}>
                     <Text style={styles.title}>{title}</Text>
                     <Pressable onPress={onCancel} hitSlop={10}>
-                        <Ionicons name="close" size={20} color="#5C6A80" />
+                        <Ionicons name="close" size={20} color={closeIconColor} />
                     </Pressable>
                 </View>
 
@@ -173,7 +180,7 @@ export function DateTimePickerModal({
                         onPress={() => setActiveMonth((m) => addMonths(m, -1))}
                         hitSlop={10}
                     >
-                        <Ionicons name="chevron-back" size={18} color={accentColor} />
+                        <Ionicons name="chevron-back" size={18} color={finalAccent} />
                     </Pressable>
                     <Text style={styles.monthTitle}>{formatMonthTitle(activeMonth)}</Text>
                     <Pressable
@@ -181,7 +188,7 @@ export function DateTimePickerModal({
                         onPress={() => setActiveMonth((m) => addMonths(m, 1))}
                         hitSlop={10}
                     >
-                        <Ionicons name="chevron-forward" size={18} color={accentColor} />
+                        <Ionicons name="chevron-forward" size={18} color={finalAccent} />
                     </Pressable>
                 </View>
 
@@ -201,7 +208,7 @@ export function DateTimePickerModal({
                                 key={cell.key}
                                 style={[
                                     styles.dayCell,
-                                    isSelected && { backgroundColor: accentColor },
+                                    isSelected && { backgroundColor: finalAccent },
                                 ]}
                                 onPress={() => {
                                     const next = applyDay(selected, cell.date);
@@ -228,7 +235,7 @@ export function DateTimePickerModal({
                 <Text style={styles.sectionTitle}>{timeLabel}</Text>
                 <View style={styles.timeSummary}>
                     <Text style={styles.timeSummaryLabel}>HH:MM</Text>
-                    <Text style={[styles.timeSummaryValue, { color: accentColor }]}>
+                    <Text style={[styles.timeSummaryValue, { color: finalAccent }]}>
                         {formattedTime}
                     </Text>
                 </View>
@@ -242,7 +249,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustHours(-1)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="remove" size={16} color="#0F2848" />
+                                <Ionicons name="remove" size={16} color={stepperIconColor} />
                             </Pressable>
                             <Text style={styles.stepperValue}>{pad2(selected.getHours())}</Text>
                             <Pressable
@@ -250,7 +257,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustHours(1)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="add" size={16} color="#0F2848" />
+                                <Ionicons name="add" size={16} color={stepperIconColor} />
                             </Pressable>
                         </View>
                     </View>
@@ -262,7 +269,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustMinutes(-MINUTE_STEP)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="remove" size={16} color="#0F2848" />
+                                <Ionicons name="remove" size={16} color={stepperIconColor} />
                             </Pressable>
                             <Text style={styles.stepperValue}>{pad2(selected.getMinutes())}</Text>
                             <Pressable
@@ -270,7 +277,7 @@ export function DateTimePickerModal({
                                 onPress={() => adjustMinutes(MINUTE_STEP)}
                                 hitSlop={8}
                             >
-                                <Ionicons name="add" size={16} color="#0F2848" />
+                                <Ionicons name="add" size={16} color={stepperIconColor} />
                             </Pressable>
                         </View>
                     </View>
@@ -285,7 +292,7 @@ export function DateTimePickerModal({
                                 key={minute}
                                 style={[
                                     styles.quickChip,
-                                    selectedChip && { backgroundColor: accentColor, borderColor: accentColor },
+                                    selectedChip && { backgroundColor: finalAccent, borderColor: finalAccent },
                                 ]}
                                 onPress={() => setMinutes(minute)}
                             >
@@ -306,7 +313,7 @@ export function DateTimePickerModal({
                     <Pressable style={styles.secondaryButton} onPress={onCancel}>
                         <Text style={styles.secondaryText}>{cancelLabel}</Text>
                     </Pressable>
-                    <Pressable style={[styles.primaryButton, { backgroundColor: accentColor }]} onPress={handleConfirm}>
+                    <Pressable style={[styles.primaryButton, { backgroundColor: finalAccent }]} onPress={handleConfirm}>
                         <Text style={styles.primaryText}>{confirmLabel}</Text>
                     </Pressable>
                 </View>
@@ -315,7 +322,13 @@ export function DateTimePickerModal({
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark', accentColor?: string) => {
+    const isDark = scheme === 'dark';
+    const SURFACE = isDark ? '#1F2328' : '#F5F7FB';
+    const DEFAULT_ACCENT = isDark ? '#9FC3FF' : '#0056A8';
+    const finalAccent = accentColor || DEFAULT_ACCENT;
+
+    return StyleSheet.create({
     overlay: {
         ...StyleSheet.absoluteFillObject,
         justifyContent: 'center',
@@ -324,11 +337,11 @@ const styles = StyleSheet.create({
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(15, 28, 48, 0.5)',
+        backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(15, 28, 48, 0.5)',
         zIndex: 0,
     },
     card: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
         borderRadius: 18,
         padding: 14,
         maxHeight: '92%',
@@ -339,7 +352,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 8 },
         elevation: 8,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E7F3',
+        borderColor: isDark ? '#2A313B' : '#E0E7F3',
     },
     header: {
         flexDirection: 'row',
@@ -351,7 +364,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         fontWeight: '800',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
     },
     monthRow: {
         flexDirection: 'row',
@@ -369,14 +382,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 10,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#1F2A3A' : '#FFFFFF',
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#DCE4F2',
+        borderColor: isDark ? '#2F3A4A' : '#DCE4F2',
     },
     monthTitle: {
         fontSize: 13,
         fontWeight: '800',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
         textTransform: 'capitalize',
     },
     weekHeader: {
@@ -390,7 +403,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 12,
         fontWeight: '800',
-        color: '#5C6A80',
+        color: isDark ? '#A0A7B1' : '#5C6A80',
     },
     calendarGrid: {
         marginTop: 8,
@@ -407,12 +420,12 @@ const styles = StyleSheet.create({
         marginVertical: 2,
     },
     dayText: {
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
         fontSize: 13,
         fontWeight: '800',
     },
     dayTextMuted: {
-        color: '#9BA5B7',
+        color: isDark ? '#5C6A80' : '#9BA5B7',
         fontWeight: '700',
     },
     dayTextSelected: {
@@ -422,7 +435,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         fontSize: 12,
         fontWeight: '800',
-        color: '#1B2F4A',
+        color: isDark ? '#ECEDEE' : '#1B2F4A',
     },
     timeSummary: {
         flexDirection: 'row',
@@ -435,14 +448,14 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     timeSummaryLabel: {
-        color: '#5C6A80',
+        color: isDark ? '#A0A7B1' : '#5C6A80',
         fontSize: 12,
         fontWeight: '700',
     },
     timeSummaryValue: {
         fontSize: 16,
         fontWeight: '800',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
     },
     timeRow: {
         flexDirection: 'row',
@@ -451,10 +464,10 @@ const styles = StyleSheet.create({
     },
     timeColumn: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#1F2A3A' : '#FFFFFF',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#DCE4F2',
+        borderColor: isDark ? '#2F3A4A' : '#DCE4F2',
         padding: 10,
         shadowColor: '#000',
         shadowOpacity: 0.03,
@@ -465,7 +478,7 @@ const styles = StyleSheet.create({
     timeLabel: {
         fontSize: 12,
         fontWeight: '800',
-        color: '#1B2F4A',
+        color: isDark ? '#ECEDEE' : '#1B2F4A',
         marginBottom: 8,
     },
     stepper: {
@@ -481,22 +494,22 @@ const styles = StyleSheet.create({
         width: 34,
         height: 34,
         borderRadius: 10,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#1F2A3A' : '#FFFFFF',
         borderWidth: 1,
-        borderColor: '#DCE4F2',
+        borderColor: isDark ? '#2F3A4A' : '#DCE4F2',
         alignItems: 'center',
         justifyContent: 'center',
     },
     stepperValue: {
         fontSize: 16,
         fontWeight: '800',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
     },
     quickLabel: {
         marginTop: 12,
         fontSize: 12,
         fontWeight: '800',
-        color: '#1B2F4A',
+        color: isDark ? '#ECEDEE' : '#1B2F4A',
     },
     quickRow: {
         flexDirection: 'row',
@@ -509,14 +522,14 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#1F2A3A' : '#FFFFFF',
         borderWidth: 1,
-        borderColor: '#DCE4F2',
+        borderColor: isDark ? '#2F3A4A' : '#DCE4F2',
     },
     quickChipText: {
         fontSize: 13,
         fontWeight: '800',
-        color: '#0F2848',
+        color: isDark ? '#ECEDEE' : '#0F2848',
     },
     quickChipTextSelected: {
         color: '#FFFFFF',
@@ -531,13 +544,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         paddingVertical: 12,
         borderWidth: 1,
-        borderColor: '#DCE4F2',
+        borderColor: isDark ? '#2F3A4A' : '#DCE4F2',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: isDark ? '#1F2A3A' : '#FFFFFF',
     },
     secondaryText: {
-        color: '#1B2F4A',
+        color: isDark ? '#ECEDEE' : '#1B2F4A',
         fontWeight: '800',
         fontSize: 14,
     },
@@ -553,4 +566,5 @@ const styles = StyleSheet.create({
         fontWeight: '800',
         fontSize: 14,
     },
-});
+    });
+};

@@ -3,13 +3,14 @@ import { View, Pressable, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from './themed-text';
-import { styles as globalStyles } from '../styles/events.styles';
+import { getStyles } from '../styles/events.styles';
 import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle } from '../utils/event-translations';
 import { type EventSummary } from '../services/events.service';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
 import { resolveUrl } from '../utils/api';
 import { getEventImage } from '../constants/event-images';
+import { useColorScheme } from '../hooks/use-color-scheme';
 
 type EventCardProps = {
     event: EventSummary;
@@ -21,6 +22,10 @@ type EventCardProps = {
 export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
     const translatedTitle = getTranslatedEventTitle(event, t);
     const isCancelled = event.status === 'CANCELLED';
+    const colorScheme = useColorScheme() ?? 'light';
+    const globalStyles = getStyles(colorScheme);
+    const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
+    const cancelledTextColor = colorScheme === 'dark' ? '#A0A7B1' : '#757575';
 
     // Determine image source
     const imageUrl = event.imageUrl ? resolveUrl(event.imageUrl) : null;
@@ -35,7 +40,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                     hitSlop={10}
                     accessibilityLabel="Hide cancelled event"
                 >
-                    <Ionicons name="close-circle" size={24} color="#666" />
+                    <Ionicons name="close-circle" size={24} color={closeIconColor} />
                 </Pressable>
             )}
 
@@ -66,6 +71,11 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                             ]}
                         >
                             {translatedTitle}
+                        </ThemedText>
+                          
+                    <View style={[globalStyles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
+                        <ThemedText style={[styles.statusText, { color: getStatusTextColor(event.status) }]}>
+                            {getStatusLabel(event.status, t)}
                         </ThemedText>
                         <View style={[globalStyles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
                             <ThemedText style={[styles.statusText, { color: getStatusTextColor(event.status) }]}>
@@ -125,7 +135,6 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
 
 const styles = StyleSheet.create({
     statusText: {
-        color: '#FFFFFF',
         fontWeight: '700',
         fontSize: 10,
     },
@@ -138,6 +147,5 @@ const styles = StyleSheet.create({
     },
     cardCancelled: {
         opacity: 0.8,
-        backgroundColor: '#f9f9f9',
     }
 });

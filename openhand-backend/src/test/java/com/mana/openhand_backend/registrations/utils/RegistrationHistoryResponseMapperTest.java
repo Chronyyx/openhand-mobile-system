@@ -20,7 +20,7 @@ class RegistrationHistoryResponseMapperTest {
 
     @Test
     void toResponseModel_returnsNullWhenRegistrationNull() {
-        assertNull(RegistrationHistoryResponseMapper.toResponseModel(null, RegistrationTimeCategory.ACTIVE));
+        assertNull(RegistrationHistoryResponseMapper.toResponseModel(null, RegistrationTimeCategory.ACTIVE, null));
     }
 
     @Test
@@ -46,7 +46,8 @@ class RegistrationHistoryResponseMapperTest {
 
         RegistrationHistoryResponseModel model = RegistrationHistoryResponseMapper.toResponseModel(
                 registration,
-                RegistrationTimeCategory.ACTIVE
+                RegistrationTimeCategory.ACTIVE,
+                null
         );
 
         assertEquals(42L, model.getRegistrationId());
@@ -73,7 +74,8 @@ class RegistrationHistoryResponseMapperTest {
 
         RegistrationHistoryResponseModel model = RegistrationHistoryResponseMapper.toResponseModel(
                 registration,
-                RegistrationTimeCategory.PAST
+                RegistrationTimeCategory.PAST,
+                null
         );
 
         assertNull(model.getStatus());

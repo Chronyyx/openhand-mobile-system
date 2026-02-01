@@ -3,10 +3,15 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { MenuLayout } from "../../components/menu-layout";
+import { useColorScheme } from "../../hooks/use-color-scheme";
 
 export default function LanguageSettingsScreen() {
         const { t, i18n } = useTranslation();
         const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
+        const colorScheme = useColorScheme() ?? 'light';
+        const styles = getStyles(colorScheme);
+        const BLUE = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
+        const LIGHT_BLUE = colorScheme === 'dark' ? '#1D2A3A' : '#E6F4FE';
 
         const languages = [
             { code: "en", name: t("settings.language.languages.english"), flag: "🇬🇧" },
@@ -40,7 +45,7 @@ export default function LanguageSettingsScreen() {
                 </View>
 
                 <View style={styles.currentLanguageContainer}>
-                    <Ionicons name="globe-outline" size={20} color="#0056A8" />
+                    <Ionicons name="globe-outline" size={20} color={BLUE} />
                     <Text style={styles.currentLanguageLabel}>
                         {t("settings.language.current")}:
                     </Text>
@@ -71,7 +76,7 @@ export default function LanguageSettingsScreen() {
                                 </Text>
                             </View>
                             {selectedLanguage === language.code && (
-                                <Ionicons name="checkmark-circle" size={24} color="#0056A8" />
+                                <Ionicons name="checkmark-circle" size={24} color={BLUE} />
                             )}
                         </Pressable>
                     ))}
@@ -80,14 +85,16 @@ export default function LanguageSettingsScreen() {
         </MenuLayout>
     );
 }
-const BLUE = "#0056A8";
-const LIGHT_BLUE = "#E6F4FE";
 
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    const BLUE = isDark ? '#9FC3FF' : '#0056A8';
+    const LIGHT_BLUE = isDark ? '#1D2A3A' : '#E6F4FE';
 
-const styles = StyleSheet.create({
+    return StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#F5F7FB",
+        backgroundColor: isDark ? '#111418' : '#F5F7FB',
         padding: 20,
     },
     header: {
@@ -102,12 +109,12 @@ const styles = StyleSheet.create({
     },
     subtitle: {
         fontSize: 16,
-        color: "#555",
+        color: isDark ? '#A0A7B1' : '#555',
     },
     currentLanguageContainer: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
         padding: 16,
         borderRadius: 12,
         marginBottom: 20,
@@ -119,7 +126,7 @@ const styles = StyleSheet.create({
     },
     currentLanguageLabel: {
         fontSize: 16,
-        color: "#555",
+        color: isDark ? '#A0A7B1' : '#555',
         marginLeft: 10,
         fontWeight: "500",
     },
@@ -136,7 +143,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: "#FFFFFF",
+        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
         padding: 18,
         borderRadius: 12,
         borderWidth: 2,
@@ -161,11 +168,12 @@ const styles = StyleSheet.create({
     },
     languageName: {
         fontSize: 18,
-        color: "#333",
+        color: isDark ? '#ECEDEE' : '#333',
         fontWeight: "500",
     },
     languageNameSelected: {
         color: BLUE,
         fontWeight: "700",
     },
-});
+    });
+};

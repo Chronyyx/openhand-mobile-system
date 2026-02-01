@@ -6,9 +6,7 @@ import { useRouter } from 'expo-router';
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
-
-const ACCENT = '#0056A8';
-const SURFACE = '#F5F7FB';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 
 export default function AdminDashboardScreen() {
     const router = useRouter();
@@ -16,6 +14,10 @@ export default function AdminDashboardScreen() {
     const { hasRole } = useAuth();
     const isAdmin = hasRole(['ROLE_ADMIN']);
     const [menuVisible, setMenuVisible] = React.useState(false);
+    const colorScheme = useColorScheme() ?? 'light';
+    const ACCENT = colorScheme === 'dark' ? '#6AA9FF' : '#0056A8';
+    const SURFACE = colorScheme === 'dark' ? '#0F1419' : '#F5F7FB';
+    const styles = getStyles(colorScheme);
 
     const handleNavigateHome = () => {
         setMenuVisible(false);
@@ -116,7 +118,17 @@ export default function AdminDashboardScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
+    const SURFACE = isDark ? '#0F1419' : '#F5F7FB';
+    const BG = isDark ? '#1F2328' : '#FFFFFF';
+    const BORDER = isDark ? '#2F3A4A' : '#E0E7F3';
+    const TEXT = isDark ? '#ECEDEE' : '#0F2848';
+    const TEXT_MUTED = isDark ? '#A0A7B1' : '#5C6A80';
+    const INFO_BG = isDark ? '#1D2A3A' : '#EAF1FF';
+
+    return StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: SURFACE,
@@ -128,7 +140,7 @@ const styles = StyleSheet.create({
     },
     hero: {
         flexDirection: 'row',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: BG,
         padding: 16,
         borderRadius: 14,
         alignItems: 'center',
@@ -138,22 +150,24 @@ const styles = StyleSheet.create({
         shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
         elevation: 4,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: BORDER,
     },
     heroIcon: {
         width: 46,
         height: 46,
         borderRadius: 14,
-        backgroundColor: '#EAF1FF',
+        backgroundColor: INFO_BG,
         alignItems: 'center',
         justifyContent: 'center',
     },
     title: {
         fontSize: 20,
         fontWeight: '700',
-        color: '#0F2848',
+        color: TEXT,
     },
     subtitle: {
-        color: '#5C6A80',
+        color: TEXT_MUTED,
         marginTop: 4,
         fontSize: 14,
     },
@@ -167,10 +181,10 @@ const styles = StyleSheet.create({
     sectionLabel: {
         fontSize: 14,
         fontWeight: '700',
-        color: '#1B2F4A',
+        color: TEXT,
     },
     badge: {
-        backgroundColor: '#EAF1FF',
+        backgroundColor: INFO_BG,
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 12,
@@ -183,7 +197,7 @@ const styles = StyleSheet.create({
     card: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: BG,
         borderRadius: 14,
         padding: 14,
         gap: 12,
@@ -193,7 +207,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 3 },
         elevation: 3,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#E0E7F3',
+        borderColor: BORDER,
     },
     cardPressed: {
         transform: [{ scale: 0.99 }],
@@ -202,18 +216,19 @@ const styles = StyleSheet.create({
         width: 42,
         height: 42,
         borderRadius: 12,
-        backgroundColor: '#F3F7FF',
+        backgroundColor: INFO_BG,
         alignItems: 'center',
         justifyContent: 'center',
     },
     cardTitle: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#0F2848',
+        color: TEXT,
     },
     cardDescription: {
         marginTop: 2,
-        color: '#5C6A80',
+        color: TEXT_MUTED,
         fontSize: 13,
     },
-});
+    });
+};

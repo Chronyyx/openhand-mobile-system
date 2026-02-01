@@ -5,6 +5,7 @@ import {
     SectionList,
     StyleSheet,
     View,
+    useColorScheme,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useFocusEffect } from '@react-navigation/native';
@@ -60,6 +61,8 @@ function computeConflictIds(registrations: RegistrationHistoryItem[]): Set<numbe
 export default function MyRegistrationsScreen() {
     const { t } = useTranslation();
     const { user } = useAuth();
+    const colorScheme = useColorScheme();
+    const styles = getStyles(colorScheme === 'dark');
 
     const [registrations, setRegistrations] = useState<RegistrationWithConflict[]>([]);
     const [loading, setLoading] = useState(true);
@@ -137,7 +140,7 @@ export default function MyRegistrationsScreen() {
                     <ThemedText type="subtitle" style={styles.eventTitle}>
                         {translatedTitle}
                     </ThemedText>
-                    <View style={[styles.statusBadge, getStatusStyle(item.status)]}>
+                    <View style={[styles.statusBadge, getStatusStyle(item.status, styles)]}>
                         <ThemedText style={styles.statusText}>
                             {t(`registrations.status.${item.status}`, { defaultValue: item.status })}
                         </ThemedText>
@@ -165,6 +168,26 @@ export default function MyRegistrationsScreen() {
                         {t(`registrations.status.${item.status}`, { defaultValue: item.status })}
                     </ThemedText>
                 </View>
+
+                {item.participants && item.participants.length > 0 && (
+                    <View style={styles.participantsSection}>
+                        <ThemedText style={styles.label}>
+                            {t('registrations.participantsLabel')}
+                        </ThemedText>
+                        <View style={styles.participantsList}>
+                            {item.participants.map((participant, index) => {
+                                const name = participant.fullName || t('registrations.participantUnknown');
+                                const age = participant.age != null ? ` (${participant.age})` : '';
+                                const primary = participant.primaryRegistrant ? ` ${t('registrations.participantPrimary')}` : '';
+                                return (
+                                    <ThemedText key={`${participant.registrationId}-${index}`} style={styles.participantItem}>
+                                        • {name}{age}{primary}
+                                    </ThemedText>
+                                );
+                            })}
+                        </View>
+                    </View>
+                )}
 
                 {item.hasConflict && (
                     <View style={styles.conflictBox}>
@@ -248,7 +271,7 @@ export default function MyRegistrationsScreen() {
     );
 }
 
-function getStatusStyle(status: RegistrationStatus) {
+function getStatusStyle(status: RegistrationStatus, styles: ReturnType<typeof getStyles>) {
     switch (status) {
         case 'CONFIRMED':
             return styles.statusConfirmed;
@@ -261,9 +284,45 @@ function getStatusStyle(status: RegistrationStatus) {
     }
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+    const colors = isDark
+        ? {
+            background: '#0F1419',
+            surface: '#1F2328',
+            text: '#ECEDEE',
+            textMuted: '#A0A7B1',
+            border: '#3A3F47',
+            error: '#FF6B6B',
+            statusConfirmed: '#51CF66',
+            statusWaitlisted: '#FFD43B',
+            statusCancelled: '#6B7280',
+            statusDefault: '#6AA9FF',
+            conflictBg: '#33261A',
+            conflictBorder: '#8A6A2B',
+            conflictBadge: '#FF6B6B',
+            conflictHint: '#FFD7A1',
+        }
+        : {
+            background: '#F5F7FB',
+            surface: '#FFFFFF',
+            text: '#333333',
+            textMuted: '#6b7280',
+            border: '#E0E4EC',
+            error: '#D32F2F',
+            statusConfirmed: '#16a34a',
+            statusWaitlisted: '#f59e0b',
+            statusCancelled: '#9ca3af',
+            statusDefault: '#2563eb',
+            conflictBg: '#fff7ed',
+            conflictBorder: '#f59e0b',
+            conflictBadge: '#dc2626',
+            conflictHint: '#9a3412',
+        };
+
+    return StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: colors.background,
         paddingHorizontal: 16,
         paddingTop: 16,
         paddingBottom: 24,
@@ -280,9 +339,10 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 12,
+        color: colors.textMuted,
     },
     errorText: {
-        color: 'red',
+        color: colors.error,
         textAlign: 'center',
     },
     listContent: {
@@ -297,17 +357,18 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontWeight: '700',
+        color: colors.text,
     },
     sectionCount: {
-        color: '#6b7280',
+        color: colors.textMuted,
         fontSize: 12,
     },
     sectionEmptyText: {
-        color: '#6b7280',
+        color: colors.textMuted,
         marginBottom: 12,
     },
     card: {
-        backgroundColor: '#ffffff',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -327,6 +388,7 @@ const styles = StyleSheet.create({
         flex: 1,
         marginRight: 10,
         fontWeight: '700',
+        color: colors.text,
     },
     row: {
         flexDirection: 'row',
@@ -335,9 +397,22 @@ const styles = StyleSheet.create({
     label: {
         width: 80,
         fontWeight: '600',
+        color: colors.textMuted,
     },
     value: {
         flex: 1,
+        color: colors.text,
+    },
+    participantsSection: {
+        marginTop: 8,
+    },
+    participantsList: {
+        marginTop: 4,
+        gap: 2,
+    },
+    participantItem: {
+        fontSize: 13,
+        color: colors.textMuted,
     },
     statusBadge: {
         borderRadius: 999,
@@ -350,29 +425,29 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     statusConfirmed: {
-        backgroundColor: '#16a34a',
+        backgroundColor: colors.statusConfirmed,
     },
     statusWaitlisted: {
-        backgroundColor: '#f59e0b',
+        backgroundColor: colors.statusWaitlisted,
     },
     statusCancelled: {
-        backgroundColor: '#9ca3af',
+        backgroundColor: colors.statusCancelled,
     },
     statusDefault: {
-        backgroundColor: '#2563eb',
+        backgroundColor: colors.statusDefault,
     },
     conflictBox: {
         marginTop: 10,
         padding: 10,
         borderRadius: 10,
-        backgroundColor: '#fff7ed',
+        backgroundColor: colors.conflictBg,
         borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#f59e0b',
+        borderColor: colors.conflictBorder,
         gap: 6,
     },
     conflictBadge: {
         alignSelf: 'flex-start',
-        backgroundColor: '#dc2626',
+        backgroundColor: colors.conflictBadge,
         borderRadius: 8,
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -383,7 +458,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     conflictHint: {
-        color: '#9a3412',
+        color: colors.conflictHint,
         fontSize: 12,
     },
-});
+    });
+};

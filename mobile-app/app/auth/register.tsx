@@ -12,9 +12,10 @@ import {
     Keyboard,
     ScrollView,
 } from "react-native";
-import { styles } from "../../styles/auth.register.styles";
+import { getStyles } from "../../styles/auth.register.styles";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
+import { useColorScheme } from "../../hooks/use-color-scheme";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -22,6 +23,8 @@ export default function RegisterScreen() {
     const router = useRouter();
     const { t } = useTranslation();
     const { signUp } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
 
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -35,6 +38,9 @@ export default function RegisterScreen() {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const iconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
+    const placeholderColor = colorScheme === 'dark' ? '#8B93A1' : '#999';
 
     const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -113,11 +119,11 @@ export default function RegisterScreen() {
                         <View style={styles.inputContainer}>
                             {/* NAME */}
                             <View style={styles.inputWrapper}>
-                                <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+                                <Ionicons name="person-outline" size={20} color={iconColor} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t("auth.name_placeholder")}
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={placeholderColor}
                                     value={name}
                                     onChangeText={setName}
                                     accessibilityLabel={t("auth.name_placeholder")}
@@ -126,11 +132,11 @@ export default function RegisterScreen() {
 
                             {/* EMAIL */}
                             <View style={styles.inputWrapper}>
-                                <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+                                <Ionicons name="mail-outline" size={20} color={iconColor} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t("auth.email_placeholder")}
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={placeholderColor}
                                     value={email}
                                     onChangeText={setEmail}
                                     autoCapitalize="none"
@@ -141,11 +147,11 @@ export default function RegisterScreen() {
 
                             {/* PHONE */}
                             <View style={styles.inputWrapper}>
-                                <Ionicons name="call-outline" size={20} color="#666" style={styles.inputIcon} />
+                                <Ionicons name="call-outline" size={20} color={iconColor} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t("auth.phone_placeholder")}
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={placeholderColor}
                                     value={phoneNumber}
                                     onChangeText={setPhoneNumber}
                                     keyboardType="phone-pad"
@@ -155,11 +161,11 @@ export default function RegisterScreen() {
 
                             {/* AGE */}
                             <View style={styles.inputWrapper}>
-                                <Ionicons name="calendar-outline" size={20} color="#666" style={styles.inputIcon} />
+                                <Ionicons name="calendar-outline" size={20} color={iconColor} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t("auth.age_placeholder")}
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={placeholderColor}
                                     value={age}
                                     onChangeText={setAge}
                                     keyboardType="number-pad"
@@ -197,11 +203,11 @@ export default function RegisterScreen() {
 
                             {/* PASSWORD */}
                             <View style={styles.inputWrapper}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                                <Ionicons name="lock-closed-outline" size={20} color={iconColor} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t("auth.password_placeholder")}
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={placeholderColor}
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry={!isPasswordVisible}
@@ -210,18 +216,18 @@ export default function RegisterScreen() {
                                     <Ionicons
                                         name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                         size={20}
-                                        color="#666"
+                                        color={iconColor}
                                     />
                                 </TouchableOpacity>
                             </View>
 
                             {/* CONFIRM PASSWORD */}
                             <View style={styles.inputWrapper}>
-                                <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                                <Ionicons name="lock-closed-outline" size={20} color={iconColor} style={styles.inputIcon} />
                                 <TextInput
                                     style={styles.input}
                                     placeholder={t("auth.confirm_password_placeholder")}
-                                    placeholderTextColor="#999"
+                                    placeholderTextColor={placeholderColor}
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
                                     secureTextEntry={!isPasswordVisible}
@@ -234,7 +240,7 @@ export default function RegisterScreen() {
                         {/* ERROR MESSAGE */}
                         {error && (
                             <View style={styles.errorContainer}>
-                                <Ionicons name="alert-circle" size={18} color="#D32F2F" />
+                                <Ionicons name="alert-circle" size={18} color={colorScheme === 'dark' ? '#FFB4AB' : '#D32F2F'} />
                                 <Text style={styles.errorText}>{error}</Text>
                             </View>
                         )}
@@ -242,7 +248,7 @@ export default function RegisterScreen() {
                         {/* REGISTER BUTTON */}
                         <View style={styles.buttonContainer}>
                             {loading ? (
-                                <ActivityIndicator size="large" color="#0056A8" />
+                                <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                             ) : (
                                 <TouchableOpacity style={styles.loginButton} onPress={handleRegister} activeOpacity={0.8}>
                                     <Text style={styles.loginButtonText}>{t("auth.register_button")}</Text>

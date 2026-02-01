@@ -15,7 +15,7 @@ export interface Notification {
 }
 
 export function useNotifications() {
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
@@ -79,7 +79,8 @@ export function useNotifications() {
     useEffect(() => {
         let mounted = true;
 
-        if (user?.token) {
+        // Wait for auth to finish loading before making API calls
+        if (!isLoading && user?.token) {
             // Initial fetch
             fetchNotifications();
 
@@ -115,7 +116,7 @@ export function useNotifications() {
         // Removed fetchNotifications from dependency array to avoid potential loops if the function identity is unstable.
         // We fundamentally depend on 'user' (specifically user.token and user.id).
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user?.token, user?.id]);
+    }, [isLoading, user?.token, user?.id]);
 
     return {
         notifications,

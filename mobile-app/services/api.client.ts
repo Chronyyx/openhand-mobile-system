@@ -13,15 +13,19 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
     async (config) => {
         const userStr = await getItem('userToken');
+        console.log('[API] Request interceptor - userStr:', userStr ? 'Found' : 'NOT FOUND');
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
+                console.log('[API] Request interceptor - user.token:', user?.token ? `Bearer ${user.token.substring(0, 20)}...` : 'NO TOKEN');
                 if (user?.token) {
                     config.headers.Authorization = `Bearer ${user.token}`;
                 }
             } catch (e) {
                 console.error('[API] Error parsing user token', e);
             }
+        } else {
+            console.warn('[API] No userToken found in storage for request:', config.url);
         }
         return config;
     },

@@ -17,6 +17,7 @@ import { ThemedView } from '../../components/themed-view';
 import { NotificationCard } from '../../components/NotificationCard';
 import { MenuLayout } from '../../components/menu-layout';
 import { useAuth } from '../../context/AuthContext';
+import { useColorScheme } from '../../hooks/use-color-scheme';
 import {
     getNotifications,
     getUnreadCount,
@@ -28,7 +29,18 @@ import {
 
 export default function NotificationsScreen() {
     const { t } = useTranslation();
-    const { user } = useAuth();
+    const { user, isLoading } = useAuth();
+    const colorScheme = useColorScheme() ?? 'light';
+    const styles = getStyles(colorScheme);
+    const palette = {
+        primary: colorScheme === 'dark' ? '#6AA9FF' : '#0056A8',
+        primarySurface: colorScheme === 'dark' ? '#1D2A3A' : '#E6F4FE',
+        danger: colorScheme === 'dark' ? '#FFB4AB' : '#DC3545',
+        dangerSurface: colorScheme === 'dark' ? '#3A1F1F' : '#FFE6E6',
+        muted: colorScheme === 'dark' ? '#A0A7B1' : '#999999',
+        iconMuted: colorScheme === 'dark' ? '#8B93A1' : '#CCCCCC',
+        text: colorScheme === 'dark' ? '#ECEDEE' : '#333333',
+    };
 
     // Ref to track last action time to prevent race conditions with focus reload
     const lastActionTimeRef = useRef<number>(0);
@@ -42,15 +54,20 @@ export default function NotificationsScreen() {
 
     // Load notifications
     const loadNotifications = useCallback(async (isRefresh = false) => {
-        if (!user) return;
+        console.log('[NotificationsScreen] loadNotifications - isLoading:', isLoading, 'user:', user ? 'Found' : 'NOT FOUND');
+        if (!user || isLoading) {
+            console.log('[NotificationsScreen] loadNotifications - SKIPPED (no user or still loading)');
+            return;
+        }
 
+        console.log('[NotificationsScreen] loadNotifications - proceeding');
         try {
             setError(null);
             if (!isRefresh) setLoading(true);
 
             const [notifs, unread] = await Promise.all([
-                getNotifications(user.token),
-                getUnreadCount(user.token),
+                getNotifications(),
+                getUnreadCount(),
             ]);
 
             setNotifications(notifs);
@@ -62,26 +79,34 @@ export default function NotificationsScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [user, t]);
+    }, [user, t, isLoading]);
 
     // Reload when screen comes into focus (but skip if we just performed an action)
     useFocusEffect(
         useCallback(() => {
-            if (user) {
+            console.log('[NotificationsScreen] useFocusEffect - isLoading:', isLoading, 'user:', user ? 'Found' : 'NOT FOUND');
+            if (user && !isLoading) {
                 const timeSinceLastAction = Date.now() - lastActionTimeRef.current;
                 // Only auto-reload if it's been more than 2 seconds since last action
                 // This prevents race conditions with optimistic updates
                 if (timeSinceLastAction > 2000) {
+                    console.log('[NotificationsScreen] useFocusEffect - calling loadNotifications');
                     loadNotifications(true);
+                } else {
+                    console.log('[NotificationsScreen] useFocusEffect - SKIPPED (too soon after last action)');
                 }
             }
-        }, [user, loadNotifications])
+        }, [user, loadNotifications, isLoading])
     );
 
     // Initial load
     useEffect(() => {
-        loadNotifications();
-    }, [user, loadNotifications]);
+        console.log('[NotificationsScreen] useEffect - isLoading:', isLoading);
+        if (!isLoading) {
+            console.log('[NotificationsScreen] useEffect - calling loadNotifications');
+            loadNotifications();
+        }
+    }, [loadNotifications, isLoading]);
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
@@ -102,7 +127,7 @@ export default function NotificationsScreen() {
             setUnreadCount(count => Math.max(0, count - 1));
 
             // Then update on server
-            await markAsRead(notification.id, user.token);
+            await markAsRead(notification.id);
             // Don't reload immediately - trust the optimistic update to avoid race conditions
         } catch (err) {
             console.error('Failed to mark notification as read', err);
@@ -126,7 +151,7 @@ export default function NotificationsScreen() {
             }
 
             // Delete on server
-            await deleteNotification(notification.id, user.token);
+            await deleteNotification(notification.id);
             // Don't reload immediately - trust the optimistic update to avoid race conditions
         } catch (err) {
             console.error('Failed to delete notification', err);
@@ -150,7 +175,7 @@ export default function NotificationsScreen() {
             setUnreadCount(0);
 
             // Update on server
-            await markAllAsRead(user.token);
+            await markAllAsRead();
             // Don't reload immediately - trust the optimistic update to avoid race conditions
         } catch (err) {
             console.error('Failed to mark all as read', err);
@@ -191,7 +216,7 @@ export default function NotificationsScreen() {
                             onPress={handleMarkAllAsRead}
                             style={styles.markAllButton}
                         >
-                            <Ionicons name="checkmark" size={20} color="#0056A8" />
+                            <Ionicons name="checkmark" size={20} color={palette.primary} />
                             <ThemedText style={styles.markAllText}>
                                 {t('notifications.markAllAsRead', 'Mark all read')}
                             </ThemedText>
@@ -202,10 +227,10 @@ export default function NotificationsScreen() {
                 {/* Error message */}
                 {error && (
                     <View style={styles.errorContainer}>
-                        <Ionicons name="alert-circle" size={20} color="#dc3545" />
+                        <Ionicons name="alert-circle" size={20} color={palette.danger} />
                         <ThemedText style={styles.errorText}>{error}</ThemedText>
                         <Pressable onPress={() => setError(null)}>
-                            <Ionicons name="close" size={20} color="#dc3545" />
+                            <Ionicons name="close" size={20} color={palette.danger} />
                         </Pressable>
                     </View>
                 )}
@@ -213,7 +238,7 @@ export default function NotificationsScreen() {
                 {/* Loading state */}
                 {loading && !refreshing ? (
                     <View style={styles.centerContainer}>
-                        <ActivityIndicator size="large" color="#0056A8" />
+                        <ActivityIndicator size="large" color={palette.primary} />
                         <ThemedText style={styles.loadingText}>
                             {t('notifications.loading', 'Loading notifications...')}
                         </ThemedText>
@@ -221,7 +246,7 @@ export default function NotificationsScreen() {
                 ) : notifications.length === 0 ? (
                     /* Empty state */
                     <View style={styles.centerContainer}>
-                        <Ionicons name="notifications-off-outline" size={64} color="#ccc" />
+                        <Ionicons name="notifications-off-outline" size={64} color={palette.iconMuted} />
                         <ThemedText style={styles.emptyText}>
                             {t('notifications.empty', 'No notifications yet')}
                         </ThemedText>
@@ -251,7 +276,7 @@ export default function NotificationsScreen() {
                             <RefreshControl
                                 refreshing={refreshing}
                                 onRefresh={onRefresh}
-                                colors={['#0056A8']}
+                                colors={[palette.primary]}
                                 enabled={true}
                             />
                         }
@@ -269,102 +294,105 @@ export default function NotificationsScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F7FB',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingTop: 40,
-        paddingBottom: 12,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
-    },
-    headerTitle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: '700',
-        color: '#333',
-    },
-    badge: {
-        backgroundColor: '#dc3545',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        minWidth: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    badgeText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    markAllButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        backgroundColor: '#E6F4FE',
-        borderRadius: 6,
-    },
-    markAllText: {
-        fontSize: 12,
-        color: '#0056A8',
-        fontWeight: '600',
-    },
-    errorContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#ffe6e6',
-        marginHorizontal: 8,
-        marginTop: 8,
-        borderRadius: 6,
-    },
-    errorText: {
-        flex: 1,
-        fontSize: 13,
-        color: '#dc3545',
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 24,
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: '#666',
-    },
-    emptyText: {
-        marginTop: 16,
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#333',
-        textAlign: 'center',
-    },
-    emptySubtext: {
-        marginTop: 8,
-        fontSize: 14,
-        color: '#999',
-        textAlign: 'center',
-    },
-    listContent: {
-        paddingVertical: 8,
-        paddingHorizontal: 0,
-    },
-});
+const getStyles = (scheme: 'light' | 'dark') => {
+    const isDark = scheme === 'dark';
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: isDark ? '#111418' : '#F5F7FB',
+        },
+        header: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingTop: 40,
+            paddingBottom: 12,
+            backgroundColor: isDark ? '#151A20' : '#fff',
+            borderBottomWidth: 1,
+            borderBottomColor: isDark ? '#2A313B' : '#E0E0E0',
+        },
+        headerTitle: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+        },
+        title: {
+            fontSize: 28,
+            fontWeight: '700',
+            color: isDark ? '#ECEDEE' : '#333',
+        },
+        badge: {
+            backgroundColor: isDark ? '#B3261E' : '#DC3545',
+            borderRadius: 12,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            minWidth: 24,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        badgeText: {
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: '700',
+        },
+        markAllButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 12,
+            paddingVertical: 8,
+            backgroundColor: isDark ? '#1D2A3A' : '#E6F4FE',
+            borderRadius: 6,
+        },
+        markAllText: {
+            fontSize: 12,
+            color: isDark ? '#9FC3FF' : '#0056A8',
+            fontWeight: '600',
+        },
+        errorContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            backgroundColor: isDark ? '#3A1F1F' : '#FFE6E6',
+            marginHorizontal: 8,
+            marginTop: 8,
+            borderRadius: 6,
+        },
+        errorText: {
+            flex: 1,
+            fontSize: 13,
+            color: isDark ? '#FFB4AB' : '#DC3545',
+        },
+        centerContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 24,
+        },
+        loadingText: {
+            marginTop: 12,
+            fontSize: 16,
+            color: isDark ? '#A0A7B1' : '#666',
+        },
+        emptyText: {
+            marginTop: 16,
+            fontSize: 18,
+            fontWeight: '600',
+            color: isDark ? '#ECEDEE' : '#333',
+            textAlign: 'center',
+        },
+        emptySubtext: {
+            marginTop: 8,
+            fontSize: 14,
+            color: isDark ? '#A0A7B1' : '#999',
+            textAlign: 'center',
+        },
+        listContent: {
+            paddingVertical: 8,
+            paddingHorizontal: 0,
+        },
+    });
+};

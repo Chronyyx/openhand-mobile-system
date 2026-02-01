@@ -231,6 +231,7 @@
       "eventCompleted": "Este evento ya finalizó y no acepta inscripciones.",
       "alreadyRegistered": "Ya estás registrado para este evento.",
       "inactiveMember": "Está inactivo y no puede registrarse en nuevos eventos. Por favor, contacte con un administrador.",
+      "accessDenied": "Acceso denegado. Inicia sesión con una cuenta de miembro.",
       "registrationFailed": "El registro falló. Por favor, intenta nuevamente.",
       "unregisterFailed": "No se pudo cancelar la inscripción. Por favor, intenta nuevamente."
     },
@@ -251,6 +252,20 @@
     },
     "accessibility": {
       "viewDetails": "Ver detalles, {{title}}"
+    },
+    "family": {
+      "title": "Familiares",
+      "addButton": "Agregar familiar",
+      "removeButton": "Quitar",
+      "hint": "Agrega familiares para registrarse juntos.",
+      "fullNamePlaceholder": "Nombre completo",
+      "agePlaceholder": "Edad",
+      "relationPlaceholder": "Relaci?n (opcional)",
+      "totalParticipants": "Participantes totales",
+      "validationError": "Ingrese un nombre y una edad para cada familiar.",
+      "capacityError": "No hay capacidad suficiente para su grupo.",
+      "participantsTitle": "Participantes",
+      "unknownParticipant": "Participante"
     },
     "registrationSummary": {
       "title": "Resumen de Inscripciones",
@@ -351,6 +366,9 @@
     "loginRequired": "Inicia sesión para ver tus inscripciones.",
     "conflict": "Conflicto de horario",
     "conflictHint": "Se superpone con otra inscripción.",
+    "participantsLabel": "Participantes",
+    "participantUnknown": "Participante desconocido",
+    "participantPrimary": "(Principal)",
     "overlapTitle": "Conflicto de horario detectado",
     "overlapMessage": "Este evento se superpone con otro al que ya estás inscrito. Puedes continuar de todos modos.",
     "overlapProceed": "Continuar",

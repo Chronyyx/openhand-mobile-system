@@ -7,17 +7,20 @@ public class RegistrationHistoryResponseModel {
     private String createdAt;
     private RegistrationTimeCategory timeCategory;
     private RegistrationHistoryEventResponseModel event;
+    private java.util.List<ParticipantResponseModel> participants;
 
     public RegistrationHistoryResponseModel() {
     }
 
     public RegistrationHistoryResponseModel(Long registrationId, String status, String createdAt,
-            RegistrationTimeCategory timeCategory, RegistrationHistoryEventResponseModel event) {
+            RegistrationTimeCategory timeCategory, RegistrationHistoryEventResponseModel event,
+            java.util.List<ParticipantResponseModel> participants) {
         this.registrationId = registrationId;
         this.status = status;
         this.createdAt = createdAt;
         this.timeCategory = timeCategory;
         this.event = event;
+        this.participants = participants;
     }
 
     public Long getRegistrationId() {
@@ -58,5 +61,13 @@ public class RegistrationHistoryResponseModel {
 
     public void setEvent(RegistrationHistoryEventResponseModel event) {
         this.event = event;
+    }
+
+    public java.util.List<ParticipantResponseModel> getParticipants() {
+        return participants;
+    }
+
+    public void setParticipants(java.util.List<ParticipantResponseModel> participants) {
+        this.participants = participants;
     }
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Pressable, useColorScheme } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { ThemedText } from './themed-text';
 import { RegistrationSummary } from '../services/events.service';
@@ -11,19 +11,39 @@ export type RegistrationSummaryComponentProps = {
     onRetry?: () => void;
 };
 
-export function RegistrationSummaryComponent({
+export function RegistrationSummaryComponent({ 
     summary,
     loading,
     error,
     onRetry,
-}: RegistrationSummaryComponentProps) {
+ }: RegistrationSummaryComponentProps) {
     const { t } = useTranslation();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
+    const palette = isDark
+        ? {
+            primary: '#6AA9FF',
+            progress: {
+                green: '#51CF66',
+                orange: '#FFD43B',
+                red: '#FF6B6B',
+            },
+        }
+        : {
+            primary: '#0057B8',
+            progress: {
+                green: '#4CAF50',
+                orange: '#F57C00',
+                red: '#D32F2F',
+            },
+        };
+    const styles = getStyles(isDark);
 
     if (loading) {
         return (
             <View style={styles.container}>
                 <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="small" color="#0057B8" />
+                    <ActivityIndicator size="small" color={palette.primary} />
                     <ThemedText style={styles.loadingText}>
                         {t('events.registrationSummary.loading', 'Loading summary...')}
                     </ThemedText>
@@ -130,10 +150,10 @@ export function RegistrationSummaryComponent({
                                         width: `${Math.min(percentageFull, 100)}%`,
                                         backgroundColor:
                                             percentageFull >= 100
-                                                ? '#D32F2F'
+                                                ? palette.progress.red
                                                 : percentageFull >= 80
-                                                    ? '#F57C00'
-                                                    : '#4CAF50',
+                                                    ? palette.progress.orange
+                                                    : palette.progress.green,
                                     },
                                 ]}
                             />
@@ -200,6 +220,20 @@ export function RegistrationSummaryComponent({
                                 <ThemedText style={styles.attendeeEmail}>
                                     {attendee.userEmail}
                                 </ThemedText>
+                                {attendee.participants && attendee.participants.length > 0 && (
+                                    <View style={styles.participantList}>
+                                        {attendee.participants.map((participant, index) => (
+                                            <ThemedText
+                                                key={`${participant.registrationId}-${index}`}
+                                                style={styles.participantItem}
+                                            >
+                                                • {participant.fullName || t('registrations.participantUnknown')}
+                                                {participant.primaryRegistrant ? ` ${t('registrations.participantPrimary')}` : ''}
+                                                {participant.age != null ? ` (${participant.age})` : ''}
+                                            </ThemedText>
+                                        ))}
+                                    </View>
+                                )}
                             </View>
                             <View style={styles.attendeeStatusContainer}>
                                 <View 
@@ -252,7 +286,66 @@ export function RegistrationSummaryComponent({
     );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => {
+    const colors = isDark
+        ? {
+            text: '#ECEDEE',
+            textSecondary: '#A0A7B1',
+            border: '#3A3F47',
+            divider: '#2A2F36',
+            statBg: '#1A3A52',
+            statBorder: '#4A7BA7',
+            statValue: '#6AA9FF',
+            progressBg: '#3A3F47',
+            messageBg: '#1A2633',
+            messageText: '#FFD43B',
+            messageBorder: '#4A5F3F',
+            emptyBg: '#1F2328',
+            emptyText: '#A0A7B1',
+            errorBg: '#3A2626',
+            errorText: '#FF6B6B',
+            errorBorder: '#8B4545',
+            statusActiveBg: '#1A4620',
+            statusInactiveBg: '#4A2626',
+            statusActiveText: '#51CF66',
+            statusInactiveText: '#FF6B6B',
+            statusConfirmedBg: '#1A4620',
+            statusWaitlistedBg: '#4A4620',
+            statusConfirmedText: '#51CF66',
+            statusWaitlistedText: '#FFD43B',
+            noSpots: '#FF6B6B',
+            limitedSpots: '#FFD43B',
+        }
+        : {
+            text: '#333333',
+            textSecondary: '#666666',
+            border: '#E0E0E0',
+            divider: '#F0F0F0',
+            statBg: '#E8F4FD',
+            statBorder: '#0057B8',
+            statValue: '#0057B8',
+            progressBg: '#E0E0E0',
+            messageBg: '#FFF3CD',
+            messageText: '#856404',
+            messageBorder: '#FFC107',
+            emptyBg: '#F5F5F5',
+            emptyText: '#999999',
+            errorBg: '#FFEBEE',
+            errorText: '#D32F2F',
+            errorBorder: '#D32F2F',
+            statusActiveBg: '#E8F5E9',
+            statusInactiveBg: '#FFEBEE',
+            statusActiveText: '#2E7D32',
+            statusInactiveText: '#C62828',
+            statusConfirmedBg: '#C8E6C9',
+            statusWaitlistedBg: '#FFF9C4',
+            statusConfirmedText: '#1B5E20',
+            statusWaitlistedText: '#F57F17',
+            noSpots: '#D32F2F',
+            limitedSpots: '#F57C00',
+        };
+
+    return StyleSheet.create({
     container: {
         marginTop: 16,
         paddingHorizontal: 0,
@@ -266,13 +359,13 @@ const styles = StyleSheet.create({
         marginTop: 20,
         paddingTop: 16,
         borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
+        borderTopColor: colors.border,
     },
     attendeesSectionTitle: {
         fontWeight: '700',
         fontSize: 14,
         marginBottom: 12,
-        color: '#333',
+        color: colors.text,
     },
     attendeeItem: {
         flexDirection: 'row',
@@ -281,7 +374,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#F0F0F0',
+        borderBottomColor: colors.divider,
     },
     attendeeInfo: {
         flex: 1,
@@ -290,17 +383,25 @@ const styles = StyleSheet.create({
     attendeeName: {
         fontWeight: '600',
         fontSize: 13,
-        color: '#333',
+        color: colors.text,
         marginBottom: 2,
     },
     attendeeEmail: {
         fontSize: 11,
-        color: '#999',
+        color: colors.textSecondary,
     },
     attendeeStatusContainer: {
         flexDirection: 'row',
         gap: 6,
         alignItems: 'center',
+    },
+    participantList: {
+        marginTop: 6,
+        gap: 2,
+    },
+    participantItem: {
+        fontSize: 11,
+        color: colors.textSecondary,
     },
     memberStatusBadge: {
         paddingHorizontal: 8,
@@ -308,20 +409,20 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     activeStatus: {
-        backgroundColor: '#E8F5E9',
+        backgroundColor: colors.statusActiveBg,
     },
     inactiveStatus: {
-        backgroundColor: '#FFEBEE',
+        backgroundColor: colors.statusInactiveBg,
     },
     memberStatusText: {
         fontSize: 11,
         fontWeight: '600',
     },
     activeStatusText: {
-        color: '#2E7D32',
+        color: colors.statusActiveText,
     },
     inactiveStatusText: {
-        color: '#C62828',
+        color: colors.statusInactiveText,
     },
     registrationStatusBadge: {
         paddingHorizontal: 8,
@@ -329,20 +430,20 @@ const styles = StyleSheet.create({
         borderRadius: 12,
     },
     confirmedStatus: {
-        backgroundColor: '#C8E6C9',
+        backgroundColor: colors.statusConfirmedBg,
     },
     waitlistedStatus: {
-        backgroundColor: '#FFF9C4',
+        backgroundColor: colors.statusWaitlistedBg,
     },
     registrationStatusText: {
         fontSize: 11,
         fontWeight: '600',
     },
     confirmedStatusText: {
-        color: '#1B5E20',
+        color: colors.statusConfirmedText,
     },
     waitlistedStatusText: {
-        color: '#F57F17',
+        color: colors.statusWaitlistedText,
     },
     statsRow: {
         flexDirection: 'row',
@@ -351,22 +452,22 @@ const styles = StyleSheet.create({
     },
     statItem: {
         flex: 1,
-        backgroundColor: '#E8F4FD',
+        backgroundColor: colors.statBg,
         borderRadius: 8,
         padding: 12,
         borderLeftWidth: 4,
-        borderLeftColor: '#0057B8',
+        borderLeftColor: colors.statBorder,
     },
     statLabel: {
         fontSize: 12,
-        color: '#666',
+        color: colors.textSecondary,
         marginBottom: 4,
         fontWeight: '600',
     },
     statValue: {
         fontSize: 24,
         fontWeight: '700',
-        color: '#0057B8',
+        color: colors.statValue,
     },
     capacityRow: {
         flexDirection: 'row',
@@ -374,23 +475,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: colors.border,
     },
     capacityLabel: {
         fontWeight: '600',
-        color: '#666',
+        color: colors.textSecondary,
         fontSize: 14,
     },
     capacityValue: {
         fontSize: 16,
         fontWeight: '700',
-        color: '#333',
+        color: colors.text,
     },
     noSpotsText: {
-        color: '#D32F2F',
+        color: colors.noSpots,
     },
     limitedSpotsText: {
-        color: '#F57C00',
+        color: colors.limitedSpots,
     },
     progressContainer: {
         marginVertical: 12,
@@ -398,7 +499,7 @@ const styles = StyleSheet.create({
     },
     progressBar: {
         height: 20,
-        backgroundColor: '#E0E0E0',
+        backgroundColor: colors.progressBg,
         borderRadius: 10,
         overflow: 'hidden',
         flexDirection: 'row',
@@ -410,31 +511,31 @@ const styles = StyleSheet.create({
     percentageText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#666',
+        color: colors.textSecondary,
         textAlign: 'center',
     },
     messageBox: {
-        backgroundColor: '#FFF3CD',
+        backgroundColor: colors.messageBg,
         borderRadius: 8,
         padding: 10,
         marginTop: 12,
         borderLeftWidth: 4,
-        borderLeftColor: '#FFC107',
+        borderLeftColor: colors.messageBorder,
     },
     messageText: {
         fontSize: 13,
-        color: '#856404',
+        color: colors.messageText,
         lineHeight: 18,
     },
     emptyStateBox: {
-        backgroundColor: '#F5F5F5',
+        backgroundColor: colors.emptyBg,
         borderRadius: 8,
         padding: 16,
         marginTop: 12,
         alignItems: 'center',
     },
     emptyStateText: {
-        color: '#999',
+        color: colors.emptyText,
         fontSize: 14,
         fontStyle: 'italic',
     },
@@ -446,27 +547,27 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontSize: 14,
-        color: '#666',
+        color: colors.textSecondary,
     },
     errorContainer: {
-        backgroundColor: '#FFEBEE',
+        backgroundColor: colors.errorBg,
         borderRadius: 8,
         padding: 12,
         gap: 8,
         borderLeftWidth: 4,
-        borderLeftColor: '#D32F2F',
+        borderLeftColor: colors.errorBorder,
     },
     errorText: {
-        color: '#D32F2F',
+        color: colors.errorText,
         fontWeight: '600',
         fontSize: 13,
     },
     errorHint: {
-        color: '#666',
+        color: colors.textSecondary,
         fontSize: 12,
     },
     retryButton: {
-        backgroundColor: '#D32F2F',
+        backgroundColor: colors.errorText,
         borderRadius: 6,
         paddingVertical: 8,
         paddingHorizontal: 12,
@@ -478,4 +579,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         fontSize: 12,
     },
-});
+    });
+};
+

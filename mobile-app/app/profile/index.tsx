@@ -3,8 +3,6 @@ import { View, Text, StyleSheet, ScrollView, Pressable, Alert, ActivityIndicator
 import { Picker } from '@react-native-picker/picker'; // Still used for Gender/Language
 import { CountryPicker, countryCodes } from 'react-native-country-codes-picker'; // New library
 import { AsYouType, parsePhoneNumber, CountryCode as LibCountryCode } from 'libphonenumber-js';
-import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import { useRouter, Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -276,7 +274,7 @@ export default function ProfileScreen() {
                         </Pressable>
                     ) : (
                         <View style={{ flexDirection: 'row', gap: 8 }}>
-                            <Pressable disabled={isSaving} onPress={\CancelEdit}>
+                            <Pressable disabled={isSaving} onPress={handleCancelEdit}>
                                 <Text style={[styles.editButtonText, { color: colorScheme === 'dark' ? '#A0A7B1' : '#666' }]}>{t('common.cancel')}</Text>
                             </Pressable>
                             {isSaving ? (
@@ -452,40 +450,42 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                {hasRole(['ROLE_MEMBER']) && (
-                    <View style={styles.settingsCard}>
-                        <Pressable
-                            style={styles.settingsItem}
-                            onPress={() => router.push('/settings/notifications' as Href)}
-                        >
-                            <View style={styles.settingsItemLeft}>
-                                <Ionicons name="notifications-outline" size={20} color={ACCENT} />
-                                <Text style={styles.settingsItemText}>{t('settings.notifications.title')}</Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={18} color={ACCENT} />
-                        </Pressable>
+                {
+                    hasRole(['ROLE_MEMBER']) && (
+                        <View style={styles.settingsCard}>
+                            <Pressable
+                                style={styles.settingsItem}
+                                onPress={() => router.push('/settings/notifications' as Href)}
+                            >
+                                <View style={styles.settingsItemLeft}>
+                                    <Ionicons name="notifications-outline" size={20} color={ACCENT} />
+                                    <Text style={styles.settingsItemText}>{t('settings.notifications.title')}</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                            </Pressable>
 
-                        <Pressable
-                            style={[styles.settingsItem, styles.settingsDangerItem]}
-                            onPress={() => router.push('/settings/deactivate' as Href)}
-                        >
-                            <View style={styles.settingsItemLeft}>
-                                <Ionicons name="alert-circle-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
-                                <Text style={[styles.settingsItemText, { color: colorScheme === 'dark' ? '#FFB4AB' : '#C62828' }]}>
-                                    {t('settings.account.deactivateLink')}
-                                </Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={18} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
-                        </Pressable>
-                    </View>
-                )}
+                            <Pressable
+                                style={[styles.settingsItem, styles.settingsDangerItem]}
+                                onPress={() => router.push('/settings/deactivate' as Href)}
+                            >
+                                <View style={styles.settingsItemLeft}>
+                                    <Ionicons name="alert-circle-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
+                                    <Text style={[styles.settingsItemText, { color: colorScheme === 'dark' ? '#FFB4AB' : '#C62828' }]}>
+                                        {t('settings.account.deactivateLink')}
+                                    </Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={18} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
+                            </Pressable>
+                        </View>
+                    )
+                }
 
                 <Pressable style={styles.logoutButton} onPress={signOut}>
                     <Ionicons name="log-out-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
                     <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
                 </Pressable>
 
-            </ScrollView>
+            </ScrollView >
 
             <NavigationMenu
                 visible={menuVisible}
@@ -501,7 +501,7 @@ export default function ProfileScreen() {
                 onNavigateDashboard={handleNavigateDashboard}
                 t={t}
             />
-        </View>
+        </View >
     );
 }
 
@@ -525,263 +525,263 @@ const getStyles = (scheme: 'light' | 'dark') => {
     const isDark = scheme === 'dark';
     const ACCENT = isDark ? '#9FC3FF' : '#0056A8';
     const SURFACE = isDark ? '#111418' : '#F5F7FB';
-    
+
     return StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: SURFACE,
-    },
-    scrollContent: {
-        padding: 16,
-    },
-    centered: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 20
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    backButton: {
-        padding: 8,
-        marginRight: 8,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: isDark ? '#ECEDEE' : '#0F2848',
-    },
-    editButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 8,
-        gap: 4,
-    },
-    editButtonText: {
-        color: ACCENT,
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    card: {
-        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
-        borderRadius: 16,
-        padding: 24,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 3,
-        marginBottom: 20,
-    },
-    avatarContainer: {
-        alignItems: 'center',
-        marginBottom: 24,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderColor: isDark ? '#2A313B' : '#E0E6F0',
-        paddingBottom: 24,
-    },
-    avatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: isDark ? '#1F2A3A' : '#EAF1FF',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: 16,
-        overflow: 'hidden',
-    },
-    avatarImage: {
-        width: '100%',
-        height: '100%',
-    },
-    pictureButton: {
-        backgroundColor: ACCENT,
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 16,
-        marginBottom: 16,
-        minWidth: 160,
-        alignItems: 'center',
-    },
-    pictureButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
-        fontSize: 14,
-    },
-    userName: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: isDark ? '#ECEDEE' : '#0F2848',
-        marginBottom: 4,
-    },
-    userEmail: {
-        fontSize: 14,
-        color: isDark ? '#A0A7B1' : '#5C6A80',
-        marginBottom: 12,
-    },
-    rolesRow: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    rolePill: {
-        backgroundColor: isDark ? '#1F2A3A' : '#F0F6FF',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-    },
-    rolePillText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: ACCENT,
-    },
-    infoSection: {
-        gap: 20,
-    },
-    infoItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
-    },
-    iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        backgroundColor: isDark ? '#1F2A3A' : '#F5F9FF',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    infoLabel: {
-        fontSize: 12,
-        color: isDark ? '#A0A7B1' : '#5C6A80',
-        marginBottom: 2,
-    },
-    infoValue: {
-        fontSize: 16,
-        color: isDark ? '#ECEDEE' : '#0F2848',
-        fontWeight: '500',
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: isDark ? '#3A1F1F' : '#FFF0F0',
-        padding: 16,
-        borderRadius: 12,
-        gap: 8,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: isDark ? '#6B2A2A' : '#FFDBDB',
-    },
-    logoutButtonText: {
-        color: isDark ? '#FFB4AB' : '#C62828',
-        fontWeight: '600',
-        fontSize: 16,
-    },
-    loginButton: {
-        backgroundColor: ACCENT,
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 8,
-    },
-    loginButtonText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
-    },
-    settingsCard: {
-        backgroundColor: isDark ? '#151A20' : '#FFFFFF',
-        borderRadius: 16,
-        paddingVertical: 6,
-        paddingHorizontal: 8,
-        shadowColor: '#000',
-        shadowOpacity: 0.05,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 3,
-        marginBottom: 20,
-    },
-    settingsItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 14,
-        paddingHorizontal: 10,
-        borderRadius: 12,
-        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
-    },
-    settingsDangerItem: {
-        marginTop: 8,
-        backgroundColor: isDark ? '#3A1F1F' : '#FEF2F2',
-        borderColor: isDark ? '#6B2A2A' : '#F8BBD0',
-    },
-    settingsItemLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    settingsItemText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: isDark ? '#ECEDEE' : '#1A2D4A',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
-        borderRadius: 8,
-        padding: 8,
-        fontSize: 16,
-        color: isDark ? '#ECEDEE' : '#0F2848',
-        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
-    },
-    inputName: {
-        borderWidth: 1,
-        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
-        borderRadius: 8,
-        padding: 8,
-        fontSize: 20,
-        fontWeight: '700',
-        color: isDark ? '#ECEDEE' : '#0F2848',
-        marginBottom: 4,
-        textAlign: 'center',
-        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
-        minWidth: 200,
-    },
-    pickerContainer: {
-        borderWidth: 1,
-        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
-        borderRadius: 8,
-        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
-        overflow: 'hidden',
-    },
-    countryPickerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
-        borderRadius: 8,
-        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
-        paddingHorizontal: 8,
-        height: 50, // Match input height roughly
-    },
-    countryPickerButton: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
-        borderRadius: 8,
-        backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
-        paddingHorizontal: 12,
-        height: 50,
-        minWidth: 80,
-    },
-    callingCodeText: {
-        fontSize: 16,
-        color: isDark ? '#ECEDEE' : '#0F2848',
-        fontWeight: '500',
-    },
+        container: {
+            flex: 1,
+            backgroundColor: SURFACE,
+        },
+        scrollContent: {
+            padding: 16,
+        },
+        centered: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 20
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginBottom: 20,
+        },
+        backButton: {
+            padding: 8,
+            marginRight: 8,
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: 'bold',
+            color: isDark ? '#ECEDEE' : '#0F2848',
+        },
+        editButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            padding: 8,
+            gap: 4,
+        },
+        editButtonText: {
+            color: ACCENT,
+            fontSize: 14,
+            fontWeight: '600',
+        },
+        card: {
+            backgroundColor: isDark ? '#151A20' : '#FFFFFF',
+            borderRadius: 16,
+            padding: 24,
+            shadowColor: '#000',
+            shadowOpacity: 0.05,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 3,
+            marginBottom: 20,
+        },
+        avatarContainer: {
+            alignItems: 'center',
+            marginBottom: 24,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderColor: isDark ? '#2A313B' : '#E0E6F0',
+            paddingBottom: 24,
+        },
+        avatar: {
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            backgroundColor: isDark ? '#1F2A3A' : '#EAF1FF',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 16,
+            overflow: 'hidden',
+        },
+        avatarImage: {
+            width: '100%',
+            height: '100%',
+        },
+        pictureButton: {
+            backgroundColor: ACCENT,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 16,
+            marginBottom: 16,
+            minWidth: 160,
+            alignItems: 'center',
+        },
+        pictureButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '600',
+            fontSize: 14,
+        },
+        userName: {
+            fontSize: 20,
+            fontWeight: '700',
+            color: isDark ? '#ECEDEE' : '#0F2848',
+            marginBottom: 4,
+        },
+        userEmail: {
+            fontSize: 14,
+            color: isDark ? '#A0A7B1' : '#5C6A80',
+            marginBottom: 12,
+        },
+        rolesRow: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: 8,
+        },
+        rolePill: {
+            backgroundColor: isDark ? '#1F2A3A' : '#F0F6FF',
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 20,
+        },
+        rolePillText: {
+            fontSize: 12,
+            fontWeight: '600',
+            color: ACCENT,
+        },
+        infoSection: {
+            gap: 20,
+        },
+        infoItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 16,
+        },
+        iconContainer: {
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            backgroundColor: isDark ? '#1F2A3A' : '#F5F9FF',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        infoLabel: {
+            fontSize: 12,
+            color: isDark ? '#A0A7B1' : '#5C6A80',
+            marginBottom: 2,
+        },
+        infoValue: {
+            fontSize: 16,
+            color: isDark ? '#ECEDEE' : '#0F2848',
+            fontWeight: '500',
+        },
+        logoutButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isDark ? '#3A1F1F' : '#FFF0F0',
+            padding: 16,
+            borderRadius: 12,
+            gap: 8,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: isDark ? '#6B2A2A' : '#FFDBDB',
+        },
+        logoutButtonText: {
+            color: isDark ? '#FFB4AB' : '#C62828',
+            fontWeight: '600',
+            fontSize: 16,
+        },
+        loginButton: {
+            backgroundColor: ACCENT,
+            paddingHorizontal: 24,
+            paddingVertical: 12,
+            borderRadius: 8,
+        },
+        loginButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '600',
+        },
+        settingsCard: {
+            backgroundColor: isDark ? '#151A20' : '#FFFFFF',
+            borderRadius: 16,
+            paddingVertical: 6,
+            paddingHorizontal: 8,
+            shadowColor: '#000',
+            shadowOpacity: 0.05,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 3,
+            marginBottom: 20,
+        },
+        settingsItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 14,
+            paddingHorizontal: 10,
+            borderRadius: 12,
+            backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
+        },
+        settingsDangerItem: {
+            marginTop: 8,
+            backgroundColor: isDark ? '#3A1F1F' : '#FEF2F2',
+            borderColor: isDark ? '#6B2A2A' : '#F8BBD0',
+        },
+        settingsItemLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+        },
+        settingsItemText: {
+            fontSize: 15,
+            fontWeight: '600',
+            color: isDark ? '#ECEDEE' : '#1A2D4A',
+        },
+        input: {
+            borderWidth: 1,
+            borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
+            borderRadius: 8,
+            padding: 8,
+            fontSize: 16,
+            color: isDark ? '#ECEDEE' : '#0F2848',
+            backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
+        },
+        inputName: {
+            borderWidth: 1,
+            borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
+            borderRadius: 8,
+            padding: 8,
+            fontSize: 20,
+            fontWeight: '700',
+            color: isDark ? '#ECEDEE' : '#0F2848',
+            marginBottom: 4,
+            textAlign: 'center',
+            backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
+            minWidth: 200,
+        },
+        pickerContainer: {
+            borderWidth: 1,
+            borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
+            borderRadius: 8,
+            backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
+            overflow: 'hidden',
+        },
+        countryPickerContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
+            borderRadius: 8,
+            backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
+            paddingHorizontal: 8,
+            height: 50, // Match input height roughly
+        },
+        countryPickerButton: {
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: isDark ? '#2F3A4A' : '#D9E5FF',
+            borderRadius: 8,
+            backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
+            paddingHorizontal: 12,
+            height: 50,
+            minWidth: 80,
+        },
+        callingCodeText: {
+            fontSize: 16,
+            color: isDark ? '#ECEDEE' : '#0F2848',
+            fontWeight: '500',
+        },
     });
 };

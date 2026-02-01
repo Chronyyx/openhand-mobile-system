@@ -12,7 +12,7 @@ export type CreateEventPayload = {
     address: string;
     maxCapacity?: number | null;
     category?: string | null;
-    imageUrl?: string | null;
+
 };
 
 type ManagedEventResponse = {

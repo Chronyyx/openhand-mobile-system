@@ -105,7 +105,8 @@ export default function AdminEventsScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const isDark = colorScheme === 'dark';
     const styles = getStyles(colorScheme);
-    
+    const ACCENT = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
+
     const isAdmin = hasRole(['ROLE_ADMIN']);
     const canCompleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
     const canDeleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
@@ -200,7 +201,7 @@ export default function AdminEventsScreen() {
         setEndDateTime(null);
         setLocationName('');
         setAddress('');
-        setAddress('');
+
         setMaxCapacity('');
         setImageUrl(null);
         setPendingImageUri(null);
@@ -226,7 +227,7 @@ export default function AdminEventsScreen() {
         setEndDateTime(event.endDateTime ? parseLocalDateTime(event.endDateTime) : null);
         setLocationName(event.locationName);
         setAddress(event.address ?? '');
-        setAddress(event.address ?? '');
+
         setMaxCapacity(event.maxCapacity != null ? String(event.maxCapacity) : '');
         setImageUrl(event.imageUrl ?? null);
         setPendingImageUri(null);
@@ -1094,7 +1095,7 @@ export default function AdminEventsScreen() {
 
 const getStyles = (colorScheme: 'light' | 'dark' | null) => {
     const isDark = colorScheme === 'dark';
-    
+
     // Define all colors dynamically
     const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
     const SURFACE = isDark ? '#0F1419' : '#F5F7FB';

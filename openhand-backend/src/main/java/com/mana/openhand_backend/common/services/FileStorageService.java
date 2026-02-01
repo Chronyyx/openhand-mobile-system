@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +12,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -70,6 +68,7 @@ public class FileStorageService {
             return filename;
         } catch (IOException ex) {
             logger.error("Failed to store file {}: {}", filename, ex.getMessage());
+            cleanupFile(targetPath);
             throw new IllegalStateException("Unable to store file. Please try again.");
         } catch (RuntimeException ex) {
             // Try to cleanup if something went wrong

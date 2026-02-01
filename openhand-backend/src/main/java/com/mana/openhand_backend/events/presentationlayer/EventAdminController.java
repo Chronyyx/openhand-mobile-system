@@ -66,8 +66,17 @@ public class EventAdminController {
             @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
             jakarta.servlet.http.HttpServletRequest request) {
         String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
-                .fromCurrentContextPath().build().toUriString();
-        return eventAdminService.uploadEventImage(id, file, baseUrl);
+                .fromRequestUri(request)
+                .replacePath(null)
+                .build()
+                .toUriString();
+        try {
+            return eventAdminService.uploadEventImage(id, file, baseUrl);
+        } catch (java.util.NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
     }
 
     @GetMapping("/{id}/image")
@@ -75,7 +84,14 @@ public class EventAdminController {
             @PathVariable Long id,
             jakarta.servlet.http.HttpServletRequest request) {
         String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
-                .fromCurrentContextPath().build().toUriString();
-        return eventAdminService.getEventImage(id, baseUrl);
+                .fromRequestUri(request)
+                .replacePath(null)
+                .build()
+                .toUriString();
+        try {
+            return eventAdminService.getEventImage(id, baseUrl);
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
     }
 }

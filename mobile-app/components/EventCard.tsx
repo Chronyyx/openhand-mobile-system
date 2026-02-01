@@ -25,7 +25,6 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
     const colorScheme = useColorScheme() ?? 'light';
     const globalStyles = getStyles(colorScheme);
     const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
-    const cancelledTextColor = colorScheme === 'dark' ? '#A0A7B1' : '#757575';
 
     // Determine image source
     const imageUrl = event.imageUrl ? resolveUrl(event.imageUrl) : null;

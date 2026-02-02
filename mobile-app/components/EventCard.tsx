@@ -66,7 +66,7 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                             type="subtitle"
                             style={[
                                 globalStyles.eventTitle,
-                                isCancelled && { textDecorationLine: 'line-through', color: '#757575' }
+                                isCancelled && { textDecorationLine: 'line-through' }
                             ]}
                         >
                             {translatedTitle}
@@ -123,8 +123,8 @@ export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
                         </View>
                     )}
                 </View>
-            </Pressable>
-        </View>
+            </Pressable >
+        </View >
     );
 }
 

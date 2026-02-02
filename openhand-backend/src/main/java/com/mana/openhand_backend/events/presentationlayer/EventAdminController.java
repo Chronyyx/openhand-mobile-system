@@ -11,7 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -66,7 +66,7 @@ public class EventAdminController {
     }
 
     @PostMapping("/{id}/image")
-    public ProfilePictureResponse uploadEventImage(
+    public ImageUrlResponse uploadEventImage(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file,
             HttpServletRequest request) {
@@ -85,7 +85,7 @@ public class EventAdminController {
     }
 
     @GetMapping("/{id}/image")
-    public ProfilePictureResponse getEventImage(
+    public ImageUrlResponse getEventImage(
             @PathVariable Long id,
             HttpServletRequest request) {
         String baseUrl = ServletUriComponentsBuilder

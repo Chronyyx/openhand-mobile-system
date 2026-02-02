@@ -1,9 +1,9 @@
 package com.mana.openhand_backend.events.businesslayer;
 
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import com.mana.openhand_backend.common.services.FileStorageService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,14 +35,31 @@ public class EventImageService {
         this.maxSizeBytes = maxSizeBytes;
     }
 
-    public ProfilePictureResponse getEventImage(Long eventId, String baseUrl) {
+    // Since EventImageService is now implementing EventAdminService, it must
+    // implement all methods.
+    // However, it seems it was designed as a component used BY EventAdminService or
+    // similar.
+    // Wait, let's check the previous imports. It was NOT implementing
+    // EventAdminService before?
+    // The previous file content shows `public class EventImageService {`. It did
+    // NOT implement `EventAdminService`.
+    // BUT `EventAdminServiceImpl` likely implements `EventAdminService` and
+    // delegates to `EventImageService`.
+    // I need to check `EventAdminServiceImpl` too!
+
+    // I will revert adding `implements EventAdminService` here if it wasn't there.
+    // The previous code snippet in Step 482 does not show `implements
+    // EventAdminService`.
+    // So I should keep it as is, just change return types.
+
+    public ImageUrlResponse getEventImage(Long eventId, String baseUrl) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NoSuchElementException("Event not found with id: " + eventId));
         String resolvedUrl = fileStorageService.toPublicUrl(baseUrl, event.getImageUrl());
-        return new ProfilePictureResponse(resolvedUrl);
+        return new ImageUrlResponse(resolvedUrl);
     }
 
-    public ProfilePictureResponse storeEventImage(Long eventId, MultipartFile file, String baseUrl) {
+    public ImageUrlResponse storeEventImage(Long eventId, MultipartFile file, String baseUrl) {
         fileStorageService.validateImageFile(file, maxSizeBytes);
 
         Event event = eventRepository.findById(eventId)
@@ -62,7 +79,7 @@ public class EventImageService {
                 deletePreviousFile(previousUrl);
             }
 
-            return new ProfilePictureResponse(fileStorageService.toPublicUrl(baseUrl, relativeUrl));
+            return new ImageUrlResponse(fileStorageService.toPublicUrl(baseUrl, relativeUrl));
         } catch (RuntimeException ex) {
             logger.error("Failed to store image for event {}: {}", eventId, ex.getMessage());
             // Cleanup orphaned file

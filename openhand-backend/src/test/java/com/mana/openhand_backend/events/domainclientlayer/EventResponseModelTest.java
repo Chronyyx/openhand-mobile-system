@@ -70,5 +70,7 @@ class EventResponseModelTest {
         assertEquals(status, model.getStatus());
         assertEquals(maxCapacity, model.getMaxCapacity());
         assertEquals(currentRegistrations, model.getCurrentRegistrations());
+        assertEquals("General", model.getCategory());
+        assertEquals("http://example.com/image.jpg", model.getImageUrl());
     }
 }

@@ -3,7 +3,7 @@ package com.mana.openhand_backend.identity.businesslayer;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.common.services.FileStorageService;
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -74,7 +74,7 @@ class ProfilePictureServiceTest {
         when(fileStorageService.toPublicUrl("http://localhost:8080", "/uploads/profile-pictures/pic.png"))
                 .thenReturn("http://localhost:8080/uploads/profile-pictures/pic.png");
 
-        ProfilePictureResponse response = service.getProfilePicture(2L, "http://localhost:8080");
+        ImageUrlResponse response = service.getProfilePicture(2L, "http://localhost:8080");
 
         assertEquals("http://localhost:8080/uploads/profile-pictures/pic.png", response.getUrl());
     }
@@ -150,7 +150,7 @@ class ProfilePictureServiceTest {
         when(fileStorageService.toPublicUrl("http://localhost:8080", "/uploads/profile-pictures/user-9-uuid.webp"))
                 .thenReturn("http://localhost:8080/uploads/profile-pictures/user-9-uuid.webp");
 
-        ProfilePictureResponse response = service.storeProfilePicture(9L, file, "http://localhost:8080");
+        ImageUrlResponse response = service.storeProfilePicture(9L, file, "http://localhost:8080");
 
         assertNotNull(response.getUrl());
         // assertTrue(response.getUrl().endsWith(".webp")); // The mock determines this
@@ -179,7 +179,7 @@ class ProfilePictureServiceTest {
         when(fileStorageService.toPublicUrl("http://localhost:8080", "/uploads/profile-pictures/user-5-uuid.png"))
                 .thenReturn("http://localhost:8080/uploads/profile-pictures/user-5-uuid.png");
 
-        ProfilePictureResponse response = service.storeProfilePicture(5L, file, "http://localhost:8080");
+        ImageUrlResponse response = service.storeProfilePicture(5L, file, "http://localhost:8080");
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());

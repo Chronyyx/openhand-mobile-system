@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Pressable, ActivityIndicator, Alert, StyleProp, ViewStyle, ImageStyle } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,8 +13,8 @@ type ImageUploaderProps = {
     uploadFunction: (uri: string, fileName?: string, mimeType?: string) => Promise<{ url: string | null }>;
     editable?: boolean;
     placeholderIcon?: keyof typeof Ionicons.glyphMap;
-    containerStyle?: any;
-    imageStyle?: any;
+    containerStyle?: StyleProp<ViewStyle>;
+    imageStyle?: StyleProp<ViewStyle>; // imageContainer is a View
 };
 
 export function ImageUploader({

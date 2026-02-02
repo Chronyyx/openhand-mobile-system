@@ -1,9 +1,9 @@
 package com.mana.openhand_backend.events.businesslayer;
 
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import com.mana.openhand_backend.common.services.FileStorageService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +54,7 @@ class EventImageServiceTest {
         when(fileStorageService.toPublicUrl(baseUrl, imageUrl))
                 .thenReturn("http://localhost:8080/uploads/event-images/test.jpg");
 
-        ProfilePictureResponse response = eventImageService.getEventImage(eventId, baseUrl);
+        ImageUrlResponse response = eventImageService.getEventImage(eventId, baseUrl);
 
         assertEquals("http://localhost:8080/uploads/event-images/test.jpg", response.getUrl());
     }

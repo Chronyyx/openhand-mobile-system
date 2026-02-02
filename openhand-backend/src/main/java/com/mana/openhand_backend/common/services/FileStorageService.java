@@ -55,13 +55,40 @@ public class FileStorageService {
         return ".jpg";
     }
 
+    private String sanitizeFilenameBase(String filenameBase) {
+        if (filenameBase == null) {
+            throw new IllegalArgumentException("Filename base must not be null.");
+        }
+
+        String trimmed = filenameBase.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException("Filename base must not be empty.");
+        }
+
+        // Allow only alphanumeric characters, underscores, and hyphens.
+        String sanitized = trimmed.replaceAll("[^A-Za-z0-9_-]", "_");
+
+        if (sanitized.isEmpty()) {
+            throw new IllegalArgumentException("Filename base is invalid after sanitization.");
+        }
+
+        return sanitized;
+    }
+
     public String storeFile(MultipartFile file, Path uploadDir, String filenameBase) {
+        String safeBase = sanitizeFilenameBase(filenameBase);
         String extension = resolveExtension(file);
-        String filename = filenameBase + "-" + UUID.randomUUID() + extension;
-        Path targetPath = uploadDir.resolve(filename).normalize();
+        String filename = safeBase + "-" + UUID.randomUUID() + extension;
+
+        Path normalizedUploadDir = uploadDir.toAbsolutePath().normalize();
+        Path targetPath = normalizedUploadDir.resolve(filename).normalize();
+
+        if (!targetPath.startsWith(normalizedUploadDir)) {
+            throw new IllegalArgumentException("Invalid filename: path traversal is not allowed.");
+        }
 
         try {
-            Files.createDirectories(uploadDir);
+            Files.createDirectories(normalizedUploadDir);
             try (InputStream inputStream = file.getInputStream()) {
                 Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }

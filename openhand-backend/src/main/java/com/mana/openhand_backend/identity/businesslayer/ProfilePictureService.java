@@ -1,9 +1,9 @@
 package com.mana.openhand_backend.identity.businesslayer;
 
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import com.mana.openhand_backend.common.services.FileStorageService;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
 import com.mana.openhand_backend.identity.utils.UserNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,14 +33,14 @@ public class ProfilePictureService {
         this.maxSizeBytes = maxSizeBytes;
     }
 
-    public ProfilePictureResponse getProfilePicture(Long userId, String baseUrl) {
+    public ImageUrlResponse getProfilePicture(Long userId, String baseUrl) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
         String resolvedUrl = fileStorageService.toPublicUrl(baseUrl, user.getProfilePictureUrl());
-        return new ProfilePictureResponse(resolvedUrl);
+        return new ImageUrlResponse(resolvedUrl);
     }
 
-    public ProfilePictureResponse storeProfilePicture(Long userId, MultipartFile file, String baseUrl) {
+    public ImageUrlResponse storeProfilePicture(Long userId, MultipartFile file, String baseUrl) {
         fileStorageService.validateImageFile(file, maxSizeBytes);
 
         User user = userRepository.findById(userId)
@@ -60,7 +60,7 @@ public class ProfilePictureService {
                 deletePreviousFile(previousUrl);
             }
 
-            return new ProfilePictureResponse(fileStorageService.toPublicUrl(baseUrl, relativeUrl));
+            return new ImageUrlResponse(fileStorageService.toPublicUrl(baseUrl, relativeUrl));
         } catch (RuntimeException ex) {
             logger.error("Failed to store profile picture for user {}: {}", userId, ex.getMessage());
             // Cleanup orphaned file

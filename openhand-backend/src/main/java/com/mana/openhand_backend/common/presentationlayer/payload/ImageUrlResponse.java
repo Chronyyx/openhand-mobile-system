@@ -1,9 +1,9 @@
-package com.mana.openhand_backend.identity.presentationlayer.payload;
+package com.mana.openhand_backend.common.presentationlayer.payload;
 
-public class ProfilePictureResponse {
+public class ImageUrlResponse {
     private String url;
 
-    public ProfilePictureResponse(String url) {
+    public ImageUrlResponse(String url) {
         this.url = url;
     }
 

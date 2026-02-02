@@ -261,13 +261,13 @@ public class EventAdminServiceImpl implements EventAdminService {
     }
 
     @Override
-    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse uploadEventImage(Long id,
+    public com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse uploadEventImage(Long id,
             org.springframework.web.multipart.MultipartFile file, String baseUrl) {
         return eventImageService.storeEventImage(id, file, baseUrl);
     }
 
     @Override
-    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse getEventImage(Long id,
+    public com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse getEventImage(Long id,
             String baseUrl) {
         return eventImageService.getEventImage(id, baseUrl);
     }

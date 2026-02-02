@@ -1175,9 +1175,6 @@ class RegistrationServiceImplTest {
                 // Mock finding employees
                 when(userRepository.findByRolesContaining("ROLE_EMPLOYEE"))
                                 .thenReturn(List.of(employee));
-                // Mock that notification hasn't been sent yet
-                when(notificationRepository.existsByUserIdAndEventIdAndNotificationType(anyLong(), anyLong(), any()))
-                                .thenReturn(false);
 
                 // Act
                 Registration result = registrationService.registerForEvent(1L, 1L);
@@ -1222,9 +1219,6 @@ class RegistrationServiceImplTest {
                 // Mock finding employees
                 when(userRepository.findByRolesContaining("ROLE_EMPLOYEE"))
                                 .thenReturn(List.of(employee));
-                // Mock that notification hasn't been sent yet
-                when(notificationRepository.existsByUserIdAndEventIdAndNotificationType(anyLong(), anyLong(), any()))
-                                .thenReturn(false);
 
                 // Act
                 Registration result = registrationService.registerForEvent(1L, 1L);
@@ -1237,5 +1231,115 @@ class RegistrationServiceImplTest {
                                 eq(localEvent.getId()),
                                 eq("EVENT_CAPACITY_WARNING"),
                                 anyString());
+        }
+
+        @Test
+        void registerForEvent_shouldNotTriggerDuplicateCapacityNotification_whenStatusStable() {
+                // Arrange
+                Event localEvent = new Event(
+                                "Test Event",
+                                "Test Description",
+                                LocalDateTime.now().plusDays(1),
+                                LocalDateTime.now().plusDays(2),
+                                "Test Location",
+                                "Test Address",
+                                EventStatus.NEARLY_FULL, // Already NEARLY_FULL
+                                10,
+                                8, // Already at 80%
+                                "General");
+                localEvent.setId(1L);
+
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+                when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(localEvent));
+                when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
+                when(registrationRepository.save(any(Registration.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
+
+                // Act
+                // Registering 9th person. 8->9. Status remains NEARLY_FULL.
+                // Should NOT trigger alert because status didn't change (Nearly -> Nearly)
+                registrationService.registerForEvent(1L, 1L);
+
+                // Assert
+                assertEquals(EventStatus.NEARLY_FULL, localEvent.getStatus());
+                verify(notificationService, never()).createNotification(anyLong(), anyLong(),
+                                eq("EVENT_CAPACITY_WARNING"), anyString());
+        }
+
+        @Test
+        void registerForEvent_shouldHandleNoEmployeesGracefully() {
+                // Arrange
+                Event localEvent = new Event(
+                                "Test Event",
+                                "Test Description",
+                                LocalDateTime.now().plusDays(1),
+                                LocalDateTime.now().plusDays(2),
+                                "Test Location",
+                                "Test Address",
+                                EventStatus.OPEN,
+                                10,
+                                7, // 7 -> 8 (80%)
+                                "General");
+                localEvent.setId(1L);
+
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+                when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(localEvent));
+                when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
+                when(registrationRepository.save(any(Registration.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
+
+                // Mock empty employee list
+                when(userRepository.findByRolesContaining("ROLE_EMPLOYEE")).thenReturn(List.of());
+
+                // Act
+                assertDoesNotThrow(() -> registrationService.registerForEvent(1L, 1L));
+
+                // Assert
+                assertEquals(EventStatus.NEARLY_FULL, localEvent.getStatus());
+                verify(notificationService, never()).createNotification(anyLong(), anyLong(),
+                                eq("EVENT_CAPACITY_WARNING"), anyString());
+        }
+
+        @Test
+        void registerForEvent_shouldTriggerAgain_whenFluctuating() {
+                // This test simulates: Open -> Near -> ... (drop) ... -> Open -> Near
+                // Since we can't easily simulate the full sequence in one test without complex
+                // mocking of state in between calls,
+                // We will simulate the *second* transition: Open -> Near, assuming a previous
+                // alert occurred (but we don't check repo anymore).
+
+                // Arrange
+                Event localEvent = new Event(
+                                "Test Event",
+                                "Test Description",
+                                LocalDateTime.now().plusDays(1),
+                                LocalDateTime.now().plusDays(2),
+                                "Test Location",
+                                "Test Address",
+                                EventStatus.OPEN, // Currently OPEN (dipped back down)
+                                10,
+                                7, // 7 registrations
+                                "General");
+                localEvent.setId(1L);
+
+                when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+                when(registrationRepository.findEventByIdForUpdate(1L)).thenReturn(Optional.of(localEvent));
+                when(registrationRepository.findByUserIdAndEventId(1L, 1L)).thenReturn(Optional.empty());
+                when(registrationRepository.save(any(Registration.class)))
+                                .thenAnswer(invocation -> invocation.getArgument(0));
+
+                User employee = new User();
+                employee.setId(100L);
+                employee.setRoles(java.util.Set.of("ROLE_EMPLOYEE"));
+                when(userRepository.findByRolesContaining("ROLE_EMPLOYEE")).thenReturn(List.of(employee));
+
+                // Act
+                registrationService.registerForEvent(1L, 1L); // 7->8. Open -> Nearly Full.
+
+                // Assert
+                assertEquals(EventStatus.NEARLY_FULL, localEvent.getStatus());
+                // Should trigger because status changed Open -> Nearly Full
+                verify(notificationService, times(1)).createNotification(
+                                eq(100L), eq(1L), eq("EVENT_CAPACITY_WARNING"), anyString());
         }
 }

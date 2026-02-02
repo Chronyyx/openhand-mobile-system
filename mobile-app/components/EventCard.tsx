@@ -27,12 +27,20 @@ export function EventCard({ event, onPress, t, onClose, showNotificationDot }: E
     const globalStyles = getStyles(colorScheme);
     const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
 
+    const isDark = colorScheme === 'dark';
+    const indicatorColor = isDark ? '#DC3545' : '#DC3545'; // Red for attention
+
     // Determine image source
     const imageUrl = event.imageUrl ? resolveUrl(event.imageUrl) : null;
     const staticImage = getEventImage(event);
 
     return (
-        <View style={[globalStyles.card, isCancelled && styles.cardCancelled, { position: 'relative', overflow: 'hidden', padding: 0 }]}>
+        <View style={[globalStyles.card, isCancelled && styles.cardCancelled, { position: 'relative', padding: 0 }]}>
+            {/* Notification Dot */}
+            {showNotificationDot && (
+                <View style={[styles.notificationDot, { backgroundColor: indicatorColor }]} />
+            )}
+
             {isCancelled && onClose && (
                 <Pressable
                     onPress={onClose}
@@ -55,7 +63,7 @@ export function EventCard({ event, onPress, t, onClose, showNotificationDot }: E
                 {(imageUrl || staticImage) && (
                     <Image
                         source={imageUrl ? { uri: imageUrl } : staticImage}
-                        style={{ width: '100%', height: 150 }}
+                        style={{ width: '100%', height: 150, borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
                         contentFit="cover"
                         transition={200}
                     />

@@ -10,7 +10,7 @@ import java.util.Set;
 public final class NotificationPreferencePolicy {
 
     private static final Set<NotificationPreferenceCategory> CRITICAL_CATEGORIES = EnumSet
-            .of(NotificationPreferenceCategory.CANCELLATION);
+            .of(NotificationPreferenceCategory.CANCELLATION, NotificationPreferenceCategory.CAPACITY_ALERT);
 
     private NotificationPreferencePolicy() {
     }
@@ -24,8 +24,8 @@ public final class NotificationPreferencePolicy {
             case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT ->
                 NotificationPreferenceCategory.CONFIRMATION;
             case REMINDER -> NotificationPreferenceCategory.REMINDER;
-            case CANCELLATION, EVENT_UPDATE, EVENT_CAPACITY_WARNING, EVENT_FULL_ALERT ->
-                NotificationPreferenceCategory.CANCELLATION;
+            case EVENT_CAPACITY_WARNING, EVENT_FULL_ALERT -> NotificationPreferenceCategory.CAPACITY_ALERT;
+            case CANCELLATION, EVENT_UPDATE -> NotificationPreferenceCategory.CANCELLATION;
         };
     }
 
@@ -34,6 +34,8 @@ public final class NotificationPreferencePolicy {
             case CONFIRMATION -> preference.isConfirmationEnabled();
             case REMINDER -> preference.isReminderEnabled();
             case CANCELLATION -> preference.isCancellationEnabled();
+            // Critical categories are always enabled
+            case CAPACITY_ALERT -> true;
         };
     }
 
@@ -43,6 +45,9 @@ public final class NotificationPreferencePolicy {
             case CONFIRMATION -> preference.setConfirmationEnabled(enabled);
             case REMINDER -> preference.setReminderEnabled(enabled);
             case CANCELLATION -> preference.setCancellationEnabled(enabled);
+            case CAPACITY_ALERT -> {
+                // No-op: Capacity alerts are critical and cannot be disabled
+            }
         }
     }
 }

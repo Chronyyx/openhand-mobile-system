@@ -501,15 +501,27 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (event.getStatus() == EventStatus.COMPLETED) {
             return;
         }
+
+        EventStatus oldStatus = event.getStatus();
+        EventStatus newStatus = EventStatus.OPEN;
+
         int current = event.getCurrentRegistrations() != null ? event.getCurrentRegistrations() : 0;
         if (current >= event.getMaxCapacity()) {
-            event.setStatus(EventStatus.FULL);
-            checkAndTriggerCapacityNotifications(event, true, false);
+            newStatus = EventStatus.FULL;
         } else if (current >= event.getMaxCapacity() * 0.8) {
-            event.setStatus(EventStatus.NEARLY_FULL);
-            checkAndTriggerCapacityNotifications(event, false, true);
-        } else {
-            event.setStatus(EventStatus.OPEN);
+            newStatus = EventStatus.NEARLY_FULL;
+        }
+
+        // Only update and trigger if status has CHANGED
+        if (oldStatus != newStatus) {
+            event.setStatus(newStatus);
+
+            // Trigger notifications based on the NEW status
+            if (newStatus == EventStatus.FULL) {
+                checkAndTriggerCapacityNotifications(event, true, false);
+            } else if (newStatus == EventStatus.NEARLY_FULL) {
+                checkAndTriggerCapacityNotifications(event, false, true);
+            }
         }
     }
 
@@ -530,18 +542,12 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .findByRolesContaining(com.mana.openhand_backend.identity.utils.RoleUtils.ROLE_EMPLOYEE);
 
             for (User employee : employees) {
-                // Check if notification already sent to this employee for this event and type
-                boolean alreadySent = notificationRepository.existsByUserIdAndEventIdAndNotificationType(
-                        employee.getId(), event.getId(), type);
-
-                if (!alreadySent) {
-                    String language = employee.getPreferredLanguage() != null ? employee.getPreferredLanguage() : "en";
-                    notificationService.createNotification(
-                            employee.getId(),
-                            event.getId(),
-                            type.name(),
-                            language);
-                }
+                String language = employee.getPreferredLanguage() != null ? employee.getPreferredLanguage() : "en";
+                notificationService.createNotification(
+                        employee.getId(),
+                        event.getId(),
+                        type.name(),
+                        language);
             }
 
         } catch (Exception e) {

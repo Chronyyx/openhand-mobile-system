@@ -68,6 +68,7 @@ test.describe('Notification Preferences (UI)', () => {
 
         const reminderToggle = page.locator('[data-testid="notification-toggle-reminder"]');
         await expect(reminderToggle).toBeVisible();
+        await expect(page.getByLabel(/reminder/i)).toBeVisible();
 
         const updateRequest = page.waitForRequest((request) => {
             return request.url().includes('/api/notifications/preferences') && request.method() === 'PUT';

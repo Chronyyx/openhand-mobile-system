@@ -126,7 +126,7 @@ export default function RegisterScreen() {
                                     placeholderTextColor={placeholderColor}
                                     value={name}
                                     onChangeText={setName}
-                                    accessibilityLabel={t("auth.name_placeholder")}
+                                    accessibilityLabel={t("auth.name_label", "Full name")}
                                 />
                             </View>
 
@@ -141,7 +141,7 @@ export default function RegisterScreen() {
                                     onChangeText={setEmail}
                                     autoCapitalize="none"
                                     keyboardType="email-address"
-                                    accessibilityLabel={t("auth.email_placeholder")}
+                                    accessibilityLabel={t("auth.email_label", "Email")}
                                 />
                             </View>
 
@@ -155,7 +155,7 @@ export default function RegisterScreen() {
                                     value={phoneNumber}
                                     onChangeText={setPhoneNumber}
                                     keyboardType="phone-pad"
-                                    accessibilityLabel={t("auth.phone_placeholder")}
+                                    accessibilityLabel={t("auth.phone_label", "Phone number")}
                                 />
                             </View>
 
@@ -169,7 +169,8 @@ export default function RegisterScreen() {
                                     value={age}
                                     onChangeText={setAge}
                                     keyboardType="number-pad"
-                                    accessibilityLabel={t("auth.age_placeholder")}
+                                    accessibilityLabel={t("auth.age_label", "Age")}
+                                    accessibilityHint={t("auth.age_hint", "Enter age in years")}
                                 />
                             </View>
 
@@ -187,6 +188,7 @@ export default function RegisterScreen() {
                                             onPress={() => setGender(option.value)}
                                             accessibilityRole="button"
                                             accessibilityLabel={`${option.label}${gender === option.value ? ", selected" : ""}`}
+                                            accessibilityState={{ selected: gender === option.value }}
                                         >
                                             <Text
                                                 style={[
@@ -211,8 +213,14 @@ export default function RegisterScreen() {
                                     value={password}
                                     onChangeText={setPassword}
                                     secureTextEntry={!isPasswordVisible}
+                                    accessibilityLabel={t("auth.password_label", "Password")}
                                 />
-                                <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility")}>
+                                <TouchableOpacity
+                                    onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t("auth.toggle_password_visibility")}
+                                    accessibilityHint={t("auth.toggle_password_visibility_hint", "Shows or hides your password")}
+                                >
                                     <Ionicons
                                         name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                         size={20}
@@ -231,7 +239,7 @@ export default function RegisterScreen() {
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
                                     secureTextEntry={!isPasswordVisible}
-                                    accessibilityLabel={t("auth.confirm_password_placeholder")}
+                                    accessibilityLabel={t("auth.confirm_password_label", "Confirm password")}
                                     testID="confirm-password-input"
                                 />
                             </View>
@@ -250,7 +258,13 @@ export default function RegisterScreen() {
                             {loading ? (
                                 <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                             ) : (
-                                <TouchableOpacity style={styles.loginButton} onPress={handleRegister} activeOpacity={0.8}>
+                                <TouchableOpacity
+                                    style={styles.loginButton}
+                                    onPress={handleRegister}
+                                    activeOpacity={0.8}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t("auth.register_button")}
+                                >
                                     <Text style={styles.loginButtonText}>{t("auth.register_button")}</Text>
                                 </TouchableOpacity>
                             )}
@@ -260,7 +274,7 @@ export default function RegisterScreen() {
                         <View style={styles.footer}>
                             <Text style={styles.footerText}>{t("auth.login_prompt")} </Text>
                             <Link href="/auth/login" asChild>
-                                <TouchableOpacity>
+                                <TouchableOpacity accessibilityRole="button" accessibilityLabel={t("auth.login_link")}>
                                     <Text style={styles.link}>{t("auth.login_link")}</Text>
                                 </TouchableOpacity>
                             </Link>

@@ -23,6 +23,7 @@ type EventCardProps = {
 export function EventCard({ event, onPress, t, onClose, showNotificationDot }: EventCardProps) {
     const translatedTitle = getTranslatedEventTitle(event, t);
     const isCancelled = event.status === 'CANCELLED';
+    const statusLabel = getStatusLabel(event.status, t);
     const colorScheme = useColorScheme() ?? 'light';
     const globalStyles = getStyles(colorScheme);
     const closeIconColor = colorScheme === 'dark' ? '#A0A7B1' : '#666';
@@ -38,7 +39,12 @@ export function EventCard({ event, onPress, t, onClose, showNotificationDot }: E
         <View style={[globalStyles.card, isCancelled && styles.cardCancelled, { position: 'relative', padding: 0 }]}>
             {/* Notification Dot */}
             {showNotificationDot && (
-                <View style={[styles.notificationDot, { backgroundColor: indicatorColor }]} />
+                <View style={styles.notificationBadge}>
+                    <View style={[styles.notificationDot, { backgroundColor: indicatorColor }]} />
+                    <ThemedText style={styles.notificationText}>
+                        {t('notifications.alert', 'Alert')}
+                    </ThemedText>
+                </View>
             )}
 
             {isCancelled && onClose && (
@@ -46,7 +52,9 @@ export function EventCard({ event, onPress, t, onClose, showNotificationDot }: E
                     onPress={onClose}
                     style={styles.closeButton}
                     hitSlop={10}
-                    accessibilityLabel="Hide cancelled event"
+                    accessibilityRole="button"
+                    accessibilityLabel={t('events.actions.hideCancelled', 'Hide cancelled event')}
+                    accessibilityHint={t('events.actions.hideCancelledHint', 'Removes this cancelled event from the list')}
                 >
                     <Ionicons name="close-circle" size={24} color={closeIconColor} />
                 </Pressable>
@@ -58,6 +66,10 @@ export function EventCard({ event, onPress, t, onClose, showNotificationDot }: E
                     pressed && !isCancelled && { opacity: 0.7 }
                 ]}
                 disabled={isCancelled}
+                accessibilityRole="button"
+                accessibilityLabel={`${translatedTitle}. ${statusLabel}.`}
+                accessibilityHint={t('events.actions.viewDetails', 'View details')}
+                accessibilityState={{ disabled: isCancelled }}
             >
                 {/* Image Section */}
                 {(imageUrl || staticImage) && (
@@ -142,16 +154,32 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 10,
     },
-    notificationDot: {
+    notificationBadge: {
         position: 'absolute',
-        top: -6,
-        right: -6,
-        width: 16,
-        height: 16,
-        borderRadius: 8,
+        top: -8,
+        right: -8,
         zIndex: 10,
-        borderWidth: 2,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E0E4EC',
+    },
+    notificationDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        borderWidth: 1,
         borderColor: '#fff',
+    },
+    notificationText: {
+        fontSize: 10,
+        fontWeight: '700',
+        color: '#0F2848',
     },
     closeButton: {
         position: 'absolute',

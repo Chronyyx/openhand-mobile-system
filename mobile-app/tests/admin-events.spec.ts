@@ -53,12 +53,34 @@ test.describe('Admin events management', () => {
             }
         });
 
+        await page.route('**/api/notifications', async (route) => {
+            if (route.request().method() === 'GET') {
+                await route.fulfill({
+                    status: 200,
+                    headers: { 'content-type': 'application/json' },
+                    body: JSON.stringify([]),
+                });
+                return;
+            }
+            await route.continue();
+        });
+
+        await page.route('**/api/notifications/unread-count', async (route) => {
+            await route.fulfill({
+                status: 200,
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ count: 0 }),
+            });
+        });
+
         await page.addInitScript((user) => {
             window.localStorage.setItem('userToken', JSON.stringify(user));
         }, adminUser);
 
         await page.goto('/admin/events', { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(1000);
+
+        await expect(page.getByLabel(/create/i)).toBeVisible();
 
         // Check if event title is visible - gracefully handle if backend isn't running
         const eventVisible = await page

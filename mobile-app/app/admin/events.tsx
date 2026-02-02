@@ -556,7 +556,9 @@ export default function AdminEventsScreen() {
                                     pressed && styles.menuTriggerPressed,
                                 ]}
                                 hitSlop={8}
+                                accessibilityRole="button"
                                 accessibilityLabel={t('admin.events.actionsMenuLabel')}
+                                accessibilityHint={t('admin.events.actionsMenuHint', 'Opens event actions')}
                             >
                                 <Ionicons name="ellipsis-vertical" size={18} color="#5C6A80" />
                             </Pressable>
@@ -589,6 +591,8 @@ export default function AdminEventsScreen() {
                                 pressed && styles.createButtonPressed,
                             ]}
                             onPress={openCreate}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('admin.events.createButton')}
                         >
                             <Ionicons name="add" size={18} color="#FFFFFF" />
                             <Text style={styles.createButtonText}>{t('admin.events.createButton')}</Text>
@@ -645,6 +649,7 @@ export default function AdminEventsScreen() {
                     <Pressable
                         style={StyleSheet.absoluteFill}
                         onPress={() => setActionMenuFor(null)}
+                        accessible={false}
                     />
                     <View style={styles.contextCard}>
                         <View style={styles.contextHeader}>
@@ -664,6 +669,9 @@ export default function AdminEventsScreen() {
                                 ]}
                                 onPress={() => handleDuplicate(selectedActionEvent)}
                                 disabled={duplicatingId !== null}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('admin.events.duplicateAction')}
+                                accessibilityState={{ disabled: duplicatingId !== null }}
                             >
                                 <Ionicons name="copy-outline" size={16} color={ACCENT} />
                                 <Text style={styles.menuItemText}>
@@ -682,6 +690,8 @@ export default function AdminEventsScreen() {
                                     pressed && styles.menuItemPressed,
                                 ]}
                                 onPress={() => openEdit(selectedActionEvent)}
+                                accessibilityRole="button"
+                                accessibilityLabel={t(isAdmin ? 'admin.events.editAction' : 'admin.events.viewAction')}
                             >
                                 <Ionicons name={isAdmin ? 'create-outline' : 'eye-outline'} size={16} color={ACCENT} />
                                 <Text style={styles.menuItemText}>
@@ -698,6 +708,9 @@ export default function AdminEventsScreen() {
                                 ]}
                                 onPress={() => handleDeleteArchived(selectedActionEvent)}
                                 disabled={deletingId !== null}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('admin.events.deleteAction')}
+                                accessibilityState={{ disabled: deletingId !== null }}
                             >
                                 <Ionicons name="trash-outline" size={16} color="#D32F2F" />
                                 <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>
@@ -741,10 +754,20 @@ export default function AdminEventsScreen() {
                                                 ? t(canEditFields ? 'admin.events.editTitle' : 'admin.events.viewTitle')
                                                 : t('admin.events.createTitle')}
                                         </Text>
-                                        <Pressable onPress={Keyboard.dismiss} hitSlop={10}>
+                                        <Pressable
+                                            onPress={Keyboard.dismiss}
+                                            hitSlop={10}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('common.dismissKeyboard', 'Dismiss keyboard')}
+                                        >
                                             <Ionicons name="chevron-down" size={20} color="#5C6A80" />
                                         </Pressable>
-                                        <Pressable onPress={closeForm} hitSlop={10}>
+                                        <Pressable
+                                            onPress={closeForm}
+                                            hitSlop={10}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('common.close', 'Close')}
+                                        >
                                             <Ionicons name="close" size={20} color="#5C6A80" />
                                         </Pressable>
                                     </View>
@@ -787,6 +810,7 @@ export default function AdminEventsScreen() {
                                             placeholder={t('admin.events.fields.titlePlaceholder')}
                                             placeholderTextColor="#9BA5B7"
                                             editable={canEditFields}
+                                            accessibilityLabel={t('admin.events.fields.title')}
                                         />
                                         {fieldErrors.title ? (
                                             <Text style={styles.fieldError}>{fieldErrors.title}</Text>
@@ -805,6 +829,7 @@ export default function AdminEventsScreen() {
                                             placeholderTextColor="#9BA5B7"
                                             multiline
                                             editable={canEditFields}
+                                            accessibilityLabel={t('admin.events.fields.description')}
                                         />
                                         {fieldErrors.description ? (
                                             <Text style={styles.fieldError}>{fieldErrors.description}</Text>
@@ -820,6 +845,7 @@ export default function AdminEventsScreen() {
                                                     placeholder={t('admin.events.fields.categoryPlaceholder')}
                                                     placeholderTextColor="#9BA5B7"
                                                     editable={canEditFields}
+                                                    accessibilityLabel={t('admin.events.fields.category')}
                                                 />
                                             </View>
                                             <View style={{ width: 12 }} />
@@ -837,6 +863,7 @@ export default function AdminEventsScreen() {
                                                     placeholderTextColor="#9BA5B7"
                                                     keyboardType="numeric"
                                                     editable={canEditFields}
+                                                    accessibilityLabel={t('admin.events.fields.maxCapacity')}
                                                 />
                                                 {fieldErrors.maxCapacity ? (
                                                     <Text style={styles.fieldError}>{fieldErrors.maxCapacity}</Text>
@@ -856,6 +883,7 @@ export default function AdminEventsScreen() {
                                             placeholder={t('admin.events.fields.locationNamePlaceholder')}
                                             placeholderTextColor="#9BA5B7"
                                             editable={canEditFields}
+                                            accessibilityLabel={t('admin.events.fields.locationName')}
                                         />
                                         {fieldErrors.locationName ? (
                                             <Text style={styles.fieldError}>{fieldErrors.locationName}</Text>
@@ -873,6 +901,7 @@ export default function AdminEventsScreen() {
                                             placeholder={t('admin.events.fields.addressPlaceholder')}
                                             placeholderTextColor="#9BA5B7"
                                             editable={canEditFields}
+                                            accessibilityLabel={t('admin.events.fields.address')}
                                         />
                                         {fieldErrors.address ? (
                                             <Text style={styles.fieldError}>{fieldErrors.address}</Text>
@@ -892,6 +921,9 @@ export default function AdminEventsScreen() {
                                                         if (canEditFields) openDateTimePicker('start');
                                                     }}
                                                     disabled={!canEditFields}
+                                                    accessibilityRole="button"
+                                                    accessibilityLabel={t('admin.events.fields.startDateTime')}
+                                                    accessibilityState={{ disabled: !canEditFields }}
                                                 >
                                                     <Text
                                                         style={[
@@ -923,6 +955,9 @@ export default function AdminEventsScreen() {
                                                         if (canEditFields) openDateTimePicker('end');
                                                     }}
                                                     disabled={!canEditFields}
+                                                    accessibilityRole="button"
+                                                    accessibilityLabel={t('admin.events.fields.endDateTime')}
+                                                    accessibilityState={{ disabled: !canEditFields }}
                                                 >
                                                     <Text
                                                         style={[
@@ -939,6 +974,8 @@ export default function AdminEventsScreen() {
                                                             <Pressable
                                                                 onPress={() => setEndDateTime(null)}
                                                                 hitSlop={10}
+                                                                accessibilityRole="button"
+                                                                accessibilityLabel={t('common.clear', 'Clear')}
                                                             >
                                                                 <Ionicons name="close-circle" size={18} color="#9BA5B7" />
                                                             </Pressable>
@@ -1002,6 +1039,8 @@ export default function AdminEventsScreen() {
                                                         );
                                                     }
                                                 }}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={t('admin.events.cancelButton')}
                                             >
                                                 <Ionicons name="trash-outline" size={18} color="#D32F2F" />
                                                 <Text style={styles.cancelEventButtonText}>{t('admin.events.cancelButton')}</Text>
@@ -1010,7 +1049,14 @@ export default function AdminEventsScreen() {
                                     </ScrollView>
 
                                     <View style={styles.modalActions}>
-                                        <Pressable style={styles.secondaryButton} onPress={closeForm} disabled={saving}>
+                                        <Pressable
+                                            style={styles.secondaryButton}
+                                            onPress={closeForm}
+                                            disabled={saving}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={secondaryLabel}
+                                            accessibilityState={{ disabled: saving }}
+                                        >
                                             <Text style={styles.secondaryButtonText}>{secondaryLabel}</Text>
                                         </Pressable>
                                         {editingEvent && !isArchived && canCompleteEvents ? (
@@ -1022,6 +1068,9 @@ export default function AdminEventsScreen() {
                                                 ]}
                                                 onPress={() => handleMarkCompleted(editingEvent)}
                                                 disabled={completingId !== null || saving}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={t('admin.events.completeAction')}
+                                                accessibilityState={{ disabled: completingId !== null || saving }}
                                             >
                                                 {completingId === editingEvent.id ? (
                                                     <ActivityIndicator color="#FFFFFF" />
@@ -1041,6 +1090,11 @@ export default function AdminEventsScreen() {
                                                 ]}
                                                 onPress={handleSubmit}
                                                 disabled={saving}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={editingEvent
+                                                    ? t('admin.events.updateSubmit')
+                                                    : t('admin.events.createSubmit')}
+                                                accessibilityState={{ disabled: saving }}
                                             >
                                                 {saving ? (
                                                     <ActivityIndicator color="#FFFFFF" />

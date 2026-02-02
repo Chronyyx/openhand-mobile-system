@@ -96,6 +96,14 @@ export function ImageUploader({
                     style={[styles.button, isUploading && styles.buttonDisabled]}
                     onPress={handlePickImage}
                     disabled={isUploading}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                        imageUrl
+                            ? t('common.actions.changePhoto', 'Change Photo')
+                            : t('common.actions.addPhoto', 'Add Photo')
+                    }
+                    accessibilityHint={t('common.actions.changePhotoHint', 'Opens your photo library')}
+                    accessibilityState={{ disabled: isUploading }}
                 >
                     {isUploading ? (
                         <ActivityIndicator size="small" color="#FFFFFF" />

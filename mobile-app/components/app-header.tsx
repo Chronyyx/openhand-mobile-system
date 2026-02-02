@@ -59,6 +59,13 @@ export function AppHeader({ onMenuPress }: AppHeaderProps) {
                     styles.menuButton,
                     pressed && styles.menuButtonPressed,
                 ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                    unreadCount > 0
+                        ? `Open menu. ${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}.`
+                        : 'Open menu'
+                }
+                accessibilityHint="Opens the navigation menu"
             >
                 <Animated.View style={{ transform: [{ scale: menuScale }] }}>
                     <Ionicons name="menu" size={28} color={palette.primary} />

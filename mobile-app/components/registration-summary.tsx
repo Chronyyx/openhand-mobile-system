@@ -63,7 +63,12 @@ export function RegistrationSummaryComponent({
                         {t('events.registrationSummary.loadingError')}
                     </ThemedText>
                     {onRetry && (
-                        <Pressable style={styles.retryButton} onPress={onRetry}>
+                        <Pressable
+                            style={styles.retryButton}
+                            onPress={onRetry}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('events.registrationSummary.retry')}
+                        >
                             <ThemedText style={styles.retryButtonText}>
                                 {t('events.registrationSummary.retry')}
                             </ThemedText>

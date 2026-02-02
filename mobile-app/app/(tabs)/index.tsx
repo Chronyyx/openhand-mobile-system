@@ -98,6 +98,8 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.primaryButton, styles.actionButton]}
             onPress={() => router.push("/events")}
+            accessibilityRole="button"
+            accessibilityLabel={t("home.browseEvents")}
           >
             <Text style={styles.primaryButtonText}>{t("home.browseEvents")}</Text>
           </Pressable>
@@ -106,6 +108,8 @@ export default function HomeScreen() {
             <Pressable
               style={[styles.secondaryButton, styles.actionButton]}
               onPress={() => router.push("/auth/login")}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.loginRegister")}
             >
               <Text style={styles.secondaryButtonText}>{t("home.loginRegister")}</Text>
             </Pressable>
@@ -113,6 +117,8 @@ export default function HomeScreen() {
             <Pressable
               style={[styles.secondaryButton, styles.actionButton]}
               onPress={signOut}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.logout")}
             >
               <Text style={styles.secondaryButtonText}>{t("home.logout")} ({user.email})</Text>
             </Pressable>
@@ -121,6 +127,8 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.secondaryButton, styles.actionButton]}
             onPress={() => router.push("/settings/language")}
+            accessibilityRole="button"
+            accessibilityLabel={t("home.changeLanguage")}
           >
             <Text style={styles.secondaryButtonText}>{t("home.changeLanguage")}</Text>
           </Pressable>
@@ -135,6 +143,8 @@ export default function HomeScreen() {
           <Pressable
             style={styles.reserveButton}
             onPress={() => router.push("/events/gala-2025")}
+            accessibilityRole="button"
+            accessibilityLabel={t("home.reserve")}
           >
             <Text style={styles.reserveButtonText}>{t("home.reserve")}</Text>
           </Pressable>
@@ -204,7 +214,12 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* WHATSAPP FLOATING BUTTON */}
-      <Pressable style={styles.whatsappButton} onPress={handleWhatsAppContact}>
+      <Pressable
+        style={styles.whatsappButton}
+        onPress={handleWhatsAppContact}
+        accessibilityRole="button"
+        accessibilityLabel={t("home.contactWhatsapp", "Contact MANA on WhatsApp")}
+      >
         <Ionicons name="logo-whatsapp" size={26} color="#FFFFFF" />
       </Pressable>
 

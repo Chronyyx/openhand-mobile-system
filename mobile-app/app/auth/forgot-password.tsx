@@ -93,6 +93,7 @@ export default function ForgotPasswordScreen() {
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
                                 keyboardType="email-address"
+                                accessibilityLabel={t('auth.email_label', 'Email')}
                             />
                         </View>
                     </View>
@@ -115,13 +116,24 @@ export default function ForgotPasswordScreen() {
                         {loading ? (
                             <ActivityIndicator size="large" color={accentColor} />
                         ) : (
-                            <TouchableOpacity style={styles.loginButton} onPress={handleSubmit} activeOpacity={0.8}>
+                            <TouchableOpacity
+                                style={styles.loginButton}
+                                onPress={handleSubmit}
+                                activeOpacity={0.8}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('auth.send_reset_code_button')}
+                            >
                                 <Text style={styles.loginButtonText}>{t('auth.send_reset_code_button')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
 
-                    <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        style={{ marginTop: 20 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('auth.back_to_login_link')}
+                    >
                         <Text style={{ color: accentColor, textAlign: 'center' }}>{t('auth.back_to_login_link')}</Text>
                     </TouchableOpacity>
                 </View>

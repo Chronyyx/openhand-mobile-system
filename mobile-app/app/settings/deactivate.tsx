@@ -62,6 +62,7 @@ export default function DeactivateAccountScreen() {
                     value={confirmText}
                     onChangeText={setConfirmText}
                     autoCapitalize="none"
+                    accessibilityLabel={t('settings.account.confirmationLabel')}
                 />
 
                 {error && (
@@ -74,6 +75,10 @@ export default function DeactivateAccountScreen() {
                     style={[styles.deactivateButton, loading && { opacity: 0.7 }]}
                     onPress={handleDeactivate}
                     disabled={loading}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('settings.account.deactivateButton')}
+                    accessibilityHint={t('settings.account.deactivateHint', 'Deactivates your account')}
+                    accessibilityState={{ disabled: loading }}
                 >
                     {loading ? (
                         <ActivityIndicator color="#FFFFFF" />
@@ -82,7 +87,12 @@ export default function DeactivateAccountScreen() {
                     )}
                 </Pressable>
 
-                <Pressable style={styles.cancelButton} onPress={() => router.back()}>
+                <Pressable
+                    style={styles.cancelButton}
+                    onPress={() => router.back()}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('common.cancel')}
+                >
                     <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
                 </Pressable>
             </View>

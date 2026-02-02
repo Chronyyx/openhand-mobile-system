@@ -338,6 +338,16 @@
     "retry": "Réessayer",
     "empty": "Aucun événement trouvé.",
     "searchPlaceholder": "Rechercher des événements...",
+    "filters": {
+      "button": "Filtrer",
+      "title": "Trier les événements",
+      "upcoming": "Événements les plus proches d'abord",
+      "latest": "Événements les plus tardifs d'abord",
+      "alphaAsc": "Alphabétique (A-Z)",
+      "alphaDesc": "Alphabétique (Z-A)",
+      "occupancyLow": "Occupation la plus faible d'abord",
+      "occupancyHigh": "Occupation la plus élevée d'abord"
+    },
     "accessDenied": "Ce tableau de bord est réservé aux employés et aux administrateurs.",
     "fields": {
       "registered": "Inscrits",

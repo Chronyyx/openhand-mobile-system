@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts." />
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Improve cancellation logic by adding event ID override for better error handling and group registration updates">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -86,7 +88,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "feat/OP-95__Admin__Deactivate__Member__Profile",
+    "git-widget-placeholder": "feat/OP-96__Filter__Events__in__Attendance",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/maximilian/Desktop/Final Project/openhand-mobile-system",
     "node.js.detected.package.eslint": "true",
@@ -231,7 +233,7 @@
       <workItem from="1765552967494" duration="323000" />
       <workItem from="1765553305280" duration="7988000" />
       <workItem from="1769542282975" duration="4601000" />
-      <workItem from="1769630245937" duration="3946000" />
+      <workItem from="1769630245937" duration="6582000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -337,7 +339,23 @@
       <option name="project" value="LOCAL" />
       <updated>1769985053482</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="Revoke tokens and cancel registrations when accounts are deactivated">
+      <option name="closed" value="true" />
+      <created>1769986057445</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1769986057445</updated>
+    </task>
+    <task id="LOCAL-00015" summary="Improve cancellation logic by adding event ID override for better error handling and group registration updates">
+      <option name="closed" value="true" />
+      <created>1769986787284</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1769986787284</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -366,7 +384,9 @@
     <MESSAGE value="Add support for event management: backend seeding rules, UI updates, and i18n translations" />
     <MESSAGE value="Implement ability to duplicate events for admins" />
     <MESSAGE value="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts." />
-    <option name="LAST_COMMIT_MESSAGE" value="Add admin features for user management&#10;&#10;- Introduced admin ability to search, edit, and deactivate/reactivate user accounts in the app.&#10;- Created tests for user management scenarios, including handling inactive accounts.&#10;- Added backend support for updating user profiles and account statuses.&#10;- Enhanced localization files with additional translations for user management across multiple languages.&#10;- Adjusted login flow to display appropriate messages for inactive accounts." />
+    <MESSAGE value="Revoke tokens and cancel registrations when accounts are deactivated" />
+    <MESSAGE value="Improve cancellation logic by adding event ID override for better error handling and group registration updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Improve cancellation logic by adding event ID override for better error handling and group registration updates" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

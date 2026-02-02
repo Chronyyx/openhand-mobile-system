@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Modal,
     Pressable,
     RefreshControl,
     StyleSheet,
@@ -28,6 +29,14 @@ import { formatIsoDate, formatIsoTimeRange } from '../../../utils/date-time';
 import { getTranslatedEventTitle } from '../../../utils/event-translations';
 import { webSocketService } from '../../../utils/websocket';
 
+type SortOption =
+    | 'upcoming'
+    | 'latest'
+    | 'alphaAsc'
+    | 'alphaDesc'
+    | 'occupancyLow'
+    | 'occupancyHigh';
+
 export default function AttendanceDashboardScreen() {
     const router = useRouter();
     const { t } = useTranslation();
@@ -42,6 +51,8 @@ export default function AttendanceDashboardScreen() {
 
     const [events, setEvents] = useState<AttendanceEventSummary[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortOption, setSortOption] = useState<SortOption>('upcoming');
+    const [filterVisible, setFilterVisible] = useState(false);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -102,15 +113,72 @@ export default function AttendanceDashboardScreen() {
     }, [user?.token]);
 
     const filteredEvents = useMemo(() => {
-        if (!searchQuery.trim()) return events;
         const query = searchQuery.toLowerCase().trim();
-        return events.filter((event) => {
-            const title = getTranslatedEventTitle({ title: event.title }, t).toLowerCase();
-            const location = event.locationName?.toLowerCase() ?? '';
-            const address = event.address?.toLowerCase() ?? '';
-            return title.includes(query) || location.includes(query) || address.includes(query);
+        const filtered = !query
+            ? events
+            : events.filter((event) => {
+                const title = getTranslatedEventTitle({ title: event.title }, t).toLowerCase();
+                const location = event.locationName?.toLowerCase() ?? '';
+                const address = event.address?.toLowerCase() ?? '';
+                return title.includes(query) || location.includes(query) || address.includes(query);
+            });
+
+        const getStartTime = (event: AttendanceEventSummary) => {
+            const parsed = Date.parse(event.startDateTime);
+            return Number.isNaN(parsed) ? 0 : parsed;
+        };
+
+        const getTitle = (event: AttendanceEventSummary) =>
+            getTranslatedEventTitle({ title: event.title }, t).toLowerCase();
+
+        const getOccupancyScore = (event: AttendanceEventSummary) => {
+            if (event.occupancyPercent != null && !Number.isNaN(event.occupancyPercent)) {
+                return event.occupancyPercent;
+            }
+            if (event.maxCapacity != null && event.maxCapacity > 0) {
+                return (event.checkedInCount * 100) / event.maxCapacity;
+            }
+            return event.checkedInCount;
+        };
+
+        const compareByDateAsc = (a: AttendanceEventSummary, b: AttendanceEventSummary) =>
+            getStartTime(a) - getStartTime(b) || a.eventId - b.eventId;
+
+        const compareByDateDesc = (a: AttendanceEventSummary, b: AttendanceEventSummary) =>
+            getStartTime(b) - getStartTime(a) || a.eventId - b.eventId;
+
+        const compareByTitleAsc = (a: AttendanceEventSummary, b: AttendanceEventSummary) =>
+            getTitle(a).localeCompare(getTitle(b), undefined, { sensitivity: 'base' }) || compareByDateAsc(a, b);
+
+        const compareByTitleDesc = (a: AttendanceEventSummary, b: AttendanceEventSummary) =>
+            getTitle(b).localeCompare(getTitle(a), undefined, { sensitivity: 'base' }) || compareByDateAsc(a, b);
+
+        const compareByOccupancyAsc = (a: AttendanceEventSummary, b: AttendanceEventSummary) =>
+            getOccupancyScore(a) - getOccupancyScore(b) || compareByDateAsc(a, b);
+
+        const compareByOccupancyDesc = (a: AttendanceEventSummary, b: AttendanceEventSummary) =>
+            getOccupancyScore(b) - getOccupancyScore(a) || compareByDateAsc(a, b);
+
+        const sorted = [...filtered].sort((a, b) => {
+            switch (sortOption) {
+                case 'latest':
+                    return compareByDateDesc(a, b);
+                case 'alphaAsc':
+                    return compareByTitleAsc(a, b);
+                case 'alphaDesc':
+                    return compareByTitleDesc(a, b);
+                case 'occupancyLow':
+                    return compareByOccupancyAsc(a, b);
+                case 'occupancyHigh':
+                    return compareByOccupancyDesc(a, b);
+                case 'upcoming':
+                default:
+                    return compareByDateAsc(a, b);
+            }
         });
-    }, [events, searchQuery, t]);
+
+        return sorted;
+    }, [events, searchQuery, sortOption, t]);
 
     const handleRefresh = useCallback(() => {
         setRefreshing(true);
@@ -140,7 +208,7 @@ export default function AttendanceDashboardScreen() {
                 style={({ pressed }) => [pressed && { opacity: 0.7 }]}
             >
                 <View style={eventStyles.cardHeader}>
-                    <ThemedText type="subtitle" style={eventStyles.eventTitle}>
+                    <ThemedText type="subtitle" style={eventStyles.eventTitle} testID="attendance-event-title">
                         {getTranslatedEventTitle({ title: item.title }, t)}
                     </ThemedText>
                 </View>
@@ -251,21 +319,93 @@ export default function AttendanceDashboardScreen() {
                 <ThemedText style={eventStyles.screenTitle}>{t('attendance.title')}</ThemedText>
                 <ThemedText style={styles.subtitle}>{t('attendance.subtitle')}</ThemedText>
 
-                <View style={eventStyles.searchContainer}>
-                    <Ionicons name="search" size={20} color={iconColor} style={eventStyles.searchIcon} />
-                    <TextInput
-                        style={[eventStyles.searchInput, { color: isDark ? '#ECEDEE' : '#333' }]}
-                        placeholder={t('attendance.searchPlaceholder')}
-                        placeholderTextColor={placeholderColor}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                    {searchQuery.length > 0 && (
-                        <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                            <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
-                        </Pressable>
-                    )}
+                <View style={styles.searchRow}>
+                    <View style={[eventStyles.searchContainer, styles.searchContainer]}>
+                        <Ionicons name="search" size={20} color={iconColor} style={eventStyles.searchIcon} />
+                        <TextInput
+                            style={[eventStyles.searchInput, { color: isDark ? '#ECEDEE' : '#333' }]}
+                            placeholder={t('attendance.searchPlaceholder')}
+                            placeholderTextColor={placeholderColor}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                        {searchQuery.length > 0 && (
+                            <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
+                                <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
+                            </Pressable>
+                        )}
+                    </View>
+                    <Pressable
+                        onPress={() => setFilterVisible(true)}
+                        style={styles.filterButton}
+                        testID="attendance-filter-button"
+                    >
+                        <Ionicons name="funnel-outline" size={18} color={iconColor} />
+                        <ThemedText style={styles.filterButtonText}>{t('attendance.filters.button')}</ThemedText>
+                    </Pressable>
                 </View>
+
+                <Modal
+                    transparent
+                    visible={filterVisible}
+                    animationType="fade"
+                    onRequestClose={() => setFilterVisible(false)}
+                >
+                    <View style={eventStyles.modalOverlay}>
+                        <Pressable
+                            style={StyleSheet.absoluteFillObject}
+                            onPress={() => setFilterVisible(false)}
+                        />
+                        <View style={eventStyles.modalCard}>
+                            <View style={styles.filterHeader}>
+                                <ThemedText style={styles.filterTitle}>{t('attendance.filters.title')}</ThemedText>
+                                <Pressable onPress={() => setFilterVisible(false)} hitSlop={10}>
+                                    <Ionicons name="close" size={20} color={iconColor} />
+                                </Pressable>
+                            </View>
+                            <View style={styles.filterOptions}>
+                                {(
+                                    [
+                                        { key: 'upcoming', label: t('attendance.filters.upcoming') },
+                                        { key: 'latest', label: t('attendance.filters.latest') },
+                                        { key: 'alphaAsc', label: t('attendance.filters.alphaAsc') },
+                                        { key: 'alphaDesc', label: t('attendance.filters.alphaDesc') },
+                                        { key: 'occupancyLow', label: t('attendance.filters.occupancyLow') },
+                                        { key: 'occupancyHigh', label: t('attendance.filters.occupancyHigh') },
+                                    ] as { key: SortOption; label: string }[]
+                                ).map((option) => {
+                                    const isSelected = sortOption === option.key;
+                                    return (
+                                        <Pressable
+                                            key={option.key}
+                                            onPress={() => {
+                                                setSortOption(option.key);
+                                                setFilterVisible(false);
+                                            }}
+                                            style={[
+                                                styles.filterOption,
+                                                isSelected && styles.filterOptionSelected,
+                                            ]}
+                                            testID={`attendance-filter-option-${option.key}`}
+                                        >
+                                            <ThemedText
+                                                style={[
+                                                    styles.filterOptionText,
+                                                    isSelected && styles.filterOptionTextSelected,
+                                                ]}
+                                            >
+                                                {option.label}
+                                            </ThemedText>
+                                            {isSelected && (
+                                                <Ionicons name="checkmark" size={18} color={indicatorColor} />
+                                            )}
+                                        </Pressable>
+                                    );
+                                })}
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
 
                 {content}
             </ThemedView>
@@ -357,7 +497,70 @@ const getStyles = (isDark: boolean) => {
             color: '#0056A8',
             fontWeight: '600',
         },
+        searchRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 16,
+        },
+        searchContainer: {
+            flex: 1,
+            marginBottom: 0,
+        },
+        filterButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.bgLight,
+        },
+        filterButtonText: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        filterHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 18,
+            paddingTop: 16,
+            paddingBottom: 12,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: colors.border,
+        },
+        filterTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        filterOptions: {
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            gap: 6,
+        },
+        filterOption: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 10,
+            paddingVertical: 12,
+            borderRadius: 10,
+        },
+        filterOptionSelected: {
+            backgroundColor: colors.bgLight,
+        },
+        filterOptionText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        filterOptionTextSelected: {
+            color: colors.text,
+        },
     });
 };
-
-

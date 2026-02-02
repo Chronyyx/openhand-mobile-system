@@ -337,6 +337,16 @@
     "retry": "Retry",
     "empty": "No events found.",
     "searchPlaceholder": "Search events...",
+    "filters": {
+      "button": "Filter",
+      "title": "Sort events",
+      "upcoming": "Most upcoming events first",
+      "latest": "Latest events first",
+      "alphaAsc": "Alphabetical (A-Z)",
+      "alphaDesc": "Alphabetical (Z-A)",
+      "occupancyLow": "Occupancy lowest first",
+      "occupancyHigh": "Occupancy highest first"
+    },
     "accessDenied": "This dashboard is for employees and administrators only.",
     "fields": {
       "registered": "Registered",

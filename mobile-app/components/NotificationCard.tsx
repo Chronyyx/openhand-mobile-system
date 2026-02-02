@@ -25,6 +25,12 @@ function getNotificationIcon(type: string): string {
             return 'close-circle';
         case 'REMINDER':
             return 'alarm';
+        case 'EVENT_CAPACITY_WARNING':
+            return 'alert-circle';
+        case 'EVENT_FULL_ALERT':
+            return 'warning';
+        case 'EVENT_UPDATE':
+            return 'information-circle';
         default:
             return 'notifications';
     }
@@ -39,6 +45,12 @@ function getNotificationColor(type: string, scheme: 'light' | 'dark'): string {
             return isDark ? '#FFB4AB' : '#DC3545';
         case 'REMINDER':
             return isDark ? '#FFD580' : '#FFC107';
+        case 'EVENT_CAPACITY_WARNING':
+            return isDark ? '#FFD580' : '#FD7E14'; // Orange
+        case 'EVENT_FULL_ALERT':
+            return isDark ? '#FFB4AB' : '#DC3545'; // Red
+        case 'EVENT_UPDATE':
+            return isDark ? '#9FC3FF' : '#0056A8'; // Primary Blue
         default:
             return isDark ? '#9FC3FF' : '#0056A8';
     }

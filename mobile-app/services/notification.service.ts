@@ -1,7 +1,7 @@
 // mobile-app/services/notification.service.ts
 import apiClient from './api.client';
 
-export type NotificationType = 'REGISTRATION_CONFIRMATION' | 'REMINDER' | 'CANCELLATION' | 'EMPLOYEE_REGISTERED_PARTICIPANT';
+export type NotificationType = 'REGISTRATION_CONFIRMATION' | 'REMINDER' | 'CANCELLATION' | 'EMPLOYEE_REGISTERED_PARTICIPANT' | 'EVENT_CAPACITY_WARNING' | 'EVENT_FULL_ALERT' | 'EVENT_UPDATE';
 
 export type Notification = {
     id: number;

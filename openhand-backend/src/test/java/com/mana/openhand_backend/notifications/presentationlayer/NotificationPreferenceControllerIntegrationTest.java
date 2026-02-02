@@ -32,95 +32,91 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(locations = "classpath:application-test.properties")
 class NotificationPreferenceControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Autowired
-    private UserRepository userRepository;
+        @Autowired
+        private UserRepository userRepository;
 
-    @Autowired
-    private NotificationPreferenceRepository preferenceRepository;
+        @Autowired
+        private NotificationPreferenceRepository preferenceRepository;
 
-    private static final String TEST_USER_EMAIL = "notification_prefs_test@example.com";
+        private static final String TEST_USER_EMAIL = "notification_prefs_test@example.com";
 
-    @BeforeEach
-    @Transactional
-    void setUp() {
-        preferenceRepository.deleteAll();
-        userRepository.findByEmail(TEST_USER_EMAIL).orElseGet(() -> {
-            User newUser = new User(TEST_USER_EMAIL, "password123", Set.of("ROLE_MEMBER"));
-            newUser.setPreferredLanguage("en");
-            return userRepository.save(newUser);
-        });
-    }
-
-    @Test
-    @WithMockUser(username = TEST_USER_EMAIL, roles = {"MEMBER"})
-    void getPreferences_returnsDefaults() throws Exception {
-        mockMvc.perform(get("/api/notifications/preferences")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.memberId", notNullValue()))
-                .andExpect(jsonPath("$.preferences", hasSize(3)))
-                .andExpect(jsonPath("$.preferences[*].category", containsInAnyOrder(
-                        "CONFIRMATION", "REMINDER", "CANCELLATION"
-                )));
-    }
-
-    @Test
-    @WithMockUser(username = TEST_USER_EMAIL, roles = {"MEMBER"})
-    void updatePreferences_updatesNonCriticalCategory() throws Exception {
-        NotificationPreferenceUpdateRequestModel request = new NotificationPreferenceUpdateRequestModel(
-                List.of(new NotificationPreferenceItemRequestModel("REMINDER", false))
-        );
-
-        mockMvc.perform(put("/api/notifications/preferences")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.preferences[?(@.category=='REMINDER')].enabled", contains(false)));
-
-        NotificationPreference preference = preferenceRepository.findByUserId(
-                userRepository.findByEmail(TEST_USER_EMAIL).orElseThrow().getId()
-        ).orElseThrow();
-
-        if (preference.isReminderEnabled()) {
-            throw new AssertionError("Expected reminder preference to be disabled.");
+        @BeforeEach
+        @Transactional
+        void setUp() {
+                preferenceRepository.deleteAll();
+                userRepository.findByEmail(TEST_USER_EMAIL).orElseGet(() -> {
+                        User newUser = new User(TEST_USER_EMAIL, "password123", Set.of("ROLE_MEMBER"));
+                        newUser.setPreferredLanguage("en");
+                        return userRepository.save(newUser);
+                });
         }
-    }
 
-    @Test
-    @WithMockUser(username = TEST_USER_EMAIL, roles = {"MEMBER"})
-    void updatePreferences_disableCriticalCategory_returnsBadRequest() throws Exception {
-        NotificationPreferenceUpdateRequestModel request = new NotificationPreferenceUpdateRequestModel(
-                List.of(new NotificationPreferenceItemRequestModel("CANCELLATION", false))
-        );
+        @Test
+        @WithMockUser(username = TEST_USER_EMAIL, roles = { "MEMBER" })
+        void getPreferences_returnsDefaults() throws Exception {
+                mockMvc.perform(get("/api/notifications/preferences")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.memberId", notNullValue()))
+                                .andExpect(jsonPath("$.preferences", hasSize(4)))
+                                .andExpect(jsonPath("$.preferences[*].category", containsInAnyOrder(
+                                                "CONFIRMATION", "REMINDER", "CANCELLATION", "CAPACITY_ALERT")));
+        }
 
-        mockMvc.perform(put("/api/notifications/preferences")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
-    }
+        @Test
+        @WithMockUser(username = TEST_USER_EMAIL, roles = { "MEMBER" })
+        void updatePreferences_updatesNonCriticalCategory() throws Exception {
+                NotificationPreferenceUpdateRequestModel request = new NotificationPreferenceUpdateRequestModel(
+                                List.of(new NotificationPreferenceItemRequestModel("REMINDER", false)));
 
-    @Test
-    void getPreferences_unauthenticated_returnsUnauthorized() throws Exception {
-        mockMvc.perform(get("/api/notifications/preferences")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isUnauthorized());
-    }
+                mockMvc.perform(put("/api/notifications/preferences")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.preferences[?(@.category=='REMINDER')].enabled",
+                                                contains(false)));
 
-    @Test
-    void updatePreferences_unauthenticated_returnsUnauthorized() throws Exception {
-        NotificationPreferenceUpdateRequestModel request = new NotificationPreferenceUpdateRequestModel(
-                List.of(new NotificationPreferenceItemRequestModel("REMINDER", false))
-        );
+                NotificationPreference preference = preferenceRepository.findByUserId(
+                                userRepository.findByEmail(TEST_USER_EMAIL).orElseThrow().getId()).orElseThrow();
 
-        mockMvc.perform(put("/api/notifications/preferences")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
-    }
+                if (preference.isReminderEnabled()) {
+                        throw new AssertionError("Expected reminder preference to be disabled.");
+                }
+        }
+
+        @Test
+        @WithMockUser(username = TEST_USER_EMAIL, roles = { "MEMBER" })
+        void updatePreferences_disableCriticalCategory_returnsBadRequest() throws Exception {
+                NotificationPreferenceUpdateRequestModel request = new NotificationPreferenceUpdateRequestModel(
+                                List.of(new NotificationPreferenceItemRequestModel("CANCELLATION", false)));
+
+                mockMvc.perform(put("/api/notifications/preferences")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        void getPreferences_unauthenticated_returnsUnauthorized() throws Exception {
+                mockMvc.perform(get("/api/notifications/preferences")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isUnauthorized());
+        }
+
+        @Test
+        void updatePreferences_unauthenticated_returnsUnauthorized() throws Exception {
+                NotificationPreferenceUpdateRequestModel request = new NotificationPreferenceUpdateRequestModel(
+                                List.of(new NotificationPreferenceItemRequestModel("REMINDER", false)));
+
+                mockMvc.perform(put("/api/notifications/preferences")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isUnauthorized());
+        }
 }

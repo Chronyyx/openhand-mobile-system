@@ -18,6 +18,12 @@ export function getTranslatedNotificationText(
             return getReminderText(eventTitle, eventStartDateTime, language);
         case 'EMPLOYEE_REGISTERED_PARTICIPANT':
             return getEmployeeRegisteredText(eventTitle, participantName, language);
+        case 'EVENT_CAPACITY_WARNING':
+            return getCapacityWarningText(eventTitle, language);
+        case 'EVENT_FULL_ALERT':
+            return getEventFullText(eventTitle, language);
+        case 'EVENT_UPDATE':
+            return getEventUpdateText(eventTitle, language);
         default:
             return '';
     }
@@ -84,7 +90,7 @@ function getEmployeeRegisteredText(
     language: string
 ): string {
     const name = participantName || 'participant';
-    
+
     switch (language) {
         case 'fr':
             return `Vous avez enregistré ${name} pour l'événement : ${eventTitle}.`;
@@ -92,5 +98,38 @@ function getEmployeeRegisteredText(
             return `Ha registrado a ${name} para el evento: ${eventTitle}.`;
         default:
             return `You have registered ${name} for the event: ${eventTitle}.`;
+    }
+}
+
+function getCapacityWarningText(eventTitle: string, language: string): string {
+    switch (language) {
+        case 'fr':
+            return `Attention : L'événement ${eventTitle} est presque complet (80% de capacité).`;
+        case 'es':
+            return `Advertencia: El evento ${eventTitle} está casi lleno (80% de capacidad).`;
+        default:
+            return `Warning: The event ${eventTitle} is nearly full (80% capacity).`;
+    }
+}
+
+function getEventFullText(eventTitle: string, language: string): string {
+    switch (language) {
+        case 'fr':
+            return `Alerte : L'événement ${eventTitle} a atteint sa capacité maximale.`;
+        case 'es':
+            return `Alerta: El evento ${eventTitle} ha alcanzado su capacidad máxima.`;
+        default:
+            return `Alert: The event ${eventTitle} has reached full capacity.`;
+    }
+}
+
+function getEventUpdateText(eventTitle: string, language: string): string {
+    switch (language) {
+        case 'fr':
+            return `Mise à jour : Les détails de l'événement ${eventTitle} ont changé.`;
+        case 'es':
+            return `Actualización: Los detalles del evento ${eventTitle} han cambiado.`;
+        default:
+            return `Update: Details for the event ${eventTitle} have changed.`;
     }
 }

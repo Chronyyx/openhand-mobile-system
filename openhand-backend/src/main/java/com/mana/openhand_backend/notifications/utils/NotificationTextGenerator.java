@@ -51,6 +51,8 @@ public class NotificationTextGenerator {
             case EMPLOYEE_REGISTERED_PARTICIPANT ->
                 generateEmployeeRegisteredText(eventTitle, participantName, language);
             case EVENT_UPDATE -> generateEventUpdateText(eventTitle, eventStartDateTime, language);
+            case EVENT_CAPACITY_WARNING -> generateCapacityWarningText(eventTitle, language);
+            case EVENT_FULL_ALERT -> generateEventFullText(eventTitle, language);
         };
     }
 
@@ -108,6 +110,22 @@ public class NotificationTextGenerator {
             case "fr" -> String.format("Vous avez enregistré %s pour l'événement : %s.", name, eventTitle);
             case "es" -> String.format("Ha registrado a %s para el evento: %s.", name, eventTitle);
             default -> String.format("You have registered %s for the event: %s.", name, eventTitle);
+        };
+    }
+
+    private String generateCapacityWarningText(String eventTitle, String language) {
+        return switch (language) {
+            case "fr" -> String.format("Attention : L'événement %s est presque complet (80%%).", eventTitle);
+            case "es" -> String.format("Advertencia: El evento %s está casi lleno (80%%).", eventTitle);
+            default -> String.format("Warning: The event %s is nearly full (80%% capacity).", eventTitle);
+        };
+    }
+
+    private String generateEventFullText(String eventTitle, String language) {
+        return switch (language) {
+            case "fr" -> String.format("Alerte : L'événement %s est maintenant complet.", eventTitle);
+            case "es" -> String.format("Alerta: El evento %s está completo.", eventTitle);
+            default -> String.format("Alert: The event %s is now full.", eventTitle);
         };
     }
 }

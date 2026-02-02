@@ -7,26 +7,29 @@ import java.util.List;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    
+
     /**
      * Find all notifications for a user, ordered by creation date (newest first)
      */
     List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
-    
+
     /**
      * Count unread notifications for a user
      */
     long countByUserIdAndIsReadFalse(Long userId);
-    
+
     /**
-     * Find notifications by event and type (useful for checking if notification already exists)
+     * Find notifications by event and type (useful for checking if notification
+     * already exists)
      */
     List<Notification> findByEventIdAndNotificationType(Long eventId, NotificationType notificationType);
 
     void deleteByEventId(Long eventId);
-    
+
     /**
      * Find unread notifications for a user
      */
     List<Notification> findByUserIdAndIsReadFalse(Long userId);
+
+    boolean existsByUserIdAndEventIdAndNotificationType(Long userId, Long eventId, NotificationType notificationType);
 }

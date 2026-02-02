@@ -327,6 +327,9 @@ export default function AdminUsersScreen() {
                         pressed && styles.editButtonPressed,
                     ]}
                     onPress={() => openEditor(item)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('admin.users.edit')}
+                    accessibilityHint={t('admin.users.editHint', 'Edits this user')}
                 >
                     <Ionicons name="create-outline" size={16} color={ACCENT} />
                     <Text style={styles.editButtonText}>{t('admin.users.edit')}</Text>
@@ -341,7 +344,12 @@ export default function AdminUsersScreen() {
 
             <View style={styles.content}>
                 <View style={styles.header}>
-                    <Pressable style={styles.backButton} onPress={() => router.back()}>
+                    <Pressable
+                        style={styles.backButton}
+                        onPress={() => router.back()}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.back', 'Go back')}
+                    >
                         <Ionicons name="chevron-back" size={18} color={ACCENT} />
                     </Pressable>
                     <View style={{ flex: 1 }}>
@@ -360,6 +368,7 @@ export default function AdminUsersScreen() {
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                             autoCapitalize="none"
+                            accessibilityLabel={t('admin.users.searchLabel', 'Search users')}
                         />
                     </View>
                     <View style={styles.tabs}>
@@ -369,6 +378,9 @@ export default function AdminUsersScreen() {
                                 activeTab === 'ACTIVE' && styles.tabButtonActive,
                             ]}
                             onPress={() => setActiveTab('ACTIVE')}
+                            accessibilityRole="tab"
+                            accessibilityLabel={t('admin.users.tabs.active')}
+                            accessibilityState={{ selected: activeTab === 'ACTIVE' }}
                         >
                             <Text
                                 style={[
@@ -400,6 +412,9 @@ export default function AdminUsersScreen() {
                                 activeTab === 'INACTIVE' && styles.tabButtonActive,
                             ]}
                             onPress={() => setActiveTab('INACTIVE')}
+                            accessibilityRole="tab"
+                            accessibilityLabel={t('admin.users.tabs.disabled')}
+                            accessibilityState={{ selected: activeTab === 'INACTIVE' }}
                         >
                             <Text
                                 style={[
@@ -481,6 +496,7 @@ export default function AdminUsersScreen() {
                                     onChangeText={setEditName}
                                     placeholder={t('admin.users.placeholders.name')}
                                     placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                    accessibilityLabel={t('admin.users.fields.name')}
                                 />
                             </View>
 
@@ -494,6 +510,7 @@ export default function AdminUsersScreen() {
                                     keyboardType="email-address"
                                     placeholder={t('admin.users.placeholders.email')}
                                     placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                    accessibilityLabel={t('admin.users.fields.email')}
                                 />
                             </View>
 
@@ -506,6 +523,7 @@ export default function AdminUsersScreen() {
                                     keyboardType="phone-pad"
                                     placeholder={t('admin.users.placeholders.phone')}
                                     placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
+                                    accessibilityLabel={t('admin.users.fields.phone')}
                                 />
                             </View>
 
@@ -515,6 +533,7 @@ export default function AdminUsersScreen() {
                                     <Picker
                                         selectedValue={editGender}
                                         onValueChange={(itemValue) => setEditGender(itemValue)}
+                                        accessibilityLabel={t('admin.users.fields.gender')}
                                     >
                                         <Picker.Item label={t('profile.genderOptions.preferNotToSay')} value="PREFER_NOT_TO_SAY" />
                                         <Picker.Item label={t('profile.genderOptions.male')} value="MALE" />
@@ -541,6 +560,7 @@ export default function AdminUsersScreen() {
                                     placeholder={t('admin.users.placeholders.age')}
                                     placeholderTextColor={isDark ? '#8B93A1' : '#9BA5B7'}
                                     maxLength={3}
+                                    accessibilityLabel={t('admin.users.fields.age')}
                                 />
                             </View>
 
@@ -548,6 +568,9 @@ export default function AdminUsersScreen() {
                             <Pressable
                                 style={styles.dropdown}
                                 onPress={() => setRolePickerOpen((open) => !open)}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('admin.users.role')}
+                                accessibilityHint={t('admin.users.selectRole')}
                             >
                                 <Text style={styles.dropdownValue}>
                                     {selectedRole ? renderRoleLabel(selectedRole) : t('admin.users.selectRole')}
@@ -573,6 +596,9 @@ export default function AdminUsersScreen() {
                                                 setSelectedRole(role);
                                                 setRolePickerOpen(false);
                                             }}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={renderRoleLabel(role)}
+                                            accessibilityState={{ selected: selectedRole === role }}
                                         >
                                             <Text
                                                 style={[
@@ -611,6 +637,13 @@ export default function AdminUsersScreen() {
                                         selectedUser?.memberStatus === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE',
                                     )
                                 }
+                                accessibilityRole="button"
+                                accessibilityLabel={
+                                    selectedUser?.memberStatus === 'INACTIVE'
+                                        ? t('admin.users.reactivate')
+                                        : t('admin.users.deactivate')
+                                }
+                                accessibilityState={{ disabled: saving }}
                             >
                                 <Text
                                     style={[
@@ -627,7 +660,12 @@ export default function AdminUsersScreen() {
                             </Pressable>
 
                             <View style={styles.modalActions}>
-                                <Pressable style={styles.secondaryButton} onPress={closeEditor}>
+                                <Pressable
+                                    style={styles.secondaryButton}
+                                    onPress={closeEditor}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('common.cancel')}
+                                >
                                     <Text style={styles.secondaryButtonText}>{t('common.cancel')}</Text>
                                 </Pressable>
                                 <Pressable
@@ -638,6 +676,9 @@ export default function AdminUsersScreen() {
                                     ]}
                                     disabled={!selectedRole || saving}
                                     onPress={saveUserChanges}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('admin.users.save')}
+                                    accessibilityState={{ disabled: !selectedRole || saving }}
                                 >
                                     {saving ? (
                                         <ActivityIndicator color="#FFFFFF" />
@@ -756,9 +797,13 @@ const getStyles = (scheme: 'light' | 'dark') => {
         justifyContent: 'center',
         gap: 8,
         paddingVertical: 10,
+        borderBottomWidth: 2,
+        borderBottomColor: 'transparent',
     },
     tabButtonActive: {
         backgroundColor: isDark ? '#1D2A3A' : '#F0F6FF',
+        borderBottomWidth: 2,
+        borderBottomColor: ACCENT,
     },
     tabLabel: {
         fontSize: 13,
@@ -767,6 +812,7 @@ const getStyles = (scheme: 'light' | 'dark') => {
     },
     tabLabelActive: {
         color: ACCENT,
+        fontWeight: '700',
     },
     tabCount: {
         minWidth: 24,

@@ -5,11 +5,13 @@ import com.mana.openhand_backend.events.businesslayer.EventAdminService;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.events.presentationlayer.payload.CreateEventRequest;
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,7 +19,10 @@ import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -87,6 +92,67 @@ class EventAdminControllerTest {
         when(eventAdminService.cancelEvent(7L)).thenThrow(new NoSuchElementException("missing"));
 
         mockMvc.perform(post("/api/admin/events/7/cancel"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void cancelEvent_returnsEvent() throws Exception {
+        Event event = buildEvent(3L);
+        when(eventAdminService.cancelEvent(3L)).thenReturn(event);
+
+        mockMvc.perform(post("/api/admin/events/3/cancel"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.title").value("Test Event"));
+    }
+
+    @Test
+    void uploadEventImage_returnsUrl() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
+        when(eventAdminService.uploadEventImage(eq(5L), any(MockMultipartFile.class), any(String.class)))
+                .thenReturn(new ImageUrlResponse("http://localhost/uploads/test.jpg"));
+
+        mockMvc.perform(multipart("/api/admin/events/5/image").file(file))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value("http://localhost/uploads/test.jpg"));
+    }
+
+    @Test
+    void uploadEventImage_whenMissing_returnsNotFound() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
+        when(eventAdminService.uploadEventImage(eq(9L), any(MockMultipartFile.class), any(String.class)))
+                .thenThrow(new NoSuchElementException("missing"));
+
+        mockMvc.perform(multipart("/api/admin/events/9/image").file(file))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void uploadEventImage_whenInvalid_returnsBadRequest() throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpg", "image/jpeg", "data".getBytes());
+        when(eventAdminService.uploadEventImage(eq(10L), any(MockMultipartFile.class), any(String.class)))
+                .thenThrow(new IllegalArgumentException("bad"));
+
+        mockMvc.perform(multipart("/api/admin/events/10/image").file(file))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getEventImage_returnsUrl() throws Exception {
+        when(eventAdminService.getEventImage(eq(11L), any(String.class)))
+                .thenReturn(new ImageUrlResponse("http://localhost/uploads/11.jpg"));
+
+        mockMvc.perform(get("/api/admin/events/11/image"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value("http://localhost/uploads/11.jpg"));
+    }
+
+    @Test
+    void getEventImage_whenMissing_returnsNotFound() throws Exception {
+        when(eventAdminService.getEventImage(eq(12L), any(String.class)))
+                .thenThrow(new NoSuchElementException("missing"));
+
+        mockMvc.perform(get("/api/admin/events/12/image"))
                 .andExpect(status().isNotFound());
     }
 

@@ -165,11 +165,17 @@ export function DateTimePickerModal({
 
     return (
         <View style={styles.overlay}>
-            <Pressable style={styles.backdrop} onPress={onCancel} />
+            <Pressable style={styles.backdrop} onPress={onCancel} accessible={false} />
             <View style={styles.card}>
                 <View style={styles.header}>
                     <Text style={styles.title}>{title}</Text>
-                    <Pressable onPress={onCancel} hitSlop={10}>
+                    <Pressable
+                        onPress={onCancel}
+                        hitSlop={10}
+                        accessibilityRole="button"
+                        accessibilityLabel={cancelLabel}
+                        accessibilityHint="Closes the date picker"
+                    >
                         <Ionicons name="close" size={20} color={closeIconColor} />
                     </Pressable>
                 </View>
@@ -179,6 +185,8 @@ export function DateTimePickerModal({
                         style={styles.monthNav}
                         onPress={() => setActiveMonth((m) => addMonths(m, -1))}
                         hitSlop={10}
+                        accessibilityRole="button"
+                        accessibilityLabel="Previous month"
                     >
                         <Ionicons name="chevron-back" size={18} color={finalAccent} />
                     </Pressable>
@@ -187,6 +195,8 @@ export function DateTimePickerModal({
                         style={styles.monthNav}
                         onPress={() => setActiveMonth((m) => addMonths(m, 1))}
                         hitSlop={10}
+                        accessibilityRole="button"
+                        accessibilityLabel="Next month"
                     >
                         <Ionicons name="chevron-forward" size={18} color={finalAccent} />
                     </Pressable>
@@ -217,6 +227,9 @@ export function DateTimePickerModal({
                                         setActiveMonth(startOfMonth(cell.date));
                                     }
                                 }}
+                                accessibilityRole="button"
+                                accessibilityLabel={cell.date.toLocaleDateString()}
+                                accessibilityState={{ selected: isSelected }}
                             >
                                 <Text
                                     style={[
@@ -248,6 +261,8 @@ export function DateTimePickerModal({
                                 style={styles.stepperButton}
                                 onPress={() => adjustHours(-1)}
                                 hitSlop={8}
+                                accessibilityRole="button"
+                                accessibilityLabel="Decrease hours"
                             >
                                 <Ionicons name="remove" size={16} color={stepperIconColor} />
                             </Pressable>
@@ -256,6 +271,8 @@ export function DateTimePickerModal({
                                 style={styles.stepperButton}
                                 onPress={() => adjustHours(1)}
                                 hitSlop={8}
+                                accessibilityRole="button"
+                                accessibilityLabel="Increase hours"
                             >
                                 <Ionicons name="add" size={16} color={stepperIconColor} />
                             </Pressable>
@@ -268,6 +285,8 @@ export function DateTimePickerModal({
                                 style={styles.stepperButton}
                                 onPress={() => adjustMinutes(-MINUTE_STEP)}
                                 hitSlop={8}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Decrease minutes by ${MINUTE_STEP}`}
                             >
                                 <Ionicons name="remove" size={16} color={stepperIconColor} />
                             </Pressable>
@@ -276,6 +295,8 @@ export function DateTimePickerModal({
                                 style={styles.stepperButton}
                                 onPress={() => adjustMinutes(MINUTE_STEP)}
                                 hitSlop={8}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Increase minutes by ${MINUTE_STEP}`}
                             >
                                 <Ionicons name="add" size={16} color={stepperIconColor} />
                             </Pressable>
@@ -295,6 +316,9 @@ export function DateTimePickerModal({
                                     selectedChip && { backgroundColor: finalAccent, borderColor: finalAccent },
                                 ]}
                                 onPress={() => setMinutes(minute)}
+                                accessibilityRole="button"
+                                accessibilityLabel={`Set minutes to ${pad2(minute)}`}
+                                accessibilityState={{ selected: selectedChip }}
                             >
                                 <Text
                                     style={[
@@ -310,10 +334,20 @@ export function DateTimePickerModal({
                 </View>
 
                 <View style={styles.actions}>
-                    <Pressable style={styles.secondaryButton} onPress={onCancel}>
+                    <Pressable
+                        style={styles.secondaryButton}
+                        onPress={onCancel}
+                        accessibilityRole="button"
+                        accessibilityLabel={cancelLabel}
+                    >
                         <Text style={styles.secondaryText}>{cancelLabel}</Text>
                     </Pressable>
-                    <Pressable style={[styles.primaryButton, { backgroundColor: finalAccent }]} onPress={handleConfirm}>
+                    <Pressable
+                        style={[styles.primaryButton, { backgroundColor: finalAccent }]}
+                        onPress={handleConfirm}
+                        accessibilityRole="button"
+                        accessibilityLabel={confirmLabel}
+                    >
                         <Text style={styles.primaryText}>{confirmLabel}</Text>
                     </Pressable>
                 </View>

@@ -303,6 +303,9 @@ export function EventDetailModal({
                                 <Pressable
                                     style={styles.undoButton}
                                     onPress={onUnregister}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('events.actions.undo', "Cancel registration")}
+                                    accessibilityHint={t('events.actions.undoHint', 'Cancels your registration')}
                                 >
                                     <ThemedText style={styles.undoButtonText}>
                                         {t('events.actions.undo', "Annuler l'inscription")}
@@ -402,7 +405,13 @@ export function EventDetailModal({
                                 )}
 
                                 {selectedEvent && user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && (
-                                    <Pressable style={styles.attendeesButton} onPress={handleOpenAttendees}>
+                                    <Pressable
+                                        style={styles.attendeesButton}
+                                        onPress={handleOpenAttendees}
+                                        accessibilityRole="button"
+                                        accessibilityLabel={t('events.attendees.viewButton')}
+                                        accessibilityHint={t('events.attendees.viewHint', 'Opens the attendee list')}
+                                    >
                                         <ThemedText style={styles.attendeesButtonText}>
                                             {t('events.attendees.viewButton')}
                                         </ThemedText>
@@ -420,8 +429,16 @@ export function EventDetailModal({
                                                 placeholderTextColor={inputPalette.placeholder}
                                                 value={walkinQuery}
                                                 onChangeText={setWalkinQuery}
+                                                accessibilityLabel={t('events.walkin.searchLabel', 'Search attendee by email')}
+                                                accessibilityHint={t('events.walkin.searchHint', 'Enter an email to search for a walk-in attendee')}
                                             />
-                                            <Pressable style={styles.registerButton} onPress={handleWalkinSearch}>
+                                            <Pressable
+                                                style={styles.registerButton}
+                                                onPress={handleWalkinSearch}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={t('events.walkin.search')}
+                                                accessibilityHint={t('events.walkin.searchHintButton', 'Searches for matching users')}
+                                            >
                                                 <ThemedText style={styles.registerButtonText}>{t('events.walkin.search')}</ThemedText>
                                             </Pressable>
                                         </View>
@@ -438,7 +455,15 @@ export function EventDetailModal({
                                         {walkinResults.length > 0 && (
                                             <View style={{ gap: 8 }}>
                                                 {walkinResults.map(r => (
-                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}>
+                                                    <Pressable
+                                                        key={r.id}
+                                                        onPress={() => setWalkinSelected(r)}
+                                                        style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel={t('events.walkin.selectUser', 'Select user')} 
+                                                        accessibilityHint={r.email}
+                                                        accessibilityState={{ selected: walkinSelected?.id === r.id }}
+                                                    >
                                                         <ThemedText style={styles.unregisterButtonText}>{r.email}</ThemedText>
                                                     </Pressable>
                                                 ))}
@@ -448,6 +473,10 @@ export function EventDetailModal({
                                             style={[styles.registerButton, (walkinSubmitting || !walkinSelected) && { opacity: 0.6 }]}
                                             onPress={handleWalkinRegister}
                                             disabled={walkinSubmitting || !walkinSelected}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('events.walkin.register')}
+                                            accessibilityHint={t('events.walkin.registerHint', 'Registers the selected attendee')}
+                                            accessibilityState={{ disabled: walkinSubmitting || !walkinSelected }}
                                         >
                                             {walkinSubmitting ? (
                                                 <ActivityIndicator color="#FFFFFF" />
@@ -465,7 +494,13 @@ export function EventDetailModal({
                                             <ThemedText style={styles.sectionTitle}>
                                                 {t('events.family.title', 'Family Members')}
                                             </ThemedText>
-                                            <Pressable style={styles.familyAddButton} onPress={handleAddFamilyMember}>
+                                            <Pressable
+                                                style={styles.familyAddButton}
+                                                onPress={handleAddFamilyMember}
+                                                accessibilityRole="button"
+                                                accessibilityLabel={t('events.family.addButton', 'Add Family Member')}
+                                                accessibilityHint={t('events.family.addHint', 'Adds another family member to this registration')}
+                                            >
                                                 <Ionicons name="add" size={16} color="#FFFFFF" />
                                                 <ThemedText style={styles.familyAddButtonText}>
                                                     {t('events.family.addButton', 'Add Family Member')}
@@ -485,6 +520,7 @@ export function EventDetailModal({
                                                         placeholderTextColor={inputPalette.placeholder}
                                                         value={member.fullName}
                                                         onChangeText={(text) => handleUpdateFamilyMember(member.id, 'fullName', text)}
+                                                        accessibilityLabel={t('events.family.fullNameLabel', 'Family member full name')}
                                                     />
                                                     <TextInput
                                                         style={styles.familyInput}
@@ -493,6 +529,8 @@ export function EventDetailModal({
                                                         keyboardType="numeric"
                                                         value={member.age}
                                                         onChangeText={(text) => handleUpdateFamilyMember(member.id, 'age', text)}
+                                                        accessibilityLabel={t('events.family.ageLabel', 'Family member age')}
+                                                        accessibilityHint={t('events.family.ageHint', 'Enter age in years')}
                                                     />
                                                     <TextInput
                                                         style={styles.familyInput}
@@ -500,10 +538,15 @@ export function EventDetailModal({
                                                         placeholderTextColor={inputPalette.placeholder}
                                                         value={member.relation || ''}
                                                         onChangeText={(text) => handleUpdateFamilyMember(member.id, 'relation', text)}
+                                                        accessibilityLabel={t('events.family.relationLabel', 'Relationship')}
+                                                        accessibilityHint={t('events.family.relationHint', 'Optional relationship')}
                                                     />
                                                     <Pressable
                                                         style={styles.familyRemoveButton}
                                                         onPress={() => handleRemoveFamilyMember(member.id)}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel={t('events.family.removeButton', 'Remove')}
+                                                        accessibilityHint={t('events.family.removeHint', 'Removes this family member')}
                                                     >
                                                         <Ionicons name="trash-outline" size={16} color="#FFFFFF" />
                                                         <ThemedText style={styles.familyRemoveButtonText}>
@@ -547,6 +590,10 @@ export function EventDetailModal({
                                                         style={[styles.unregisterButton, isRegistering && { opacity: 0.6 }]}
                                                         onPress={onUnregister}
                                                         disabled={isRegistering}
+                                                        accessibilityRole="button"
+                                                        accessibilityLabel={t('events.actions.unregister', 'Unregister')}
+                                                        accessibilityHint={t('events.actions.unregisterHint', 'Cancels your registration')}
+                                                        accessibilityState={{ disabled: isRegistering }}
                                                     >
                                                         {isRegistering ? (
                                                             <ActivityIndicator color="#FFFFFF" />
@@ -570,6 +617,12 @@ export function EventDetailModal({
                                                             style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
                                                             onPress={() => onRegister(familyMembers)}
                                                             disabled={isRegistering}
+                                                            accessibilityRole="button"
+                                                            accessibilityLabel={displayEvent?.status === 'FULL'
+                                                                ? t('events.actions.joinWaitlist')
+                                                                : t('events.actions.register')}
+                                                            accessibilityHint={t('events.actions.registerHint', 'Registers you for this event')}
+                                                            accessibilityState={{ disabled: isRegistering }}
                                                         >
                                                             {isRegistering ? (
                                                                 <ActivityIndicator color="#FFFFFF" />
@@ -604,6 +657,8 @@ export function EventDetailModal({
                     <Pressable
                         style={styles.modalCloseButton}
                         onPress={onClose}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('events.actions.close')}
                     >
                         <ThemedText style={styles.modalCloseButtonText}>
                             {t('events.actions.close')}

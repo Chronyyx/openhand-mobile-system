@@ -206,6 +206,9 @@ export default function AttendanceDashboardScreen() {
             <Pressable
                 onPress={() => router.push(`/admin/attendance/${item.eventId}`)}
                 style={({ pressed }) => [pressed && { opacity: 0.7 }]}
+                accessibilityRole="button"
+                accessibilityLabel={`${getTranslatedEventTitle({ title: item.title }, t)}. ${t('attendance.actions.viewAttendees')}`}
+                accessibilityHint={t('attendance.actions.viewAttendeesHint', 'Opens attendance details')}
             >
                 <View style={eventStyles.cardHeader}>
                     <ThemedText type="subtitle" style={eventStyles.eventTitle} testID="attendance-event-title">
@@ -287,7 +290,12 @@ export default function AttendanceDashboardScreen() {
         content = (
             <ThemedView style={eventStyles.centered}>
                 <ThemedText style={eventStyles.errorText}>{error}</ThemedText>
-                <Pressable onPress={loadEvents} style={styles.retryButton}>
+                <Pressable
+                    onPress={loadEvents}
+                    style={styles.retryButton}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('attendance.retry')}
+                >
                     <ThemedText style={styles.retryText}>{t('attendance.retry')}</ThemedText>
                 </Pressable>
             </ThemedView>
@@ -328,9 +336,15 @@ export default function AttendanceDashboardScreen() {
                             placeholderTextColor={placeholderColor}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
+                            accessibilityLabel={t('attendance.searchLabel', 'Search attendance events')}
                         />
                         {searchQuery.length > 0 && (
-                            <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
+                            <Pressable
+                                onPress={() => setSearchQuery('')}
+                                hitSlop={10}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('common.clearSearch', 'Clear search')}
+                            >
                                 <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
                             </Pressable>
                         )}
@@ -339,6 +353,9 @@ export default function AttendanceDashboardScreen() {
                         onPress={() => setFilterVisible(true)}
                         style={styles.filterButton}
                         testID="attendance-filter-button"
+                        accessibilityRole="button"
+                        accessibilityLabel={t('attendance.filters.button')}
+                        accessibilityHint={t('attendance.filters.hint', 'Opens sorting options')}
                     >
                         <Ionicons name="funnel-outline" size={18} color={iconColor} />
                         <ThemedText style={styles.filterButtonText}>{t('attendance.filters.button')}</ThemedText>
@@ -355,11 +372,17 @@ export default function AttendanceDashboardScreen() {
                         <Pressable
                             style={StyleSheet.absoluteFillObject}
                             onPress={() => setFilterVisible(false)}
+                            accessible={false}
                         />
                         <View style={eventStyles.modalCard}>
                             <View style={styles.filterHeader}>
                                 <ThemedText style={styles.filterTitle}>{t('attendance.filters.title')}</ThemedText>
-                                <Pressable onPress={() => setFilterVisible(false)} hitSlop={10}>
+                                <Pressable
+                                    onPress={() => setFilterVisible(false)}
+                                    hitSlop={10}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('common.close', 'Close')}
+                                >
                                     <Ionicons name="close" size={20} color={iconColor} />
                                 </Pressable>
                             </View>
@@ -387,6 +410,9 @@ export default function AttendanceDashboardScreen() {
                                                 isSelected && styles.filterOptionSelected,
                                             ]}
                                             testID={`attendance-filter-option-${option.key}`}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={option.label}
+                                            accessibilityState={{ selected: isSelected }}
                                         >
                                             <ThemedText
                                                 style={[

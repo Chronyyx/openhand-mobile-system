@@ -97,6 +97,7 @@ export default function LoginScreen() {
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
                                 keyboardType="email-address"
+                                accessibilityLabel={t("auth.email_label", "Email")}
                             />
                         </View>
 
@@ -109,8 +110,14 @@ export default function LoginScreen() {
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!isPasswordVisible}
+                                accessibilityLabel={t("auth.password_label", "Password")}
                             />
-                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} accessibilityLabel={t("auth.toggle_password_visibility")}>
+                            <TouchableOpacity
+                                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                                accessibilityRole="button"
+                                accessibilityLabel={t("auth.toggle_password_visibility")}
+                                accessibilityHint={t("auth.toggle_password_visibility_hint", "Shows or hides your password")}
+                            >
                                 <Ionicons
                                     name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                     size={20}
@@ -122,7 +129,7 @@ export default function LoginScreen() {
 
                     <View style={{ alignItems: 'flex-end', marginBottom: 20 }}>
                         <Link href="/auth/forgot-password" asChild>
-                            <TouchableOpacity>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t('auth.forgot_password_link_login')}>
                                 <Text style={{ color: forgotPasswordColor, fontSize: 14 }}>{t('auth.forgot_password_link_login')}</Text>
                             </TouchableOpacity>
                         </Link>
@@ -141,7 +148,13 @@ export default function LoginScreen() {
                         {loading ? (
                             <ActivityIndicator size="large" color={colorScheme === 'dark' ? '#6AA9FF' : '#0056A8'} />
                         ) : (
-                            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} activeOpacity={0.8}>
+                            <TouchableOpacity
+                                style={styles.loginButton}
+                                onPress={handleLogin}
+                                activeOpacity={0.8}
+                                accessibilityRole="button"
+                                accessibilityLabel={t("auth.login_button")}
+                            >
                                 <Text style={styles.loginButtonText}>{t("auth.login_button")}</Text>
                             </TouchableOpacity>
                         )}
@@ -151,7 +164,7 @@ export default function LoginScreen() {
                     <View style={styles.footer}>
                         <Text style={styles.footerText}>{t("auth.register_prompt")} </Text>
                         <Link href="/auth/register" asChild>
-                            <TouchableOpacity>
+                            <TouchableOpacity accessibilityRole="button" accessibilityLabel={t("auth.register_link")}>
                                 <Text style={styles.link}>{t("auth.register_link")}</Text>
                             </TouchableOpacity>
                         </Link>

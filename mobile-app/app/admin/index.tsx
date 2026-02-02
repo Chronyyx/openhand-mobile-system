@@ -72,6 +72,9 @@ export default function AdminDashboardScreen() {
                             pressed && styles.cardPressed,
                         ]}
                         onPress={() => router.push('/admin/users')}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('admin.dashboard.users')}
+                        accessibilityHint={t('admin.dashboard.usersDescription')}
                     >
                         <View style={styles.cardIcon}>
                             <Ionicons name="people-circle" size={26} color={ACCENT} />
@@ -90,6 +93,9 @@ export default function AdminDashboardScreen() {
                         pressed && styles.cardPressed,
                     ]}
                     onPress={() => router.push('/admin/events')}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('admin.dashboard.events')}
+                    accessibilityHint={t('admin.dashboard.eventsDescription')}
                 >
                     <View style={styles.cardIcon}>
                         <Ionicons name="calendar" size={24} color={ACCENT} />

@@ -3,6 +3,7 @@ import {
     ActivityIndicator,
     FlatList,
     RefreshControl,
+    Pressable,
     View,
     useColorScheme,
 } from 'react-native';
@@ -107,9 +108,15 @@ export default function EventAttendeesScreen() {
         content = (
             <ThemedView style={styles.centered}>
                 <ThemedText style={styles.errorText}>{error}</ThemedText>
-                <ThemedText style={styles.footerButtonText} onPress={loadAttendees}>
-                    {t('events.attendees.retry')}
-                </ThemedText>
+                <Pressable
+                    onPress={loadAttendees}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('events.attendees.retry')}
+                >
+                    <ThemedText style={styles.footerButtonText}>
+                        {t('events.attendees.retry')}
+                    </ThemedText>
+                </Pressable>
             </ThemedView>
         );
     } else {

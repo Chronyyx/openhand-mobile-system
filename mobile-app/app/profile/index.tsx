@@ -234,7 +234,12 @@ export default function ProfileScreen() {
                 <AppHeader onMenuPress={() => setMenuVisible(true)} />
                 <View style={styles.centered}>
                     <Text>{t('common.notAuthenticated')}</Text>
-                    <Pressable style={styles.loginButton} onPress={() => router.push('/auth/login')}>
+                    <Pressable
+                        style={styles.loginButton}
+                        onPress={() => router.push('/auth/login')}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('home.loginRegister')}
+                    >
                         <Text style={styles.loginButtonText}>{t('home.loginRegister')}</Text>
                     </Pressable>
                 </View>
@@ -262,25 +267,45 @@ export default function ProfileScreen() {
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.header}>
-                    <Pressable style={styles.backButton} onPress={() => router.back()}>
+                    <Pressable
+                        style={styles.backButton}
+                        onPress={() => router.back()}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('common.back', 'Go back')}
+                    >
                         <Ionicons name="chevron-back" size={24} color={ACCENT} />
                     </Pressable>
                     <Text style={styles.title}>{t('profile.title')}</Text>
                     <View style={{ flex: 1 }} />
                     {!isEditing ? (
-                        <Pressable style={styles.editButton} onPress={() => setIsEditing(true)}>
+                        <Pressable
+                            style={styles.editButton}
+                            onPress={() => setIsEditing(true)}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('common.edit', 'Edit')}
+                        >
                             <Ionicons name="create-outline" size={20} color={ACCENT} />
                             <Text style={styles.editButtonText}>{t('common.edit')}</Text>
                         </Pressable>
                     ) : (
                         <View style={{ flexDirection: 'row', gap: 8 }}>
-                            <Pressable disabled={isSaving} onPress={handleCancelEdit}>
+                            <Pressable
+                                disabled={isSaving}
+                                onPress={handleCancelEdit}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('common.cancel', 'Cancel')}
+                                accessibilityState={{ disabled: isSaving }}
+                            >
                                 <Text style={[styles.editButtonText, { color: colorScheme === 'dark' ? '#A0A7B1' : '#666' }]}>{t('common.cancel')}</Text>
                             </Pressable>
                             {isSaving ? (
                                 <ActivityIndicator size="small" color={ACCENT} />
                             ) : (
-                                <Pressable onPress={handleSaveProfile}>
+                                <Pressable
+                                    onPress={handleSaveProfile}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('common.save', 'Save')}
+                                >
                                     <Text style={[styles.editButtonText, { fontWeight: 'bold' }]}>{t('common.save')}</Text>
                                 </Pressable>
                             )}
@@ -306,6 +331,7 @@ export default function ProfileScreen() {
                                 value={editName}
                                 onChangeText={setEditName}
                                 placeholder={t('profile.namePlaceholder')}
+                                accessibilityLabel={t('profile.name', 'Name')}
                             />
                         ) : (
                             <Text style={styles.userName}>{user.name || user.email}</Text>
@@ -332,6 +358,9 @@ export default function ProfileScreen() {
                                         <Pressable
                                             onPress={() => setShowCountryPicker(true)}
                                             style={styles.countryPickerButton}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('profile.countryCode', 'Country calling code')}
+                                            accessibilityHint={t('profile.countryCodeHint', 'Select a country calling code')}
                                         >
                                             <Text style={styles.callingCodeText}>{callingCode}</Text>
                                         </Pressable>
@@ -363,6 +392,7 @@ export default function ProfileScreen() {
                                             placeholder="(123) 456-7890"
                                             keyboardType="phone-pad"
                                             maxLength={20}
+                                            accessibilityLabel={t('profile.phone', 'Phone number')}
                                         />
                                     </View>
                                 </View>
@@ -382,6 +412,7 @@ export default function ProfileScreen() {
                                         <Picker
                                             selectedValue={editGender}
                                             onValueChange={(itemValue) => setEditGender(itemValue)}
+                                            accessibilityLabel={t('profile.gender', 'Gender')}
                                         >
                                             <Picker.Item label="Prefer not to say" value="PREFER_NOT_TO_SAY" />
                                             <Picker.Item label="Male" value="MALE" />
@@ -416,6 +447,8 @@ export default function ProfileScreen() {
                                         placeholder="13-120"
                                         keyboardType="numeric"
                                         maxLength={3}
+                                        accessibilityLabel={t('profile.age', 'Age')}
+                                        accessibilityHint={t('profile.ageHint', 'Enter age in years')}
                                     />
                                 </View>
                             </View>
@@ -434,6 +467,7 @@ export default function ProfileScreen() {
                                         <Picker
                                             selectedValue={editLanguage}
                                             onValueChange={(itemValue) => setEditLanguage(itemValue)}
+                                            accessibilityLabel={t('profile.preferredLanguage', 'Preferred language')}
                                         >
                                             <Picker.Item label="English" value="en" />
                                             <Picker.Item label="Français" value="fr" />
@@ -453,10 +487,13 @@ export default function ProfileScreen() {
                 {
                     hasRole(['ROLE_MEMBER']) && (
                         <View style={styles.settingsCard}>
-                            <Pressable
-                                style={styles.settingsItem}
-                                onPress={() => router.push('/settings/notifications' as Href)}
-                            >
+                    <Pressable
+                        style={styles.settingsItem}
+                        onPress={() => router.push('/settings/notifications' as Href)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('settings.notifications.title')}
+                        accessibilityHint={t('settings.notifications.subtitle', 'Manage your notification preferences')}
+                    >
                                 <View style={styles.settingsItemLeft}>
                                     <Ionicons name="notifications-outline" size={20} color={ACCENT} />
                                     <Text style={styles.settingsItemText}>{t('settings.notifications.title')}</Text>
@@ -464,10 +501,13 @@ export default function ProfileScreen() {
                                 <Ionicons name="chevron-forward" size={18} color={ACCENT} />
                             </Pressable>
 
-                            <Pressable
-                                style={[styles.settingsItem, styles.settingsDangerItem]}
-                                onPress={() => router.push('/settings/deactivate' as Href)}
-                            >
+                    <Pressable
+                        style={[styles.settingsItem, styles.settingsDangerItem]}
+                        onPress={() => router.push('/settings/deactivate' as Href)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('settings.account.deactivateLink')}
+                        accessibilityHint={t('settings.account.deactivateHint', 'Start account deactivation')}
+                    >
                                 <View style={styles.settingsItemLeft}>
                                     <Ionicons name="alert-circle-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
                                     <Text style={[styles.settingsItemText, { color: colorScheme === 'dark' ? '#FFB4AB' : '#C62828' }]}>
@@ -480,7 +520,12 @@ export default function ProfileScreen() {
                     )
                 }
 
-                <Pressable style={styles.logoutButton} onPress={signOut}>
+                <Pressable
+                    style={styles.logoutButton}
+                    onPress={signOut}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('profile.logout')}
+                >
                     <Ionicons name="log-out-outline" size={20} color={colorScheme === 'dark' ? '#FFB4AB' : '#C62828'} />
                     <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
                 </Pressable>
@@ -765,7 +810,7 @@ const getStyles = (scheme: 'light' | 'dark') => {
             borderRadius: 8,
             backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
             paddingHorizontal: 8,
-            height: 50, // Match input height roughly
+            minHeight: 50, // Match input height roughly
         },
         countryPickerButton: {
             justifyContent: 'center',
@@ -775,7 +820,7 @@ const getStyles = (scheme: 'light' | 'dark') => {
             borderRadius: 8,
             backgroundColor: isDark ? '#1F2A3A' : '#F8FAFE',
             paddingHorizontal: 12,
-            height: 50,
+            minHeight: 50,
             minWidth: 80,
         },
         callingCodeText: {

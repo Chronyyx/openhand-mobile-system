@@ -158,6 +158,13 @@ export default function NotificationPreferencesScreen() {
                     trackColor={{ false: colorScheme === 'dark' ? '#4A5568' : '#D4DBE7', true: colorScheme === 'dark' ? '#6AA9FF' : '#8CC3FF' }}
                     thumbColor={pref.enabled ? BLUE : (colorScheme === 'dark' ? '#2A313B' : '#F5F7FB')}
                     testID={`notification-toggle-${pref.category.toLowerCase()}`}
+                    accessibilityLabel={labels[pref.category]}
+                    accessibilityHint={
+                      pref.isCritical
+                        ? t('settings.notifications.mandatory', 'Required')
+                        : t('settings.notifications.toggleHint', 'Toggles this notification type')
+                    }
+                    accessibilityState={{ disabled: pref.isCritical || isSaving }}
                   />
                 </View>
                 {pref.isCritical && (

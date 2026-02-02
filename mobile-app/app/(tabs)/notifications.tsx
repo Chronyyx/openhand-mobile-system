@@ -201,7 +201,7 @@ export default function NotificationsScreen() {
                 {/* Header with unread count and mark all read button */}
                 <View style={styles.header}>
                     <View style={styles.headerTitle}>
-                        <ThemedText type="title" style={styles.title}>
+                        <ThemedText type="title" style={styles.title} accessibilityRole="header">
                             {t('notifications.title', 'Notifications')}
                         </ThemedText>
                         {unreadCount > 0 && (
@@ -215,6 +215,9 @@ export default function NotificationsScreen() {
                         <Pressable
                             onPress={handleMarkAllAsRead}
                             style={styles.markAllButton}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('notifications.markAllAsRead', 'Mark all read')}
+                            accessibilityHint={t('notifications.markAllHint', 'Marks all notifications as read')}
                         >
                             <Ionicons name="checkmark" size={20} color={palette.primary} />
                             <ThemedText style={styles.markAllText}>
@@ -229,7 +232,12 @@ export default function NotificationsScreen() {
                     <View style={styles.errorContainer}>
                         <Ionicons name="alert-circle" size={20} color={palette.danger} />
                         <ThemedText style={styles.errorText}>{error}</ThemedText>
-                        <Pressable onPress={() => setError(null)}>
+                        <Pressable
+                            onPress={() => setError(null)}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('common.close', 'Close')}
+                            accessibilityHint={t('notifications.dismissError', 'Dismisses the error message')}
+                        >
                             <Ionicons name="close" size={20} color={palette.danger} />
                         </Pressable>
                     </View>
@@ -387,7 +395,7 @@ const getStyles = (scheme: 'light' | 'dark') => {
         emptySubtext: {
             marginTop: 8,
             fontSize: 14,
-            color: isDark ? '#A0A7B1' : '#999',
+            color: isDark ? '#A0A7B1' : '#6B7280',
             textAlign: 'center',
         },
         listContent: {

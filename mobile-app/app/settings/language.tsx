@@ -63,6 +63,9 @@ export default function LanguageSettingsScreen() {
                                 selectedLanguage === language.code && styles.languageItemSelected,
                             ]}
                             onPress={() => handleLanguageChange(language.code)}
+                            accessibilityRole="button"
+                            accessibilityLabel={language.name}
+                            accessibilityState={{ selected: selectedLanguage === language.code }}
                         >
                             <View style={styles.languageInfo}>
                                 <Text style={styles.flag}>{language.flag}</Text>

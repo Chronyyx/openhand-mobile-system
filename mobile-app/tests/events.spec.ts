@@ -47,6 +47,10 @@ test.describe('Events Screen', () => {
         await expect(viewDetails).toBeVisible({ timeout: 15000 });
     });
 
+    test('Search input exposes an accessible label', async ({ page }) => {
+        await expect(page.getByLabel(/search events/i)).toBeVisible();
+    });
+
     test('Opens event details modal when an event is pressed', async ({ page }) => {
         await page.locator('text=/view details|voir détails|details/i').first().click();
 
@@ -58,7 +62,7 @@ test.describe('Events Screen', () => {
         await expect(page.locator('text=/description/i')).toBeVisible();
 
         // Close button can be "Close" or "Fermer"
-        await page.locator('text=/close|fermer/i').first().click();
+        await page.getByLabel(/close|fermer/i).first().click();
 
         await expect(page.locator('text=/description/i')).toHaveCount(0);
     });

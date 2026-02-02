@@ -568,7 +568,7 @@ export default function EventsScreen() {
     return (
         <MenuLayout>
             <ThemedView style={styles.container}>
-                <ThemedText style={styles.screenTitle}>
+                <ThemedText style={styles.screenTitle} accessibilityRole="header">
                     {t('events.title')}
                 </ThemedText>
 
@@ -581,9 +581,15 @@ export default function EventsScreen() {
                         placeholderTextColor={placeholderColor}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
+                        accessibilityLabel={t('events.searchLabel', 'Search events')}
                     />
                     {searchQuery.length > 0 && (
-                        <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
+                        <Pressable
+                            onPress={() => setSearchQuery('')}
+                            hitSlop={10}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('common.clearSearch', 'Clear search')}
+                        >
                             <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
                         </Pressable>
                     )}

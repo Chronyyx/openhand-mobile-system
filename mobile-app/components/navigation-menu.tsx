@@ -57,7 +57,7 @@ export function NavigationMenu({
             onRequestClose={onClose}
         >
             <View style={styles.menuOverlay}>
-                <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+                <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessible={false} />
                 <View style={styles.menuContainer}>
                     <View style={styles.menuHeader}>
                         <View style={styles.menuBadge}>
@@ -67,7 +67,13 @@ export function NavigationMenu({
                             <Text style={styles.menuTitle}>{t('menu.navigation')}</Text>
                             <Text style={styles.menuSubtitle}>{t('menu.quickAccess')}</Text>
                         </View>
-                        <Pressable hitSlop={12} onPress={onClose}>
+                        <Pressable
+                            hitSlop={12}
+                            onPress={onClose}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('common.close', 'Close menu')}
+                            accessibilityHint="Closes the navigation menu"
+                        >
                             <Ionicons name="close" size={20} color={palette.text} />
                         </Pressable>
                     </View>
@@ -80,6 +86,9 @@ export function NavigationMenu({
                             pressed && styles.menuItemPressed,
                         ]}
                         onPress={onNavigateHome}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('menu.home')}
+                        accessibilityHint="Opens the home screen"
                     >
                         <View style={styles.menuItemLeft}>
                             <Ionicons name="home" size={20} color={palette.primary} />
@@ -95,6 +104,13 @@ export function NavigationMenu({
                             pressed && styles.menuItemPressed,
                         ]}
                         onPress={onNavigateEvents}
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                            unreadCount > 0
+                                ? `${t('menu.events')}, ${unreadCount} new`
+                                : t('menu.events')
+                        }
+                        accessibilityHint="Opens the events list"
                     >
                         <View style={styles.menuItemLeft}>
                             <Ionicons name="calendar" size={20} color={palette.primary} />
@@ -102,7 +118,7 @@ export function NavigationMenu({
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                             {unreadCount > 0 && (
-                                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: palette.danger }} />
+                                <Text style={styles.menuPill}>New</Text>
                             )}
                             <Ionicons name="chevron-forward" size={18} color={palette.primary} />
                         </View>
@@ -116,6 +132,9 @@ export function NavigationMenu({
                                 pressed && styles.menuItemPressed,
                             ]}
                             onPress={onNavigateAttendance}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('menu.attendance')}
+                            accessibilityHint="Opens attendance"
                         >
                             <View style={styles.menuItemLeft}>
                                 <Ionicons name="checkbox" size={20} color={palette.primary} />
@@ -133,6 +152,9 @@ export function NavigationMenu({
                                 pressed && styles.menuItemPressed,
                             ]}
                             onPress={onNavigateMyRegistrations}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('menu.myRegistrations')}
+                            accessibilityHint="Opens your registrations"
                         >
                             <View style={styles.menuItemLeft}>
                                 <Ionicons name="list" size={20} color={palette.primary} />
@@ -150,6 +172,9 @@ export function NavigationMenu({
                                 pressed && styles.menuItemPressed,
                             ]}
                             onPress={onNavigateDashboard}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('menu.dashboard')}
+                            accessibilityHint="Opens the admin dashboard"
                         >
                             <View style={styles.menuItemLeft}>
                                 <Ionicons name="speedometer" size={20} color={palette.primary} />
@@ -167,6 +192,9 @@ export function NavigationMenu({
                                 pressed && styles.menuItemPressed,
                             ]}
                             onPress={onNavigateProfile}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('menu.profile')}
+                            accessibilityHint="Opens your profile"
                         >
                             <View style={styles.menuItemLeft}>
                                 <Ionicons name="person-circle" size={20} color={palette.primary} />

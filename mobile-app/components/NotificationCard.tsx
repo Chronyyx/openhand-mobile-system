@@ -115,8 +115,18 @@ export function NotificationCard({
         timeLabel = createdDate.toLocaleDateString();
     }
 
+    const accessibilityLabel = `${displayedEventTitle}. ${displayedNotificationText}. ${timeLabel}.`;
+    const accessibilityHint = notification.isRead
+        ? t('notifications.accessibility.openHint', 'Opens notification details')
+        : t('notifications.accessibility.markReadHint', 'Marks notification as read');
+
     return (
-        <Pressable onPress={() => onPress(notification)}>
+        <Pressable
+            onPress={() => onPress(notification)}
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
+        >
             <ThemedView style={[styles.container, !notification.isRead && styles.unreadContainer]}>
                 {/* Unread indicator dot */}
 
@@ -142,6 +152,13 @@ export function NotificationCard({
                     >
                         {displayedEventTitle}
                     </ThemedText>
+                    {!notification.isRead && (
+                        <View style={styles.unreadPill}>
+                            <ThemedText style={styles.unreadPillText}>
+                                {t('notifications.unread', 'Unread')}
+                            </ThemedText>
+                        </View>
+                    )}
                     <ThemedText
                         numberOfLines={2}
                         style={[
@@ -162,6 +179,9 @@ export function NotificationCard({
                         <Pressable
                             onPress={() => onMarkAsRead?.(notification)}
                             style={styles.actionButton}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('notifications.markAsRead', 'Mark as read')}
+                            accessibilityHint={t('notifications.markAsReadHint', 'Marks this notification as read')}
                         >
                             <Ionicons name="checkmark" size={20} color={palette.primary} />
                         </Pressable>
@@ -169,6 +189,9 @@ export function NotificationCard({
                     <Pressable
                         onPress={() => onDelete?.(notification)}
                         style={styles.actionButton}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('notifications.delete', 'Delete notification')}
+                        accessibilityHint={t('notifications.deleteHint', 'Deletes this notification')}
                     >
                         <Ionicons name="trash-outline" size={20} color={palette.danger} />
                     </Pressable>
@@ -235,16 +258,16 @@ const getStyles = (scheme: 'light' | 'dark') => {
         },
         notificationText: {
             fontSize: 13,
-            color: isDark ? '#B6BDC7' : '#666',
+            color: isDark ? '#B6BDC7' : '#4B5563',
             marginBottom: 4,
             lineHeight: 18,
         },
         notificationTextRead: {
-            color: isDark ? '#8C939D' : '#999',
+            color: isDark ? '#8C939D' : '#6B7280',
         },
         timeText: {
             fontSize: 11,
-            color: isDark ? '#8C939D' : '#999',
+            color: isDark ? '#8C939D' : '#6B7280',
         },
         actionsContainer: {
             flexDirection: 'row',
@@ -255,6 +278,19 @@ const getStyles = (scheme: 'light' | 'dark') => {
             padding: 8,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        unreadPill: {
+            alignSelf: 'flex-start',
+            backgroundColor: isDark ? '#1D2A3A' : '#E6F4FE',
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+            borderRadius: 10,
+            marginBottom: 6,
+        },
+        unreadPillText: {
+            fontSize: 11,
+            fontWeight: '700',
+            color: isDark ? '#9FC3FF' : '#0056A8',
         },
     });
 };

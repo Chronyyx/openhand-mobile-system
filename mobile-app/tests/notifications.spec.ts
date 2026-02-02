@@ -107,6 +107,7 @@ test.describe('Notifications (UI)', () => {
         await expect(page.getByText('Gala Confirmation').first()).toBeVisible();
         await expect(page.getByText('Workshop Reminder').first()).toBeVisible();
         await expect(page.getByText(/Mark all read/i)).toBeVisible();
+        await expect(page.getByLabel(/mark all read/i)).toBeVisible();
 
         // Mark all notifications as read
         const markAllRequest = page.waitForRequest('**/api/notifications/read-all');
@@ -133,6 +134,8 @@ test.describe('Notifications (UI)', () => {
 
         await page.goto('/notifications');
         const markRequest = page.waitForRequest('**/api/notifications/10/read');
+        await expect(page.getByLabel(/mark as read/i)).toBeVisible();
+        await expect(page.getByLabel(/delete notification/i)).toBeVisible();
         await page.getByText('Unread Ticket').first().click();
         await markRequest;
 

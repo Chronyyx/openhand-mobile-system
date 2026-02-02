@@ -231,7 +231,7 @@ export default function MyRegistrationsScreen() {
     } else {
         content = (
             <ThemedView style={styles.container}>
-                <ThemedText type="title" style={styles.screenTitle}>
+                <ThemedText type="title" style={styles.screenTitle} accessibilityRole="header">
                     {t('registrations.title')}
                 </ThemedText>
                 <SectionList

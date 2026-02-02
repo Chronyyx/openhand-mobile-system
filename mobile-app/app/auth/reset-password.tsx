@@ -96,6 +96,7 @@ export default function ResetPasswordScreen() {
                                 onChangeText={setEmail}
                                 autoCapitalize="none"
                                 keyboardType="email-address"
+                                accessibilityLabel={t('auth.email_label', 'Email')}
                             />
                         </View>
 
@@ -109,6 +110,7 @@ export default function ResetPasswordScreen() {
                                 onChangeText={setCode}
                                 keyboardType="number-pad"
                                 maxLength={6}
+                                accessibilityLabel={t('auth.reset_code_label', 'Reset code')}
                             />
                         </View>
 
@@ -121,8 +123,14 @@ export default function ResetPasswordScreen() {
                                 value={newPassword}
                                 onChangeText={setNewPassword}
                                 secureTextEntry={!isPasswordVisible}
+                                accessibilityLabel={t('auth.new_password_label', 'New password')}
                             />
-                            <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                            <TouchableOpacity
+                                onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('auth.toggle_password_visibility')}
+                                accessibilityHint={t('auth.toggle_password_visibility_hint', 'Shows or hides your password')}
+                            >
                                 <Ionicons
                                     name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
                                     size={20}
@@ -150,13 +158,24 @@ export default function ResetPasswordScreen() {
                         {loading ? (
                             <ActivityIndicator size="large" color={accentColor} />
                         ) : (
-                            <TouchableOpacity style={styles.loginButton} onPress={handleSubmit} activeOpacity={0.8}>
+                            <TouchableOpacity
+                                style={styles.loginButton}
+                                onPress={handleSubmit}
+                                activeOpacity={0.8}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('auth.reset_password_button')}
+                            >
                                 <Text style={styles.loginButtonText}>{t('auth.reset_password_button')}</Text>
                             </TouchableOpacity>
                         )}
                     </View>
 
-                    <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 20 }}>
+                    <TouchableOpacity
+                        onPress={() => router.back()}
+                        style={{ marginTop: 20 }}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('auth.cancel_link')}
+                    >
                         <Text style={{ color: accentColor, textAlign: 'center' }}>{t('auth.cancel_link')}</Text>
                     </TouchableOpacity>
                 </View>

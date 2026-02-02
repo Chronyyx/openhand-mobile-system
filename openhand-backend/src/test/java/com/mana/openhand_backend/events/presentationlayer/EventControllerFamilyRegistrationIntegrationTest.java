@@ -151,6 +151,38 @@ class EventControllerFamilyRegistrationIntegrationTest {
     @Test
     @WithMockUser(username = "familymember@example.com", roles = "MEMBER")
     @Transactional
+    void registerWithFamily_whenInvalidFamilyMember_shouldReturn400() throws Exception {
+        GroupRegistrationRequestModel request = new GroupRegistrationRequestModel(true,
+                List.of(
+                        new FamilyMemberRequestModel(" ", null, null, "Child")
+                ));
+
+        mockMvc.perform(post("/api/events/" + testEvent.getId() + "/registrations")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(username = "missing@example.com", roles = "MEMBER")
+    @Transactional
+    void registerWithFamily_whenUserNotFound_shouldReturn500() throws Exception {
+        GroupRegistrationRequestModel request = new GroupRegistrationRequestModel(true,
+                List.of(
+                        new FamilyMemberRequestModel("Jane Doe", 12, null, "Child")
+                ));
+
+        mockMvc.perform(post("/api/events/" + testEvent.getId() + "/registrations")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(request)))
+                .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    @WithMockUser(username = "familymember@example.com", roles = "MEMBER")
+    @Transactional
     void cancelRegistration_shouldRestoreCapacityForFamilyGroup() throws Exception {
         GroupRegistrationRequestModel request = new GroupRegistrationRequestModel(true,
                 List.of(

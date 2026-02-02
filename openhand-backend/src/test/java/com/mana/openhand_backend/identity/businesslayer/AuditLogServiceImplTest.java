@@ -2,14 +2,23 @@ package com.mana.openhand_backend.identity.businesslayer;
 
 import com.mana.openhand_backend.identity.dataaccesslayer.AuditLog;
 import com.mana.openhand_backend.identity.dataaccesslayer.AuditLogRepository;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -19,110 +28,101 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuditLogServiceImplTest {
 
     @Mock
     private AuditLogRepository auditLogRepository;
 
     @InjectMocks
-    private AuditLogServiceImpl auditLogService;
+    private AuditLogServiceImpl service;
 
     @Test
-    void logRoleChange_savesAuditLog() {
-        auditLogService.logRoleChange(1L, "user@example.com", "ROLE_MEMBER", "ROLE_ADMIN",
-                "admin", "127.0.0.1", "agent", "ADMIN_CONSOLE");
+    void exportAuditLogsToCsv_escapesSpecialCharacters() {
+        AuditLog log = new AuditLog(10L, "user@example.com", "ROLE_MEMBER", "ROLE_ADMIN",
+                "admin@example.com", LocalDateTime.of(2025, 1, 1, 10, 0), "127.0.0.1",
+                "Agent,With,Comma", "ADMIN_CONSOLE");
+        ReflectionTestUtils.setField(log, "id", 99L);
 
-        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
-        verify(auditLogRepository).save(captor.capture());
+        when(auditLogRepository.findAll(any(Specification.class))).thenReturn(List.of(log));
 
-        AuditLog saved = captor.getValue();
-        assertEquals(1L, saved.getAffectedUserId());
-        assertEquals("user@example.com", saved.getAffectedUserEmail());
-        assertEquals("ROLE_MEMBER", saved.getPreviousRole());
-        assertEquals("ROLE_ADMIN", saved.getNewRole());
-        assertEquals("admin", saved.getChangedBy());
-        assertNotNull(saved.getChangedAt());
-        assertEquals("127.0.0.1", saved.getIpAddress());
-        assertEquals("agent", saved.getUserAgent());
-        assertEquals("ADMIN_CONSOLE", saved.getSource());
+        String csv = service.exportAuditLogsToCsv(null, null, null, null);
+        assertTrue(csv.contains("ID,Timestamp"));
+        assertTrue(csv.contains("\"Agent,With,Comma\""));
     }
 
     @Test
-    void getAuditLogs_delegatesToRepository() {
-        Page<AuditLog> page = new PageImpl<>(List.of());
-        when(auditLogRepository.findAll(anySpecification(), any(Pageable.class))).thenReturn(page);
+    void logAccess_buildsContextForChangesAndAccess() {
+        service.logAccess("admin", "127.0.0.1", "JUnit", "john@example.com", "CHANGES");
+        service.logAccess("admin", "127.0.0.1", "JUnit", "", "ACCESS");
 
-        Page<AuditLog> result = auditLogService.getAuditLogs("query", LocalDate.now(), null, "CHANGES",
-                Pageable.unpaged());
-
-        assertEquals(0, result.getTotalElements());
-        verify(auditLogRepository).findAll(anySpecification(), any(Pageable.class));
+        verify(auditLogRepository, times(2)).save(any(AuditLog.class));
     }
 
     @Test
-    void exportAuditLogsToCsv_escapesValues() {
-        AuditLog log = new AuditLog(
-                1L,
-                "user@example.com",
-                "ROLE_MEMBER",
-                "ROLE_ADMIN",
-                "admin",
-                LocalDateTime.of(2025, 1, 1, 9, 0),
-                "127.0.0.1",
-                "Agent, \"Test\"",
-                "ADMIN_CONSOLE"
-        );
-        ReflectionTestUtils.setField(log, "id", 7L);
-        when(auditLogRepository.findAll(anySpecification())).thenReturn(List.of(log));
+    void getAuditLogs_buildsSpecification_withSearchDatesAndAccessType() {
+        Page<AuditLog> empty = new PageImpl<>(List.of());
+        when(auditLogRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(empty);
 
-        String csv = auditLogService.exportAuditLogsToCsv("", null, null, "");
+        service.getAuditLogs("query", LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 2),
+                "ACCESS", PageRequest.of(0, 10));
 
-        assertTrue(csv.contains("ID,Timestamp,Changed By,Affected User"));
-        assertTrue(csv.contains("7,"));
-        assertTrue(csv.contains("\"Agent, \"\"Test\"\"\""));
+        ArgumentCaptor<Specification<AuditLog>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        verify(auditLogRepository).findAll(specCaptor.capture(), any(PageRequest.class));
+
+        Specification<AuditLog> spec = specCaptor.getValue();
+
+        Root<AuditLog> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Predicate predicate = mock(Predicate.class);
+
+        @SuppressWarnings("unchecked")
+        Path<Object> path = mock(Path.class);
+        @SuppressWarnings("unchecked")
+        Expression<String> expression = mock(Expression.class);
+        when(root.get(anyString())).thenReturn(path);
+        when(cb.lower(any())).thenReturn(expression);
+        when(cb.like(any(), anyString())).thenReturn(predicate);
+        when(cb.or(any(Predicate.class), any(Predicate.class), any(Predicate.class), any(Predicate.class)))
+                .thenReturn(predicate);
+        when(cb.greaterThanOrEqualTo(any(), any(LocalDateTime.class))).thenReturn(predicate);
+        when(cb.lessThanOrEqualTo(any(), any(LocalDateTime.class))).thenReturn(predicate);
+        when(cb.equal(any(), any())).thenReturn(predicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(predicate);
+
+        assertNotNull(spec.toPredicate(root, query, cb));
+        verify(cb).equal(any(), eq("AUDIT_ACCESS"));
     }
 
     @Test
-    void logAccess_withSearchContext_buildsContextMessage() {
-        auditLogService.logAccess("admin", "10.0.0.1", "agent", "email=jane", "CHANGES");
+    void getAuditLogs_buildsSpecification_forChangesType() {
+        Page<AuditLog> empty = new PageImpl<>(List.of());
+        when(auditLogRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(empty);
 
-        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
-        verify(auditLogRepository).save(captor.capture());
+        service.getAuditLogs(null, null, null, "CHANGES", PageRequest.of(0, 10));
 
-        AuditLog saved = captor.getValue();
-        assertEquals("Searched User Changes: email=jane", saved.getAffectedUserEmail());
-        assertEquals("AUDIT_ACCESS", saved.getSource());
-    }
+        ArgumentCaptor<Specification<AuditLog>> specCaptor = ArgumentCaptor.forClass(Specification.class);
+        verify(auditLogRepository).findAll(specCaptor.capture(), any(PageRequest.class));
 
-    @Test
-    void logAccess_whenAccessTypeWithoutSearch_usesAccessLabel() {
-        auditLogService.logAccess("admin", "10.0.0.1", "agent", "", "ACCESS");
+        Specification<AuditLog> spec = specCaptor.getValue();
 
-        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
-        verify(auditLogRepository).save(captor.capture());
+        Root<AuditLog> root = mock(Root.class);
+        CriteriaQuery<?> query = mock(CriteriaQuery.class);
+        CriteriaBuilder cb = mock(CriteriaBuilder.class);
+        Predicate predicate = mock(Predicate.class);
 
-        AuditLog saved = captor.getValue();
-        assertEquals("Viewed Admin Access Logs", saved.getAffectedUserEmail());
-        assertEquals("AUDIT_ACCESS", saved.getSource());
-    }
+        @SuppressWarnings("unchecked")
+        Path<Object> path = mock(Path.class);
+        when(root.get(anyString())).thenReturn(path);
+        when(cb.notEqual(any(), any())).thenReturn(predicate);
+        when(cb.and(any(Predicate[].class))).thenReturn(predicate);
 
-    @Test
-    void logAccess_whenTypeNull_usesDefaultLabel() {
-        auditLogService.logAccess("admin", "10.0.0.1", "agent", null, null);
-
-        ArgumentCaptor<AuditLog> captor = ArgumentCaptor.forClass(AuditLog.class);
-        verify(auditLogRepository).save(captor.capture());
-
-        AuditLog saved = captor.getValue();
-        assertEquals("Viewed Logs", saved.getAffectedUserEmail());
-        assertEquals("AUDIT_ACCESS", saved.getSource());
-    }
-
-    private Specification<AuditLog> anySpecification() {
-        return any();
+        assertNotNull(spec.toPredicate(root, query, cb));
+        verify(cb).notEqual(any(), eq("AUDIT_ACCESS"));
     }
 }

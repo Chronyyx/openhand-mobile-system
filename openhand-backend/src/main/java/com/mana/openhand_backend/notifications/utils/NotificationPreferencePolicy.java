@@ -24,7 +24,8 @@ public final class NotificationPreferencePolicy {
             case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT ->
                 NotificationPreferenceCategory.CONFIRMATION;
             case REMINDER -> NotificationPreferenceCategory.REMINDER;
-            case CANCELLATION, EVENT_UPDATE -> NotificationPreferenceCategory.CANCELLATION;
+            case CANCELLATION, EVENT_UPDATE, EVENT_CAPACITY_WARNING, EVENT_FULL_ALERT ->
+                NotificationPreferenceCategory.CANCELLATION;
         };
     }
 

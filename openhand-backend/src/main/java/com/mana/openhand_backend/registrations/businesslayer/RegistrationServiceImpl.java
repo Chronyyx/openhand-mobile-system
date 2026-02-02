@@ -49,6 +49,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository notificationRepository;
     private final SendGridEmailService sendGridEmailService;
     private final EventCompletionService eventCompletionService;
 
@@ -56,12 +57,14 @@ public class RegistrationServiceImpl implements RegistrationService {
             EventRepository eventRepository,
             UserRepository userRepository,
             NotificationService notificationService,
+            com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository notificationRepository,
             SendGridEmailService sendGridEmailService,
             EventCompletionService eventCompletionService) {
         this.registrationRepository = registrationRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.notificationRepository = notificationRepository;
         this.sendGridEmailService = sendGridEmailService;
         this.eventCompletionService = eventCompletionService;
     }
@@ -150,7 +153,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         if (lockedEvent.getMaxCapacity() != null) {
             int remainingCapacity = lockedEvent.getMaxCapacity() - currentRegs;
             if (remainingCapacity < totalParticipants) {
-                throw new GroupRegistrationCapacityException(eventId, totalParticipants, Math.max(0, remainingCapacity));
+                throw new GroupRegistrationCapacityException(eventId, totalParticipants,
+                        Math.max(0, remainingCapacity));
             }
         }
 
@@ -265,7 +269,8 @@ public class RegistrationServiceImpl implements RegistrationService {
         }
     }
 
-    private Registration cancelRegistrationInternal(Registration registration, String reason, boolean skipCompletionCheck,
+    private Registration cancelRegistrationInternal(Registration registration, String reason,
+            boolean skipCompletionCheck,
             Long eventIdOverride) {
         Event event = registration.getEvent();
         if (!skipCompletionCheck && event != null
@@ -499,10 +504,48 @@ public class RegistrationServiceImpl implements RegistrationService {
         int current = event.getCurrentRegistrations() != null ? event.getCurrentRegistrations() : 0;
         if (current >= event.getMaxCapacity()) {
             event.setStatus(EventStatus.FULL);
+            checkAndTriggerCapacityNotifications(event, true, false);
         } else if (current >= event.getMaxCapacity() * 0.8) {
             event.setStatus(EventStatus.NEARLY_FULL);
+            checkAndTriggerCapacityNotifications(event, false, true);
         } else {
             event.setStatus(EventStatus.OPEN);
+        }
+    }
+
+    private void checkAndTriggerCapacityNotifications(Event event, boolean isFull, boolean isNearlyFull) {
+        try {
+            com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType type = null;
+            if (isFull) {
+                type = com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType.EVENT_FULL_ALERT;
+            } else if (isNearlyFull) {
+                type = com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType.EVENT_CAPACITY_WARNING;
+            }
+
+            if (type == null)
+                return;
+
+            // Find all employees
+            List<User> employees = userRepository
+                    .findByRolesContaining(com.mana.openhand_backend.identity.utils.RoleUtils.ROLE_EMPLOYEE);
+
+            for (User employee : employees) {
+                // Check if notification already sent to this employee for this event and type
+                boolean alreadySent = notificationRepository.existsByUserIdAndEventIdAndNotificationType(
+                        employee.getId(), event.getId(), type);
+
+                if (!alreadySent) {
+                    String language = employee.getPreferredLanguage() != null ? employee.getPreferredLanguage() : "en";
+                    notificationService.createNotification(
+                            employee.getId(),
+                            event.getId(),
+                            type.name(),
+                            language);
+                }
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to process capacity notifications for event {}: {}", event.getId(), e.getMessage());
         }
     }
 

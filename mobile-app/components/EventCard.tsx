@@ -17,9 +17,10 @@ type EventCardProps = {
     onPress: (event: EventSummary) => void;
     t: (key: string, options?: any) => string;
     onClose?: () => void;
+    showNotificationDot?: boolean;
 };
 
-export function EventCard({ event, onPress, t, onClose }: EventCardProps) {
+export function EventCard({ event, onPress, t, onClose, showNotificationDot }: EventCardProps) {
     const translatedTitle = getTranslatedEventTitle(event, t);
     const isCancelled = event.status === 'CANCELLED';
     const colorScheme = useColorScheme() ?? 'light';
@@ -132,6 +133,17 @@ const styles = StyleSheet.create({
     statusText: {
         fontWeight: '700',
         fontSize: 10,
+    },
+    notificationDot: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        zIndex: 10,
+        borderWidth: 2,
+        borderColor: '#fff',
     },
     closeButton: {
         position: 'absolute',

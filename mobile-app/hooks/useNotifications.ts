@@ -2,17 +2,7 @@ import axios from 'axios';
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { webSocketService } from '../utils/websocket';
-import { API_BASE } from '../utils/api';
-
-export interface Notification {
-    id: number;
-    userId: number;
-    eventId: number;
-    type: 'REGISTRATION_CONFIRMATION' | 'REMINDER' | 'CANCELLATION' | 'EMPLOYEE_REGISTERED_PARTICIPANT' | 'EVENT_UPDATE';
-    message: string;
-    read: boolean;
-    createdAt: string;
-}
+import { type Notification, getNotifications as fetchNotificationsApi, markAsRead as markAsReadApi, markAllAsRead as markAllAsReadApi } from '../services/notification.service';
 
 export function useNotifications() {
     const { user, isLoading } = useAuth();
@@ -23,18 +13,10 @@ export function useNotifications() {
         if (!user?.token) return;
 
         try {
-            const response = await axios.get(`${API_BASE}/notifications`, {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            });
-
-            // axios returns data directly in response.data
-            const data = response.data;
-            const list = Array.isArray(data) ? data : (data.content || []);
-
+            // Use the service function instead of direct axios call to ensure type consistency
+            const list = await fetchNotificationsApi();
             setNotifications(list);
-            setUnreadCount(list.filter((n: Notification) => !n.read).length);
+            setUnreadCount(list.filter(n => !n.isRead).length);
         } catch (error) {
             console.error('Failed to fetch notifications', error);
         }
@@ -43,13 +25,9 @@ export function useNotifications() {
     const markAsRead = useCallback(async (id: number) => {
         if (!user?.token) return;
         try {
-            await axios.put(`${API_BASE}/notifications/${id}/read`, {}, {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`
-                }
-            });
+            await markAsReadApi(id);
             // Optimistic update
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (e) {
             console.error(e);
@@ -58,17 +36,15 @@ export function useNotifications() {
 
     const markAllAsRead = useCallback(async () => {
         if (!user?.token) return;
-        const currentUnread = notifications.filter(n => !n.read).length;
+        const currentUnread = notifications.filter(n => !n.isRead).length;
         if (currentUnread === 0) return;
 
         // Optimistic update all
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         setUnreadCount(0);
 
         try {
-            await axios.put(`${API_BASE}/notifications/read-all`, {}, {
-                headers: { 'Authorization': `Bearer ${user.token}` }
-            });
+            await markAllAsReadApi();
         } catch (e) {
             console.error('Failed to mark all as read', e);
             // Revert on failure? Probably not worth the complexity for read status
@@ -102,7 +78,7 @@ export function useNotifications() {
                         : [incoming, ...prev];
 
                     // Update unread count based on NEW state
-                    const count = nextState.filter(n => !n.read).length;
+                    const count = nextState.filter(n => !n.isRead).length;
                     setUnreadCount(count);
 
                     return nextState;
@@ -117,6 +93,8 @@ export function useNotifications() {
         // We fundamentally depend on 'user' (specifically user.token and user.id).
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading, user?.token, user?.id]);
+
+
 
     return {
         notifications,

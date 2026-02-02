@@ -197,8 +197,8 @@ export default function EventsScreen() {
         // Mark associated notification as read
         const notification = notifications.find(n =>
             n.eventId === eventId &&
-            !n.read &&
-            (n.type === 'CANCELLATION' || n.type === 'EVENT_UPDATE')
+            !n.isRead &&
+            (n.notificationType === 'CANCELLATION' || n.notificationType === 'EVENT_UPDATE')
         );
         if (notification) {
             markAsRead(notification.id);
@@ -266,8 +266,8 @@ export default function EventsScreen() {
                 // Show if there's an unread notification
                 const hasUnread = notifications.some(n =>
                     n.eventId === event.id &&
-                    !n.read &&
-                    (n.type === 'CANCELLATION' || n.type === 'EVENT_UPDATE')
+                    !n.isRead &&
+                    (n.notificationType === 'CANCELLATION' || n.notificationType === 'EVENT_UPDATE')
                 );
 
                 return hasUnread;
@@ -525,14 +525,24 @@ export default function EventsScreen() {
     // RENDER FUNCTIONS
     // ========================================
 
-    const renderEventItem = ({ item }: ListRenderItemInfo<EventSummary>) => (
-        <EventCard
-            event={item}
-            onPress={openEventModal}
-            t={t}
-            onClose={item.status === 'CANCELLED' ? () => hideEvent(item.id) : undefined}
-        />
-    );
+    const renderEventItem = ({ item }: ListRenderItemInfo<EventSummary>) => {
+        // Check for capacity alerts for this event (only for employees/admins)
+        const hasCapacityAlert = isAdmin && notifications.some(n =>
+            n.eventId === item.id &&
+            !n.isRead &&
+            (n.notificationType === 'EVENT_CAPACITY_WARNING' || n.notificationType === 'EVENT_FULL_ALERT')
+        );
+
+        return (
+            <EventCard
+                event={item}
+                onPress={openEventModal}
+                t={t}
+                onClose={item.status === 'CANCELLED' ? () => hideEvent(item.id) : undefined}
+                showNotificationDot={hasCapacityAlert}
+            />
+        );
+    };
 
     const handleRefreshCapacity = useCallback(() => {
         if (!selectedEvent) return;

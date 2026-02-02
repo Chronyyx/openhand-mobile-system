@@ -337,6 +337,16 @@
     "retry": "Reintentar",
     "empty": "No se encontraron eventos.",
     "searchPlaceholder": "Buscar eventos...",
+    "filters": {
+      "button": "Filtrar",
+      "title": "Ordenar eventos",
+      "upcoming": "Eventos más próximos primero",
+      "latest": "Eventos más tardíos primero",
+      "alphaAsc": "Alfabético (A-Z)",
+      "alphaDesc": "Alfabético (Z-A)",
+      "occupancyLow": "Ocupación más baja primero",
+      "occupancyHigh": "Ocupación más alta primero"
+    },
     "accessDenied": "Este panel es solo para empleados y administradores.",
     "fields": {
       "registered": "Inscritos",

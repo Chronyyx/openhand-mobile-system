@@ -11,6 +11,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import java.util.NoSuchElementException;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -55,6 +60,41 @@ public class EventAdminController {
         try {
             Event cancelled = eventAdminService.cancelEvent(id);
             return EventResponseMapper.toResponseModel(cancelled);
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/image")
+    public ImageUrlResponse uploadEventImage(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
+        String baseUrl = ServletUriComponentsBuilder
+                .fromRequestUri(request)
+                .replacePath(null)
+                .build()
+                .toUriString();
+        try {
+            return eventAdminService.uploadEventImage(id, file, baseUrl);
+        } catch (NoSuchElementException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+    }
+
+    @GetMapping("/{id}/image")
+    public ImageUrlResponse getEventImage(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        String baseUrl = ServletUriComponentsBuilder
+                .fromRequestUri(request)
+                .replacePath(null)
+                .build()
+                .toUriString();
+        try {
+            return eventAdminService.getEventImage(id, baseUrl);
         } catch (NoSuchElementException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         }

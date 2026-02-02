@@ -27,6 +27,9 @@ public class Event {
 
     private String address;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventStatus status;
@@ -117,6 +120,14 @@ public class Event {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public EventStatus getStatus() {

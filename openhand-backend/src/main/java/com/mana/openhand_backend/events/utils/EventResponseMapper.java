@@ -33,6 +33,7 @@ public class EventResponseMapper {
                                 status,
                                 event.getMaxCapacity(),
                                 event.getCurrentRegistrations(),
-                                event.getCategory());
+                                event.getCategory(),
+                                event.getImageUrl());
         }
 }

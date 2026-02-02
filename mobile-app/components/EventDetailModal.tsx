@@ -12,6 +12,7 @@ import { formatIsoDate, formatIsoTimeRange } from '../utils/date-time';
 import { getTranslatedEventTitle, getTranslatedEventDescription } from '../utils/event-translations';
 import { getEventImage } from '../constants/event-images';
 import { getStatusLabel, getStatusColor, getStatusTextColor } from '../utils/event-status';
+import { resolveUrl } from '../utils/api';
 
 // Props Definition
 export type FamilyMemberInput = {
@@ -218,12 +219,12 @@ export function EventDetailModal({
             // Parse the error message to provide a user-friendly version
             const rawMsg = e?.message || 'Registration failed';
             let displayMsg = rawMsg;
-            
+
             // If the message mentions "already registered", provide a cleaner version
             if (rawMsg.toLowerCase().includes('already registered')) {
                 displayMsg = t('events.walkin.alreadyRegistered', { email: walkinSelected?.email });
             }
-            
+
             setWalkinError(displayMsg);
         } finally {
             setWalkinSubmitting(false);
@@ -249,9 +250,13 @@ export function EventDetailModal({
                 <View style={styles.modalCard}>
                     {/* Header */}
                     <View style={styles.modalHeader}>
-                        {selectedEvent && getEventImage(selectedEvent) && (
+                        {selectedEvent && (selectedEvent.imageUrl || getEventImage(selectedEvent)) && (
                             <Image
-                                source={getEventImage(selectedEvent)!}
+                                source={
+                                    selectedEvent.imageUrl
+                                        ? { uri: resolveUrl(selectedEvent.imageUrl) }
+                                        : getEventImage(selectedEvent)!
+                                }
                                 style={styles.modalImage}
                                 resizeMode="cover"
                             />
@@ -421,19 +426,19 @@ export function EventDetailModal({
                                             </Pressable>
                                         </View>
                                         {walkinError && (
-                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
                                                 <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>{walkinError}</ThemedText>
                                             </View>
                                         )}
                                         {walkinSuccess && (
-                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.successBorder, borderLeftWidth: 4, backgroundColor: infoPalette.successBg }]}> 
+                                            <View style={[styles.infoBox, { borderLeftColor: infoPalette.successBorder, borderLeftWidth: 4, backgroundColor: infoPalette.successBg }]}>
                                                 <ThemedText style={[styles.infoText, { color: infoPalette.successText }]}>{walkinSuccess}</ThemedText>
                                             </View>
                                         )}
                                         {walkinResults.length > 0 && (
                                             <View style={{ gap: 8 }}>
                                                 {walkinResults.map(r => (
-                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}> 
+                                                    <Pressable key={r.id} onPress={() => setWalkinSelected(r)} style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}>
                                                         <ThemedText style={styles.unregisterButtonText}>{r.email}</ThemedText>
                                                     </Pressable>
                                                 ))}
@@ -530,8 +535,8 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}> 
-                                                        <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}> 
+                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
+                                                        <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>
                                                             {registrationError}
                                                         </ThemedText>
                                                     </View>

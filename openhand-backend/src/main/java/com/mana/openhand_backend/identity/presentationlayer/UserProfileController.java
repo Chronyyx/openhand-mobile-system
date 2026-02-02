@@ -1,8 +1,8 @@
 package com.mana.openhand_backend.identity.presentationlayer;
 
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import com.mana.openhand_backend.identity.businesslayer.ProfilePictureService;
 import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ public class UserProfileController {
                                         .getAuthentication()
                                         .getPrincipal();
                         String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        ProfilePictureResponse response = profilePictureService.storeProfilePicture(userDetails.getId(),
+                        ImageUrlResponse response = profilePictureService.storeProfilePicture(userDetails.getId(),
                                         file,
                                         baseUrl);
                         return ResponseEntity.ok(response);
@@ -75,12 +75,12 @@ public class UserProfileController {
         }
 
         @GetMapping("/profile-picture")
-        public ResponseEntity<ProfilePictureResponse> getProfilePicture(HttpServletRequest request) {
+        public ResponseEntity<ImageUrlResponse> getProfilePicture(HttpServletRequest request) {
                 UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext()
                                 .getAuthentication()
                                 .getPrincipal();
                 String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                ProfilePictureResponse response = profilePictureService.getProfilePicture(userDetails.getId(), baseUrl);
+                ImageUrlResponse response = profilePictureService.getProfilePicture(userDetails.getId(), baseUrl);
                 return ResponseEntity.ok(response);
         }
 }

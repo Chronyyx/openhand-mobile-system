@@ -74,3 +74,11 @@ export const API_BASE = resolveApiBase();
 if (__DEV__) {
     console.log(`[API] Using base URL: ${API_BASE}`);
 }
+
+export const resolveUrl = (url: string | null | undefined) => {
+    if (!url) return undefined;
+    if (url.startsWith('http') || url.startsWith('file:') || url.startsWith('content:') || url.startsWith('data:')) return url;
+    // API_BASE includes /api, we need the root host
+    const host = API_BASE.replace(/\/api$/, '');
+    return `${host}${url.startsWith('/') ? '' : '/'}${url}`;
+};

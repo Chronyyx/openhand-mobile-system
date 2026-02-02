@@ -1,7 +1,7 @@
 package com.mana.openhand_backend.identity.presentationlayer;
 
 import com.mana.openhand_backend.identity.businesslayer.ProfilePictureService;
-import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
+import com.mana.openhand_backend.common.presentationlayer.payload.ImageUrlResponse;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ class UserProfileControllerTest {
         @Test
         void getProfilePicture_returnsUrl() throws Exception {
                 when(profilePictureService.getProfilePicture(eq(5L), any(String.class)))
-                                .thenReturn(new ProfilePictureResponse(
+                                .thenReturn(new ImageUrlResponse(
                                                 "http://localhost/uploads/profile-pictures/pic.png"));
 
                 mockMvc.perform(get("/api/users/profile-picture"))
@@ -64,7 +64,7 @@ class UserProfileControllerTest {
         @Test
         void uploadProfilePicture_returnsResponse() throws Exception {
                 when(profilePictureService.storeProfilePicture(eq(5L), any(MultipartFile.class), any(String.class)))
-                                .thenReturn(new ProfilePictureResponse(
+                                .thenReturn(new ImageUrlResponse(
                                                 "http://localhost/uploads/profile-pictures/new.png"));
 
                 mockMvc.perform(multipart("/api/users/profile-picture")

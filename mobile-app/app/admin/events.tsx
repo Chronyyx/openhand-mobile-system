@@ -32,8 +32,10 @@ import {
     getManagedEvents,
     markEventCompleted,
     deleteArchivedEvent,
+    uploadEventImage,
     type CreateEventPayload,
 } from '../../services/event-management.service';
+import { ImageUploader } from '../../components/ImageUploader';
 import { getTranslatedEventTitle } from '../../utils/event-translations';
 import { getStatusColor, getStatusLabel, getStatusTextColor } from '../../utils/event-status';
 
@@ -103,7 +105,8 @@ export default function AdminEventsScreen() {
     const colorScheme = useColorScheme() ?? 'light';
     const isDark = colorScheme === 'dark';
     const styles = getStyles(colorScheme);
-    
+    const ACCENT = colorScheme === 'dark' ? '#9FC3FF' : '#0056A8';
+
     const isAdmin = hasRole(['ROLE_ADMIN']);
     const canCompleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
     const canDeleteEvents = hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
@@ -130,6 +133,8 @@ export default function AdminEventsScreen() {
     const [locationName, setLocationName] = useState('');
     const [address, setAddress] = useState('');
     const [maxCapacity, setMaxCapacity] = useState('');
+    const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [pendingImageUri, setPendingImageUri] = useState<string | null>(null); // For new events
 
     const [activePickerField, setActivePickerField] = useState<'start' | 'end' | null>(null);
     const [pickerVisible, setPickerVisible] = useState(false);
@@ -196,7 +201,10 @@ export default function AdminEventsScreen() {
         setEndDateTime(null);
         setLocationName('');
         setAddress('');
+
         setMaxCapacity('');
+        setImageUrl(null);
+        setPendingImageUri(null);
         setFieldErrors({});
     };
 
@@ -219,7 +227,10 @@ export default function AdminEventsScreen() {
         setEndDateTime(event.endDateTime ? parseLocalDateTime(event.endDateTime) : null);
         setLocationName(event.locationName);
         setAddress(event.address ?? '');
+
         setMaxCapacity(event.maxCapacity != null ? String(event.maxCapacity) : '');
+        setImageUrl(event.imageUrl ?? null);
+        setPendingImageUri(null);
         setFormOpen(true);
     };
 
@@ -295,7 +306,15 @@ export default function AdminEventsScreen() {
                 await updateEvent(editingEvent.id, payload);
                 Alert.alert(t('admin.events.updateSuccessTitle'), t('admin.events.updateSuccessMessage'));
             } else {
-                await createEvent(payload);
+                const newEvent = await createEvent(payload);
+                if (pendingImageUri) {
+                    try {
+                        await uploadEventImage(newEvent.id, pendingImageUri);
+                    } catch (uploadErr) {
+                        console.error('Failed to upload image for new event', uploadErr);
+                        // We don't block success, but we should warn? Or just let it slide, user can see it missing.
+                    }
+                }
                 Alert.alert(t('admin.events.createSuccessTitle'), t('admin.events.createSuccessMessage'));
             }
 
@@ -737,6 +756,25 @@ export default function AdminEventsScreen() {
                                         keyboardShouldPersistTaps="handled"
                                         onScrollBeginDrag={Keyboard.dismiss}
                                     >
+                                        <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                                            <ImageUploader
+                                                imageUrl={imageUrl}
+                                                onUploadSuccess={setImageUrl}
+                                                uploadFunction={(uri, name, type) => {
+                                                    if (editingEvent) {
+                                                        return uploadEventImage(editingEvent.id, uri, name, type);
+                                                    } else {
+                                                        // For new events, defer upload.
+                                                        setPendingImageUri(uri);
+                                                        // Return the local URI as the "url" so the component displays it
+                                                        return Promise.resolve({ url: uri });
+                                                    }
+                                                }}
+                                                editable={canEditFields}
+                                                containerStyle={{ marginBottom: 0 }}
+                                            />
+                                        </View>
+
                                         <Text style={styles.fieldLabel}>{t('admin.events.fields.title')}</Text>
                                         <TextInput
                                             style={[
@@ -1056,7 +1094,7 @@ export default function AdminEventsScreen() {
 
 const getStyles = (colorScheme: 'light' | 'dark' | null) => {
     const isDark = colorScheme === 'dark';
-    
+
     // Define all colors dynamically
     const ACCENT = isDark ? '#6AA9FF' : '#0056A8';
     const SURFACE = isDark ? '#0F1419' : '#F5F7FB';

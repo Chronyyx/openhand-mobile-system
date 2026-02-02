@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     FlatList,
+    Modal,
     Pressable,
     RefreshControl,
     StyleSheet,
@@ -32,6 +33,8 @@ import { formatIsoDate, formatIsoTimeRange, formatIsoDateTime } from '../../../u
 import { getTranslatedEventTitle } from '../../../utils/event-translations';
 import { webSocketService } from '../../../utils/websocket';
 
+type AttendeeSortOption = 'nameAsc' | 'nameDesc' | 'emailAsc' | 'emailDesc';
+
 export default function AttendanceEventDetailScreen() {
     const { id } = useLocalSearchParams();
     const { t } = useTranslation();
@@ -53,6 +56,8 @@ export default function AttendanceEventDetailScreen() {
     const [attendance, setAttendance] = useState<AttendanceEventAttendeesResponse | null>(null);
     const [eventDetail, setEventDetail] = useState<EventDetail | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [filterVisible, setFilterVisible] = useState(false);
+    const [sortOption, setSortOption] = useState<AttendeeSortOption>('nameAsc');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -157,21 +162,45 @@ export default function AttendanceEventDetailScreen() {
 
     const filteredAttendees = useMemo(() => {
         if (!attendance) return [];
-        if (!searchQuery.trim()) return attendance.attendees;
         const query = searchQuery.toLowerCase().trim();
-        return attendance.attendees.filter((attendee) => {
-            const name = attendee.fullName?.toLowerCase() ?? '';
-            const email = attendee.email?.toLowerCase() ?? '';
-            return name.includes(query) || email.includes(query);
+        const searchedAttendees = query
+            ? attendance.attendees.filter((attendee) => {
+                const name = attendee.fullName?.toLowerCase() ?? '';
+                const email = attendee.email?.toLowerCase() ?? '';
+                return name.includes(query) || email.includes(query);
+            })
+            : attendance.attendees;
+
+        const sortKey = (attendee: AttendanceAttendee, key: 'name' | 'email') => {
+            if (key === 'name') {
+                return (attendee.fullName || attendee.email || '').toLowerCase();
+            }
+            return (attendee.email || attendee.fullName || '').toLowerCase();
+        };
+
+        const sortedAttendees = [...searchedAttendees].sort((a, b) => {
+            switch (sortOption) {
+                case 'nameDesc':
+                    return sortKey(b, 'name').localeCompare(sortKey(a, 'name'));
+                case 'emailAsc':
+                    return sortKey(a, 'email').localeCompare(sortKey(b, 'email'));
+                case 'emailDesc':
+                    return sortKey(b, 'email').localeCompare(sortKey(a, 'email'));
+                case 'nameAsc':
+                default:
+                    return sortKey(a, 'name').localeCompare(sortKey(b, 'name'));
+            }
         });
-    }, [attendance, searchQuery]);
+
+        return sortedAttendees;
+    }, [attendance, searchQuery, sortOption]);
 
     const renderAttendee = ({ item }: { item: AttendanceAttendee }) => {
         const isPending = Boolean(pendingIds[item.userId]);
         return (
             <View style={styles.attendeeCard}>
                 <View style={styles.attendeeInfo}>
-                    <ThemedText style={styles.attendeeName}>
+                    <ThemedText style={styles.attendeeName} testID="attendance-attendee-name">
                         {item.fullName || item.email || t('attendance.attendees.unknownName')}
                     </ThemedText>
                     <ThemedText style={styles.attendeeEmail}>{item.email}</ThemedText>
@@ -241,67 +270,142 @@ export default function AttendanceEventDetailScreen() {
         );
     } else {
         content = (
-            <FlatList
-                data={filteredAttendees}
-                keyExtractor={(item) => item.userId.toString()}
-                renderItem={renderAttendee}
-                contentContainerStyle={eventStyles.listContent}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={[indicatorColor]}
-                    />
-                }
-                ListHeaderComponent={
-                    <View style={styles.header}>
-                        <ThemedText style={eventStyles.screenTitle}>
-                            {t('attendance.attendees.title')}
-                        </ThemedText>
-                        {eventDetail && (
-                            <>
-                                <ThemedText style={styles.eventTitle}>
-                                    {getTranslatedEventTitle(eventDetail, t)}
-                                </ThemedText>
-                                <ThemedText style={styles.eventMeta}>
-                                    {formatIsoDate(eventDetail.startDateTime)} ·{' '}
-                                    {formatIsoTimeRange(eventDetail.startDateTime, eventDetail.endDateTime)}
-                                </ThemedText>
-                            </>
-                        )}
-                        <View style={styles.summaryRow}>
-                            <ThemedText style={styles.summaryItem}>
-                                {t('attendance.attendees.registeredCount', {
-                                    count: attendance?.registeredCount ?? 0,
-                                })}
+            <>
+                <FlatList
+                    data={filteredAttendees}
+                    keyExtractor={(item) => item.userId.toString()}
+                    renderItem={renderAttendee}
+                    contentContainerStyle={eventStyles.listContent}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={[indicatorColor]}
+                        />
+                    }
+                    ListHeaderComponent={
+                        <View style={styles.header}>
+                            <ThemedText style={eventStyles.screenTitle}>
+                                {t('attendance.attendees.title')}
                             </ThemedText>
-                            <ThemedText style={styles.summaryItem}>
-                                {t('attendance.attendees.checkedInCount', {
-                                    count: attendance?.checkedInCount ?? 0,
-                                })}
-                            </ThemedText>
-                        </View>
-                        <View style={eventStyles.searchContainer}>
-                            <Ionicons name="search" size={20} color={iconColor} style={eventStyles.searchIcon} />
-                            <TextInput
-                                style={[eventStyles.searchInput, { color: isDark ? '#ECEDEE' : '#333' }]}
-                                placeholder={t('attendance.attendees.searchPlaceholder')}
-                                placeholderTextColor={placeholderColor}
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                            />
-                            {searchQuery.length > 0 && (
-                                <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
-                                    <Ionicons name="close-circle" size={20} color="#666" style={{ marginLeft: 8 }} />
-                                </Pressable>
+                            {eventDetail && (
+                                <>
+                                    <ThemedText style={styles.eventTitle}>
+                                        {getTranslatedEventTitle(eventDetail, t)}
+                                    </ThemedText>
+                                    <ThemedText style={styles.eventMeta}>
+                                        {formatIsoDate(eventDetail.startDateTime)} ·{' '}
+                                        {formatIsoTimeRange(eventDetail.startDateTime, eventDetail.endDateTime)}
+                                    </ThemedText>
+                                </>
                             )}
+                            <View style={styles.summaryRow}>
+                                <ThemedText style={styles.summaryItem}>
+                                    {t('attendance.attendees.registeredCount', {
+                                        count: attendance?.registeredCount ?? 0,
+                                    })}
+                                </ThemedText>
+                                <ThemedText style={styles.summaryItem}>
+                                    {t('attendance.attendees.checkedInCount', {
+                                        count: attendance?.checkedInCount ?? 0,
+                                    })}
+                                </ThemedText>
+                            </View>
+                            <View style={styles.searchRow}>
+                                <View style={[eventStyles.searchContainer, styles.searchContainer]}>
+                                    <Ionicons name="search" size={20} color={iconColor} style={eventStyles.searchIcon} />
+                                    <TextInput
+                                        style={[eventStyles.searchInput, { color: isDark ? '#ECEDEE' : '#333' }]}
+                                        placeholder={t('attendance.attendees.searchPlaceholder')}
+                                        placeholderTextColor={placeholderColor}
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                    />
+                                    {searchQuery.length > 0 && (
+                                        <Pressable onPress={() => setSearchQuery('')} hitSlop={10}>
+                                            <Ionicons name="close-circle" size={20} color={iconColor} style={{ marginLeft: 8 }} />
+                                        </Pressable>
+                                    )}
+                                </View>
+                                <Pressable
+                                    onPress={() => setFilterVisible(true)}
+                                    style={styles.filterButton}
+                                    testID="attendance-attendees-filter-button"
+                                >
+                                    <Ionicons name="funnel-outline" size={18} color={iconColor} />
+                                    <ThemedText style={styles.filterButtonText}>
+                                        {t('attendance.attendees.filters.button')}
+                                    </ThemedText>
+                                </Pressable>
+                            </View>
+                        </View>
+                    }
+                    ListEmptyComponent={
+                        <ThemedText style={eventStyles.emptyText}>{t('attendance.attendees.empty')}</ThemedText>
+                    }
+                />
+                <Modal
+                    transparent
+                    visible={filterVisible}
+                    animationType="fade"
+                    onRequestClose={() => setFilterVisible(false)}
+                >
+                    <View style={eventStyles.modalOverlay}>
+                        <Pressable
+                            style={StyleSheet.absoluteFillObject}
+                            onPress={() => setFilterVisible(false)}
+                        />
+                        <View style={eventStyles.modalCard}>
+                            <View style={styles.filterHeader}>
+                                <ThemedText style={styles.filterTitle}>
+                                    {t('attendance.attendees.filters.title')}
+                                </ThemedText>
+                                <Pressable onPress={() => setFilterVisible(false)} hitSlop={10}>
+                                    <Ionicons name="close" size={20} color={iconColor} />
+                                </Pressable>
+                            </View>
+                            <View style={styles.filterOptions}>
+                                {(
+                                    [
+                                        { key: 'nameAsc', label: t('attendance.attendees.filters.nameAsc') },
+                                        { key: 'nameDesc', label: t('attendance.attendees.filters.nameDesc') },
+                                        { key: 'emailAsc', label: t('attendance.attendees.filters.emailAsc') },
+                                        { key: 'emailDesc', label: t('attendance.attendees.filters.emailDesc') },
+                                    ] as { key: AttendeeSortOption; label: string }[]
+                                ).map((option) => {
+                                    const isSelected = sortOption === option.key;
+                                    return (
+                                        <Pressable
+                                            key={option.key}
+                                            onPress={() => {
+                                                setSortOption(option.key);
+                                                setFilterVisible(false);
+                                            }}
+                                            style={[
+                                                styles.filterOption,
+                                                isSelected && styles.filterOptionSelected,
+                                            ]}
+                                            testID={`attendance-attendees-filter-option-${option.key}`}
+                                        >
+                                            <ThemedText
+                                                style={[
+                                                    styles.filterOptionText,
+                                                    isSelected && styles.filterOptionTextSelected,
+                                                ]}
+                                            >
+                                                {option.label}
+                                            </ThemedText>
+                                            {isSelected && (
+                                                <Ionicons name="checkmark" size={18} color={indicatorColor} />
+                                            )}
+                                        </Pressable>
+                                    );
+                                })}
+                            </View>
                         </View>
                     </View>
-                }
-                ListEmptyComponent={
-                    <ThemedText style={eventStyles.emptyText}>{t('attendance.attendees.empty')}</ThemedText>
-                }
-            />
+                </Modal>
+            </>
         );
     }
 
@@ -323,6 +427,7 @@ const getStyles = (isDark: boolean) => {
         borderLight: isDark ? '#2A2F37' : '#E8ECEF',
         successText: isDark ? '#66BB6A' : '#1E7C44',
         warningText: isDark ? '#FFB74D' : '#4A5568',
+        bgLight: isDark ? '#1F2328' : '#F5F7FB',
     };
 
     return StyleSheet.create({
@@ -443,6 +548,70 @@ const getStyles = (isDark: boolean) => {
             color: '#0056A8',
             fontWeight: '600',
         },
+        searchRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            marginBottom: 16,
+        },
+        searchContainer: {
+            flex: 1,
+            marginBottom: 0,
+        },
+        filterButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 12,
+            paddingVertical: 12,
+            borderRadius: 12,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.bgLight,
+        },
+        filterButtonText: {
+            fontSize: 13,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        filterHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 18,
+            paddingTop: 16,
+            paddingBottom: 12,
+            borderBottomWidth: StyleSheet.hairlineWidth,
+            borderBottomColor: colors.border,
+        },
+        filterTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        filterOptions: {
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            gap: 6,
+        },
+        filterOption: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 10,
+            paddingVertical: 12,
+            borderRadius: 10,
+        },
+        filterOptionSelected: {
+            backgroundColor: colors.bgLight,
+        },
+        filterOptionText: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        filterOptionTextSelected: {
+            color: colors.text,
+        },
     });
 };
-

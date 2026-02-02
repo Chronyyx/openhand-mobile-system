@@ -373,7 +373,15 @@
       "notCheckedIn": "No presente",
       "checkedInAt": "Presente desde: {{timestamp}}",
       "registeredCount": "{{count}} inscritos",
-      "checkedInCount": "{{count}} presentes"
+      "checkedInCount": "{{count}} presentes",
+      "filters": {
+        "button": "Filtrar",
+        "title": "Ordenar asistentes",
+        "nameAsc": "Nombre del participante (A-Z)",
+        "nameDesc": "Nombre del participante (Z-A)",
+        "emailAsc": "Correo del participante (A-Z)",
+        "emailDesc": "Correo del participante (Z-A)"
+      }
     }
   },
   "registrations": {

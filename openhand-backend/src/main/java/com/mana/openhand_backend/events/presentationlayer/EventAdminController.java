@@ -11,6 +11,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
 import java.util.NoSuchElementException;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -61,18 +66,18 @@ public class EventAdminController {
     }
 
     @PostMapping("/{id}/image")
-    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse uploadEventImage(
+    public ProfilePictureResponse uploadEventImage(
             @PathVariable Long id,
-            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
-            jakarta.servlet.http.HttpServletRequest request) {
-        String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
+        String baseUrl = ServletUriComponentsBuilder
                 .fromRequestUri(request)
                 .replacePath(null)
                 .build()
                 .toUriString();
         try {
             return eventAdminService.uploadEventImage(id, file, baseUrl);
-        } catch (java.util.NoSuchElementException ex) {
+        } catch (NoSuchElementException ex) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         } catch (IllegalArgumentException ex) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
@@ -80,10 +85,10 @@ public class EventAdminController {
     }
 
     @GetMapping("/{id}/image")
-    public com.mana.openhand_backend.identity.presentationlayer.payload.ProfilePictureResponse getEventImage(
+    public ProfilePictureResponse getEventImage(
             @PathVariable Long id,
-            jakarta.servlet.http.HttpServletRequest request) {
-        String baseUrl = org.springframework.web.servlet.support.ServletUriComponentsBuilder
+            HttpServletRequest request) {
+        String baseUrl = ServletUriComponentsBuilder
                 .fromRequestUri(request)
                 .replacePath(null)
                 .build()

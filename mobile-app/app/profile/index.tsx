@@ -10,7 +10,7 @@ import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { ImageUploader } from '../../components/ImageUploader';
-import { getProfilePicture, uploadProfilePicture } from '../../services/profile-picture.service';
+import { uploadProfilePicture } from '../../services/profile-picture.service';
 import { updateProfile } from '../../services/profile.service';
 import { API_BASE } from '../../utils/api';
 import { useColorScheme } from '../../hooks/use-color-scheme';

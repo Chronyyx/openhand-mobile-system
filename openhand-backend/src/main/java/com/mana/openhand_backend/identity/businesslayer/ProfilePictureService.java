@@ -49,8 +49,8 @@ public class ProfilePictureService {
         String previousUrl = user.getProfilePictureUrl();
         String filenameBase = "user-" + userId;
 
+        String filename = fileStorageService.storeFile(file, uploadDir, filenameBase);
         try {
-            String filename = fileStorageService.storeFile(file, uploadDir, filenameBase);
             String relativeUrl = "/uploads/profile-pictures/" + filename;
 
             user.setProfilePictureUrl(relativeUrl);
@@ -63,6 +63,8 @@ public class ProfilePictureService {
             return new ProfilePictureResponse(fileStorageService.toPublicUrl(baseUrl, relativeUrl));
         } catch (RuntimeException ex) {
             logger.error("Failed to store profile picture for user {}: {}", userId, ex.getMessage());
+            // Cleanup orphaned file
+            fileStorageService.deleteFile(uploadDir.resolve(filename).normalize());
             throw ex;
         }
     }

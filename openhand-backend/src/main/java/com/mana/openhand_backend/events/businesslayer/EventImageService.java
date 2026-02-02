@@ -18,6 +18,8 @@ import java.util.NoSuchElementException;
 public class EventImageService {
     private static final Logger logger = LoggerFactory.getLogger(EventImageService.class);
 
+    private static final String PUBLIC_URL_PREFIX = "/uploads/event-images/";
+
     private final EventRepository eventRepository;
     private final FileStorageService fileStorageService;
     private final Path uploadDir;
@@ -49,26 +51,28 @@ public class EventImageService {
         String previousUrl = event.getImageUrl();
         String filenameBase = "event-" + eventId;
 
+        String filename = fileStorageService.storeFile(file, uploadDir, filenameBase);
         try {
-            String filename = fileStorageService.storeFile(file, uploadDir, filenameBase);
-            String relativeUrl = "/uploads/event-images/" + filename;
+            String relativeUrl = PUBLIC_URL_PREFIX + filename;
 
             event.setImageUrl(relativeUrl);
             eventRepository.save(event);
 
-            if (previousUrl != null && previousUrl.startsWith("/uploads/event-images/")) {
+            if (previousUrl != null && previousUrl.startsWith(PUBLIC_URL_PREFIX)) {
                 deletePreviousFile(previousUrl);
             }
 
             return new ProfilePictureResponse(fileStorageService.toPublicUrl(baseUrl, relativeUrl));
         } catch (RuntimeException ex) {
             logger.error("Failed to store image for event {}: {}", eventId, ex.getMessage());
+            // Cleanup orphaned file
+            fileStorageService.deleteFile(uploadDir.resolve(filename).normalize());
             throw ex;
         }
     }
 
     private void deletePreviousFile(String previousUrl) {
-        String filename = previousUrl.replace("/uploads/event-images/", "");
+        String filename = previousUrl.replace(PUBLIC_URL_PREFIX, "");
         Path previousPath = uploadDir.resolve(filename).normalize();
         fileStorageService.deleteFile(previousPath);
     }

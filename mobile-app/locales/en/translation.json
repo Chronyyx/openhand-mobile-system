@@ -373,7 +373,15 @@
       "notCheckedIn": "Not checked in",
       "checkedInAt": "Checked in at: {{timestamp}}",
       "registeredCount": "{{count}} registered",
-      "checkedInCount": "{{count}} checked in"
+      "checkedInCount": "{{count}} checked in",
+      "filters": {
+        "button": "Filter",
+        "title": "Sort attendees",
+        "nameAsc": "Participant name (A-Z)",
+        "nameDesc": "Participant name (Z-A)",
+        "emailAsc": "Participant email (A-Z)",
+        "emailDesc": "Participant email (Z-A)"
+      }
     }
   },
   "registrations": {

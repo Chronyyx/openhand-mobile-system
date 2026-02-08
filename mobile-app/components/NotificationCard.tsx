@@ -31,6 +31,8 @@ function getNotificationIcon(type: string): string {
             return 'warning';
         case 'EVENT_UPDATE':
             return 'information-circle';
+        case 'DONATION_CONFIRMATION':
+            return 'heart-circle';
         default:
             return 'notifications';
     }
@@ -51,6 +53,8 @@ function getNotificationColor(type: string, scheme: 'light' | 'dark'): string {
             return isDark ? '#FFB4AB' : '#DC3545'; // Red
         case 'EVENT_UPDATE':
             return isDark ? '#9FC3FF' : '#0056A8'; // Primary Blue
+        case 'DONATION_CONFIRMATION':
+            return isDark ? '#7BC47F' : '#28A745';
         default:
             return isDark ? '#9FC3FF' : '#0056A8';
     }

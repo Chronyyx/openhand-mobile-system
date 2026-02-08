@@ -9,6 +9,7 @@ export type NavigationMenuOptions = {
     showAttendance?: boolean;
     showDashboard?: boolean;
     showProfile?: boolean;
+    showDonations?: boolean;
 };
 
 type NavigateOptions = {
@@ -47,6 +48,7 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
     const showAttendance = options.showAttendance ?? hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']);
     const showDashboard = options.showDashboard ?? hasRole(['ROLE_ADMIN']);
     const showProfile = options.showProfile !== false;
+    const showDonations = options.showDonations ?? hasRole(['ROLE_MEMBER']);
 
     const menuProps = useMemo(
         () => ({
@@ -56,11 +58,13 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
             onNavigateEvents: () => navigate('/events'),
             onNavigateProfile: showProfile ? () => navigate('/profile') : undefined,
             onNavigateMyRegistrations: showMyRegistrations ? () => navigate('/registrations') : undefined,
+            onNavigateDonations: showDonations ? () => navigate('/donations') : undefined,
             showMyRegistrations,
             showAttendance,
             onNavigateAttendance: showAttendance ? () => navigate('/admin/attendance') : undefined,
             showDashboard,
             onNavigateDashboard: showDashboard ? () => navigate('/admin') : undefined,
+            showDonations,
             t,
         }),
         [
@@ -71,6 +75,7 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
             showDashboard,
             showMyRegistrations,
             showProfile,
+            showDonations,
             t,
         ],
     );

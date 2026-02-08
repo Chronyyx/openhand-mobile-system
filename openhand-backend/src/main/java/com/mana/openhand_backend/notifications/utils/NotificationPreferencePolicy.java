@@ -21,7 +21,7 @@ public final class NotificationPreferencePolicy {
 
     public static NotificationPreferenceCategory toCategory(NotificationType type) {
         return switch (type) {
-            case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT ->
+            case REGISTRATION_CONFIRMATION, EMPLOYEE_REGISTERED_PARTICIPANT, DONATION_CONFIRMATION ->
                 NotificationPreferenceCategory.CONFIRMATION;
             case REMINDER -> NotificationPreferenceCategory.REMINDER;
             case EVENT_CAPACITY_WARNING, EVENT_FULL_ALERT -> NotificationPreferenceCategory.CAPACITY_ALERT;

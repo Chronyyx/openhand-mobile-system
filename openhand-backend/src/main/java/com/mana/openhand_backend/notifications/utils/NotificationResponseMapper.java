@@ -9,16 +9,21 @@ public class NotificationResponseMapper {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     public static NotificationResponseModel toResponseModel(Notification notification) {
+        Long eventId = notification.getEvent() != null ? notification.getEvent().getId() : null;
+        String eventStart = null;
+        if (notification.getEvent() != null && notification.getEvent().getStartDateTime() != null) {
+            eventStart = notification.getEvent().getStartDateTime().format(FORMATTER);
+        }
         return new NotificationResponseModel(
                 notification.getId(),
-                notification.getEvent().getId(),
+                eventId,
                 notification.getEventTitle(),
                 notification.getNotificationType().toString(),
                 notification.getTextContent(),
                 notification.isRead(),
                 notification.getCreatedAt().format(FORMATTER),
                 notification.getReadAt() != null ? notification.getReadAt().format(FORMATTER) : null,
-                notification.getEvent().getStartDateTime() != null ? notification.getEvent().getStartDateTime().format(FORMATTER) : null,
+                eventStart,
                 notification.getParticipantName()
         );
     }

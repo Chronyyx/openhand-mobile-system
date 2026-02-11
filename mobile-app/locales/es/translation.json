@@ -154,6 +154,13 @@
       "account_inactive": "Tu cuenta ya no está activa. Por favor, contacta con los administradores si hubo un error.",
       "login_failed": "El inicio de sesión falló. Por favor intente más tarde.",
       "network_error": "Error de red. Por favor verifique su conexión."
+    },
+    "biometrics": {
+      "loginButton": "Iniciar con Face ID / Biometria",
+      "promptLogin": "Autentiquese para iniciar sesion",
+      "errors": {
+        "failed": "La autenticacion biometrica fallo."
+      }
     }
   },
   "settings": {
@@ -197,6 +204,24 @@
       "successTitle": "Cuenta desactivada",
       "successMessage": "Has cerrado sesión. Si necesitas ayuda, contacta soporte.",
       "error": "No se pudo desactivar tu cuenta en este momento."
+    },
+    "biometrics": {
+      "title": "Autenticacion biometrica",
+      "subtitle": "Use Face ID o huella para iniciar sesion mas rapido",
+      "memberOnly": "La autenticacion biometrica solo esta disponible para miembros, administradores y empleados autenticados.",
+      "enableLabel": "Activar biometria",
+      "enableHint": "Use la biometria del dispositivo para desbloquear su sesion",
+      "promptEnable": "Confirme la configuracion biometrica",
+      "messages": {
+        "enabled": "Inicio de sesion biometrico activado.",
+        "disabled": "Inicio de sesion biometrico desactivado."
+      },
+      "errors": {
+        "loadFailed": "No se pudo cargar la configuracion de seguridad.",
+        "updateFailed": "No se pudo actualizar la preferencia biometrica.",
+        "unavailable": "La biometria no esta disponible en este dispositivo.",
+        "authFailed": "La autenticacion biometrica fallo."
+      }
     }
   },
   "modal": {

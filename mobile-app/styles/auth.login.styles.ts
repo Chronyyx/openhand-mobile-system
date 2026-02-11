@@ -8,15 +8,24 @@ export const getStyles = (colorScheme: 'light' | 'dark') => {
             flex: 1,
             backgroundColor: isDark ? '#0F1419' : '#F5F7FB',
         },
-        contentContainer: {
+        keyboardContainer: {
             flex: 1,
-            justifyContent: "center",
+        },
+        scrollContent: {
+            flexGrow: 1,
             paddingHorizontal: 24,
-            paddingBottom: 40,
+            paddingTop: 24,
+            paddingBottom: 36,
+            justifyContent: "center",
+        },
+        contentContainer: {
+            width: "100%",
+            maxWidth: 480,
+            alignSelf: "center",
         },
         logoContainer: {
             alignItems: "center",
-            marginBottom: 40,
+            marginBottom: 28,
         },
         logo: {
             width: 200,
@@ -41,7 +50,8 @@ export const getStyles = (colorScheme: 'light' | 'dark') => {
             borderColor: isDark ? '#2F3A4A' : '#E0E4EC',
             marginBottom: 16,
             paddingHorizontal: 14,
-            height: 56,
+            minHeight: 56,
+            paddingVertical: 8,
             shadowColor: "#000",
             shadowOpacity: 0.05,
             shadowRadius: 4,
@@ -55,7 +65,11 @@ export const getStyles = (colorScheme: 'light' | 'dark') => {
             flex: 1,
             fontSize: 16,
             color: isDark ? '#ECEDEE' : '#333',
-            height: "100%",
+            minHeight: 24,
+        },
+        forgotPasswordContainer: {
+            alignItems: 'flex-end',
+            marginBottom: 20,
         },
         errorContainer: {
             flexDirection: "row",
@@ -72,12 +86,14 @@ export const getStyles = (colorScheme: 'light' | 'dark') => {
         },
         buttonContainer: {
             marginTop: 10,
-            marginBottom: 30,
-            height: 56,
+            marginBottom: 20,
+            gap: 12,
+            minHeight: 56,
         },
         loginButton: {
             backgroundColor: isDark ? '#6AA9FF' : '#0056A8',
-            height: "100%",
+            minHeight: 52,
+            paddingVertical: 14,
             borderRadius: 12,
             alignItems: "center",
             justifyContent: "center",
@@ -93,10 +109,27 @@ export const getStyles = (colorScheme: 'light' | 'dark') => {
             fontWeight: "700",
             letterSpacing: 0.5,
         },
+        biometricButton: {
+            borderWidth: 1,
+            borderColor: isDark ? '#6AA9FF' : '#0056A8',
+            backgroundColor: isDark ? '#1B2430' : '#FFFFFF',
+            height: 52,
+            borderRadius: 12,
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: 'row',
+            gap: 8,
+        },
+        biometricButtonText: {
+            color: isDark ? '#9FC3FF' : '#0056A8',
+            fontSize: 15,
+            fontWeight: "700",
+        },
         footer: {
             flexDirection: "row",
             justifyContent: "center",
             alignItems: "center",
+            paddingBottom: 8,
         },
         footerText: {
             fontSize: 14,

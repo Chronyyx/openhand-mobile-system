@@ -1,6 +1,8 @@
 package com.mana.openhand_backend.exception;
 
 import com.mana.openhand_backend.identity.presentationlayer.payload.MessageResponse;
+import com.mana.openhand_backend.security.services.InvalidRefreshTokenException;
+import com.mana.openhand_backend.security.services.TokenExpiredException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,6 +52,12 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(com.mana.openhand_backend.notifications.utils.InvalidNotificationPreferenceException.class)
         public ResponseEntity<MessageResponse> handleBadRequestException(RuntimeException ex) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                .body(new MessageResponse("Error: " + ex.getMessage()));
+        }
+
+        @ExceptionHandler({ InvalidRefreshTokenException.class, TokenExpiredException.class })
+        public ResponseEntity<MessageResponse> handleInvalidRefreshToken(RuntimeException ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                 .body(new MessageResponse("Error: " + ex.getMessage()));
         }
 

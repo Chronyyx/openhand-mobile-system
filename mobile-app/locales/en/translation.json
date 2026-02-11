@@ -139,6 +139,13 @@
     "back_to_login_link": "Back to Login",
     "cancel_link": "Cancel",
     "forgot_password_link_login": "Forgot Password?",
+    "biometrics": {
+      "loginButton": "Login with Face ID / Biometrics",
+      "promptLogin": "Authenticate to login",
+      "errors": {
+        "failed": "Biometric authentication failed."
+      }
+    },
     "error": {
       "enter_email": "Please enter your email.",
       "generic_reset_error": "An error occurred. Please try again.",
@@ -182,6 +189,24 @@
       "errors": {
         "loadFailed": "Unable to load preferences.",
         "updateFailed": "Unable to update preferences."
+      }
+    },
+    "biometrics": {
+      "title": "Biometric Authentication",
+      "subtitle": "Use Face ID or fingerprint for faster login",
+      "memberOnly": "Biometric authentication is only available for signed-in members, administrators, and employees.",
+      "enableLabel": "Enable biometrics",
+      "enableHint": "Use device biometrics to unlock your session",
+      "promptEnable": "Confirm biometric setup",
+      "messages": {
+        "enabled": "Biometric login enabled.",
+        "disabled": "Biometric login disabled."
+      },
+      "errors": {
+        "loadFailed": "Unable to load security settings.",
+        "updateFailed": "Unable to update biometric preference.",
+        "unavailable": "Biometrics are not available on this device.",
+        "authFailed": "Biometric authentication failed."
       }
     },
     "account": {

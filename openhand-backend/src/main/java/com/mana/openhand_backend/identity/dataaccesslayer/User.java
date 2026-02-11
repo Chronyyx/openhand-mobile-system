@@ -133,6 +133,9 @@ public class User {
     @Column(name = "preferred_language", length = 10)
     private String preferredLanguage = "en";
 
+    @Column(name = "biometrics_enabled", nullable = false, columnDefinition = "boolean default false")
+    private boolean biometricsEnabled = false;
+
     public int getFailedAttempt() {
         return failedAttempt;
     }
@@ -171,5 +174,13 @@ public class User {
 
     public void setStatusChangedAt(LocalDateTime statusChangedAt) {
         this.statusChangedAt = statusChangedAt;
+    }
+
+    public boolean isBiometricsEnabled() {
+        return biometricsEnabled;
+    }
+
+    public void setBiometricsEnabled(boolean biometricsEnabled) {
+        this.biometricsEnabled = biometricsEnabled;
     }
 }

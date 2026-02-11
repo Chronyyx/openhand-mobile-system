@@ -8,9 +8,8 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
-    TouchableWithoutFeedback,
-    Keyboard,
     ScrollView,
+    SafeAreaView,
 } from "react-native";
 import { getStyles } from "../../styles/auth.register.styles";
 import { useTranslation } from "react-i18next";
@@ -87,9 +86,6 @@ export default function RegisterScreen() {
         }
     };
 
-    const Wrapper = (Platform.OS === 'web' ? View : TouchableWithoutFeedback) as any;
-    const wrapperProps = Platform.OS === 'web' ? { style: styles.container } : { onPress: Keyboard.dismiss };
-
     const genderOptions = [
         { label: t("auth.gender_options.male"), value: "MALE" },
         { label: t("auth.gender_options.female"), value: "FEMALE" },
@@ -98,13 +94,17 @@ export default function RegisterScreen() {
     ];
 
     return (
-        <Wrapper {...wrapperProps}>
+        <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={styles.container}
+                style={styles.keyboardContainer}
             >
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-                    <View style={[styles.contentContainer, { paddingTop: 40 }]}>
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.contentContainer}>
                         <View style={styles.logoContainer}>
                             <Image
                                 source={require("../../assets/mana/manaLogo.png")}
@@ -264,6 +264,7 @@ export default function RegisterScreen() {
                                     activeOpacity={0.8}
                                     accessibilityRole="button"
                                     accessibilityLabel={t("auth.register_button")}
+                                    testID="register-button"
                                 >
                                     <Text style={styles.loginButtonText}>{t("auth.register_button")}</Text>
                                 </TouchableOpacity>
@@ -282,7 +283,7 @@ export default function RegisterScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </Wrapper>
+        </SafeAreaView>
     );
 }
 

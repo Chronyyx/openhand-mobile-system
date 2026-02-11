@@ -1,6 +1,8 @@
 import apiClient from './api.client';
 import { getProfile } from './profile.service';
 import { setItem, getItem, deleteItem } from '../utils/storage';
+import { clearBiometricSession, signInWithBiometricRefresh, syncBiometricRefreshToken } from './biometric-auth.service';
+import { getSecuritySettings } from './security-settings.service';
 
 const register = (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: number) => {
     return apiClient.post('/auth/register', {
@@ -53,6 +55,7 @@ const logout = async () => {
         console.error('[AuthService] Server logout failed', e);
     } finally {
         await deleteItem('userToken');
+        await clearBiometricSession();
     }
 };
 
@@ -74,6 +77,30 @@ const storeUser = async (user: unknown) => {
     await setItem('userToken', JSON.stringify(user));
 };
 
+const loginWithBiometrics = async (promptMessage: string) => {
+    const authenticatedUser = await signInWithBiometricRefresh(promptMessage);
+    return authenticatedUser;
+};
+
+const syncBiometricStateFromBackend = async () => {
+    try {
+        const settings = await getSecuritySettings();
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+            return settings;
+        }
+        if (settings.biometricsEnabled) {
+            await syncBiometricRefreshToken({
+                id: currentUser.id,
+                refreshToken: currentUser.refreshToken,
+            });
+        }
+        return settings;
+    } catch (error) {
+        return null;
+    }
+};
+
 
 const AuthService = {
     register,
@@ -83,7 +110,9 @@ const AuthService = {
     forgotPassword,
     resetPassword,
     storeUser,
-    getProfile
+    getProfile,
+    loginWithBiometrics,
+    syncBiometricStateFromBackend
 };
 
 export default AuthService;

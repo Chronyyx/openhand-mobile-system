@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_BASE } from '../utils/api';
 import { getItem, setItem, deleteItem } from '../utils/storage';
+import { clearBiometricSession, syncBiometricRefreshToken } from './biometric-auth.service';
 
 const apiClient = axios.create({
     baseURL: API_BASE,
@@ -71,6 +72,10 @@ apiClient.interceptors.response.use(
                     refreshToken: newRefreshToken,
                 };
                 await setItem('userToken', JSON.stringify(updatedUser));
+                await syncBiometricRefreshToken({
+                    id: updatedUser.id,
+                    refreshToken: updatedUser.refreshToken,
+                });
 
                 // Update header and retry
                 apiClient.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
@@ -81,6 +86,7 @@ apiClient.interceptors.response.use(
             } catch (refreshError) {
                 console.error('[API] Token refresh failed', refreshError);
                 await deleteItem('userToken');
+                await clearBiometricSession();
                 // Ideally trigger a redirect to login here, but since we are in a service,
                 // we reject and let the UI handle or AuthContext to pick up the state change eventually.
                 return Promise.reject(refreshError);

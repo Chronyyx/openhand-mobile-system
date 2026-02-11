@@ -13,6 +13,7 @@ import com.mana.openhand_backend.identity.presentationlayer.payload.TokenRefresh
 import com.mana.openhand_backend.notifications.businesslayer.SendGridEmailService;
 import com.mana.openhand_backend.security.jwt.JwtUtils;
 import com.mana.openhand_backend.security.services.RefreshTokenService;
+import com.mana.openhand_backend.security.services.TokenExpiredException;
 import com.mana.openhand_backend.security.services.UserDetailsImpl;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import com.mana.openhand_backend.security.services.UserDetailsServiceImpl;
@@ -204,7 +205,7 @@ class AuthControllerWebMvcTest {
     }
 
     @Test
-    void refreshtoken_missing_returnsForbidden() throws Exception {
+    void refreshtoken_missing_returnsUnauthorized() throws Exception {
         TokenRefreshRequest request = new TokenRefreshRequest();
         request.setRefreshToken("missing");
         when(refreshTokenService.findByToken("missing")).thenReturn(Optional.empty());
@@ -213,8 +214,29 @@ class AuthControllerWebMvcTest {
                         .header("User-Agent", "JUnit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Error: Refresh token is not in database!"));
+    }
+
+    @Test
+    void refreshtoken_expired_returnsUnauthorized() throws Exception {
+        TokenRefreshRequest request = new TokenRefreshRequest();
+        request.setRefreshToken("expired");
+
+        RefreshToken token = new RefreshToken();
+        token.setToken("expired");
+
+        when(refreshTokenService.findByToken("expired")).thenReturn(Optional.of(token));
+        when(refreshTokenService.verifyExpiration(token))
+                .thenThrow(new TokenExpiredException("expired", "Refresh token was expired. Please make a new signin request"));
+
+        mockMvc.perform(post("/api/auth/refreshtoken")
+                        .header("User-Agent", "JUnit")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message")
+                        .value("Error: Failed for [expired]: Refresh token was expired. Please make a new signin request"));
     }
 
     @Test

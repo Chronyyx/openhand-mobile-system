@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import AuthService from '../services/auth.service';
+import { cacheBiometricsEnabled } from '../services/biometric-auth.service';
 
 export interface User {
     token: string;
@@ -22,6 +23,7 @@ interface AuthContextProps {
     user: User | null;
     isLoading: boolean;
     signIn: (email: string, password: string) => Promise<void>;
+    signInWithBiometrics: (promptMessage: string) => Promise<void>;
     signOut: () => Promise<void>;
     signUp: (email: string, password: string, roles: string[], name: string, phoneNumber: string, gender: string, age: string) => Promise<void>;
     hasRole: (roles: string[]) => boolean;
@@ -32,6 +34,7 @@ const AuthContext = createContext<AuthContextProps>({
     user: null,
     isLoading: true,
     signIn: async () => { },
+    signInWithBiometrics: async () => { },
     signOut: async () => { },
     signUp: async () => { },
     hasRole: () => false,
@@ -68,6 +71,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                         };
                         setUser(mergedUser);
                         await AuthService.storeUser(mergedUser);
+                        const settings = await AuthService.syncBiometricStateFromBackend();
+                        if (settings) {
+                            await cacheBiometricsEnabled(settings.biometricsEnabled);
+                        }
                     } catch (refreshError) {
                         console.warn('[Auth] Failed to refresh profile on load', refreshError);
                         // If token is invalid, apiClient interceptor will handle cleanup
@@ -89,9 +96,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         try {
             const data = await AuthService.login(email, password);
             setUser(data);
+            const settings = await AuthService.syncBiometricStateFromBackend();
+            if (settings) {
+                await cacheBiometricsEnabled(settings.biometricsEnabled);
+            }
         } catch (error) {
             throw error;
         }
+    }, []);
+
+    const signInWithBiometrics = useCallback(async (promptMessage: string) => {
+        const data = await AuthService.loginWithBiometrics(promptMessage);
+        setUser(data);
     }, []);
 
     const signOut = useCallback(async () => {
@@ -138,11 +154,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         isLoading,
         signIn,
+        signInWithBiometrics,
         signOut,
         signUp,
         hasRole,
         updateUser,
-    }), [user, isLoading, signIn, signOut, signUp, hasRole, updateUser]);
+    }), [user, isLoading, signIn, signInWithBiometrics, signOut, signUp, hasRole, updateUser]);
 
     return (
         <AuthContext.Provider value={value}>

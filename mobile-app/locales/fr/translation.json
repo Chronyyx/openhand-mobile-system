@@ -154,6 +154,13 @@
       "account_inactive": "Votre compte n'est plus actif. Veuillez contacter les administrateurs en cas d'erreur.",
       "login_failed": "La connexion a échoué. Veuillez réessayer plus tard.",
       "network_error": "Erreur réseau. Veuillez vérifier votre connexion."
+    },
+    "biometrics": {
+      "loginButton": "Connexion Face ID / Biometrie",
+      "promptLogin": "Authentifiez-vous pour vous connecter",
+      "errors": {
+        "failed": "Echec de l'authentification biometrique."
+      }
     }
   },
   "settings": {
@@ -197,6 +204,24 @@
       "successTitle": "Compte désactivé",
       "successMessage": "Vous avez été déconnecté. Pour toute aide, contactez le support.",
       "error": "Impossible de désactiver votre compte pour le moment."
+    },
+    "biometrics": {
+      "title": "Authentification biometrique",
+      "subtitle": "Utilisez Face ID ou empreinte pour une connexion plus rapide",
+      "memberOnly": "L'authentification biometrique est reservee aux membres, administrateurs et employes connectes.",
+      "enableLabel": "Activer la biometrie",
+      "enableHint": "Utiliser la biometrie de l'appareil pour deverrouiller la session",
+      "promptEnable": "Confirmez la configuration biometrique",
+      "messages": {
+        "enabled": "Connexion biometrique activee.",
+        "disabled": "Connexion biometrique desactivee."
+      },
+      "errors": {
+        "loadFailed": "Impossible de charger les parametres de securite.",
+        "updateFailed": "Impossible de mettre a jour la preference biometrique.",
+        "unavailable": "La biometrie n'est pas disponible sur cet appareil.",
+        "authFailed": "Echec de l'authentification biometrique."
+      }
     }
   },
   "modal": {

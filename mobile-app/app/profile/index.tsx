@@ -484,6 +484,24 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
+                {hasRole(['ROLE_MEMBER', 'ROLE_ADMIN', 'ROLE_EMPLOYEE']) && (
+                    <View style={styles.settingsCard}>
+                        <Pressable
+                            style={styles.settingsItem}
+                            onPress={() => router.push('/settings/biometrics' as Href)}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('settings.biometrics.title')}
+                            accessibilityHint={t('settings.biometrics.subtitle')}
+                        >
+                            <View style={styles.settingsItemLeft}>
+                                <Ionicons name="finger-print-outline" size={20} color={ACCENT} />
+                                <Text style={styles.settingsItemText}>{t('settings.biometrics.title')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                        </Pressable>
+                    </View>
+                )}
+
                 {
                     hasRole(['ROLE_MEMBER']) && (
                         <View style={styles.settingsCard}>

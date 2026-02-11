@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Login Flow', () => {
+    test('Login form fields and primary button are visible', async ({ page }) => {
+        await page.goto('/auth/login', { waitUntil: 'domcontentloaded' });
+
+        await expect(page.getByPlaceholder(/email or phone number/i)).toBeVisible();
+        await expect(page.getByPlaceholder(/password/i)).toBeVisible();
+        await expect(page.getByTestId('login-button')).toBeVisible();
+    });
+
     test('User can log in with valid credentials (happy path)', async ({ page, context }) => {
         // Set up route interception BEFORE navigating
         await page.route('**/auth/login', async (route) => {

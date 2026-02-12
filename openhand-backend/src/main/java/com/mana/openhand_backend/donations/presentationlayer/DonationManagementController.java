@@ -59,9 +59,25 @@ public class DonationManagementController {
     }
 
     private Long extractUserIdFromAuth(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + userDetails.getUsername()));
-        return user.getId();
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof User) {
+            return ((User) principal).getId();
+        }
+
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            User user = userRepository.findByEmail(userDetails.getUsername())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "User not found with email: " + userDetails.getUsername()
+                    ));
+            return user.getId();
+        }
+
+        throw new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED,
+                "Unsupported authentication principal"
+        );
     }
 }

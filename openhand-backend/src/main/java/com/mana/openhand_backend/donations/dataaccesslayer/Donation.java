@@ -51,6 +51,9 @@ public class Donation {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "comments", columnDefinition = "TEXT")
+    private String comments;
+
     protected Donation() {
     }
 
@@ -139,5 +142,13 @@ public class Donation {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getComments() {
+        return comments;
+    }
+
+    public void setComments(String comments) {
+        this.comments = comments;
     }
 }

@@ -80,6 +80,11 @@ export default function HomeScreen() {
     router.push("/admin");
   };
 
+  const handleNavigateAdminDonations = () => {
+    setMenuVisible(false);
+    router.push("/admin/donations");
+  };
+
   const handleNavigateProfile = () => {
     setMenuVisible(false);
     router.push("/profile");
@@ -241,6 +246,8 @@ export default function HomeScreen() {
         showAttendance={hasRole(["ROLE_ADMIN", "ROLE_EMPLOYEE"])}
         showDashboard={hasRole(["ROLE_ADMIN", "ROLE_EMPLOYEE"])}
         onNavigateDashboard={handleNavigateDashboard}
+        onNavigateAdminDonations={handleNavigateAdminDonations}
+        showAdminDonations={hasRole(["ROLE_ADMIN", "ROLE_EMPLOYEE"])}
         onNavigateDonations={handleNavigateDonations}
         showDonations={hasRole(["ROLE_MEMBER"])}
         t={t}

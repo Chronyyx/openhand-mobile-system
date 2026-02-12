@@ -20,6 +20,7 @@
     "home": "Inicio",
     "events": "Eventos",
     "donations": "Donaciones",
+    "adminDonations": "Gestión de donaciones",
     "attendance": "Asistencia en vivo",
     "myRegistrations": "Mis inscripciones",
     "dashboard": "Panel de control",
@@ -532,6 +533,8 @@
       "usersDescription": "Ver cuentas y actualizar su acceso o detalles",
       "events": "Eventos",
       "eventsDescription": "Crear y gestionar próximos eventos",
+      "donations": "Donaciones",
+      "donationsDescription": "Revisar donaciones y actividad",
       "attendanceReports": "Informes de asistencia",
       "attendanceReportsDescription": "Generar informes de asistencia por rango de fechas"
     },
@@ -671,6 +674,54 @@
         "email": "Correo electrónico",
         "phone": "Número de teléfono",
         "age": "Edad"
+      }
+    },
+    "donations": {
+      "title": "Donaciones",
+      "subtitle": "Revisa las donaciones de los miembros.",
+      "searchPlaceholder": "Buscar por nombre o correo",
+      "empty": "No se encontraron donaciones.",
+      "loadError": "No se pudieron cargar las donaciones.",
+      "loadEventsError": "No se pudo cargar la lista de eventos.",
+      "detailTitle": "Detalles de la donación",
+      "detailError": "No se pudieron cargar los detalles de la donación.",
+      "unknownDonor": "Donante desconocido",
+      "viewDetails": "Ver detalles",
+      "addButton": "Agregar donación manual",
+      "addDonationTitle": "Agregar donación manual",
+      "amountRequired": "El monto debe ser mayor a 0",
+      "employeeNotFound": "ID de empleado no encontrado",
+      "submitError": "No se pudo enviar la donación",
+      "notAvailable": "No disponible",
+      "fields": {
+        "donor": "Donante",
+        "email": "Correo",
+        "phone": "Teléfono",
+        "amount": "Monto",
+        "frequency": "Frecuencia",
+        "status": "Estado",
+        "createdAt": "Recibido",
+        "paymentProvider": "Proveedor de pago",
+        "paymentReference": "Referencia de pago"
+      },
+      "frequency": {
+        "ONE_TIME": "Única",
+        "MONTHLY": "Mensual"
+      },
+      "status": {
+        "RECEIVED": "Recibida",
+        "FAILED": "Fallida"
+      },
+      "form": {
+        "amount": "Monto",
+        "currency": "Moneda",
+        "event": "Evento asociado",
+        "noEvent": "Sin evento",
+        "date": "Fecha de la donación",
+        "employeeId": "ID de empleado",
+        "comments": "Comentarios",
+        "commentsPlaceholder": "Agregar notas sobre esta donación (opcional)",
+        "submit": "Enviar donación"
       }
     }
   },

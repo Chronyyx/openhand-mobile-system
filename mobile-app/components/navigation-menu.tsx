@@ -18,11 +18,13 @@ type NavigationMenuProps = {
     onNavigateProfile?: () => void;
     onNavigateMyRegistrations?: () => void;
     onNavigateDonations?: () => void;
+    onNavigateAdminDonations?: () => void;
     showAttendance?: boolean;
     showDashboard?: boolean;
     onNavigateDashboard?: () => void;
     showMyRegistrations?: boolean;
     showDonations?: boolean;
+    showAdminDonations?: boolean;
     t: (key: string) => string;
 };
 
@@ -37,11 +39,13 @@ export function NavigationMenu({
     onNavigateProfile,
     onNavigateMyRegistrations,
     onNavigateDonations,
+    onNavigateAdminDonations,
     showAttendance = false,
     showDashboard = false,
     onNavigateDashboard,
     showMyRegistrations = false,
     showDonations = false,
+    showAdminDonations = false,
     t,
 }: NavigationMenuProps) {
     const { unreadCount } = useNotifications();
@@ -163,6 +167,26 @@ export function NavigationMenu({
                             <View style={styles.menuItemLeft}>
                                 <Ionicons name="checkbox" size={20} color={palette.primary} />
                                 <Text style={styles.menuItemText}>{t('menu.attendance')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={palette.primary} />
+                        </Pressable>
+                    )}
+
+                    {showAdminDonations && onNavigateAdminDonations && (
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.menuItem,
+                                styles.menuItemElevated,
+                                pressed && styles.menuItemPressed,
+                            ]}
+                            onPress={onNavigateAdminDonations}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('menu.adminDonations')}
+                            accessibilityHint="Opens donation management"
+                        >
+                            <View style={styles.menuItemLeft}>
+                                <Ionicons name="cash-outline" size={20} color={palette.primary} />
+                                <Text style={styles.menuItemText}>{t('menu.adminDonations')}</Text>
                             </View>
                             <Ionicons name="chevron-forward" size={18} color={palette.primary} />
                         </Pressable>

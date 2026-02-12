@@ -20,6 +20,7 @@
     "home": "Home",
     "events": "Events",
     "donations": "Donations",
+    "adminDonations": "Donations Management",
     "attendance": "Live Attendance",
     "myRegistrations": "My Registrations",
     "dashboard": "Dashboard",
@@ -532,6 +533,8 @@
       "usersDescription": "View accounts and update their access or details",
       "events": "Events",
       "eventsDescription": "Create and manage upcoming events",
+      "donations": "Donations",
+      "donationsDescription": "Review member donations and activity",
       "attendanceReports": "Attendance Reports",
       "attendanceReportsDescription": "Generate event attendance reports by date range"
     },
@@ -671,6 +674,54 @@
         "email": "Email address",
         "phone": "Phone number",
         "age": "Age"
+      }
+    },
+    "donations": {
+      "title": "Donations",
+      "subtitle": "Review donations from members.",
+      "searchPlaceholder": "Search by name or email",
+      "empty": "No donations found.",
+      "loadError": "Unable to load donations.",
+      "loadEventsError": "Unable to load events for selection.",
+      "detailTitle": "Donation details",
+      "detailError": "Unable to load donation details.",
+      "unknownDonor": "Unknown donor",
+      "viewDetails": "View details",
+      "addButton": "Add Manual Donation",
+      "addDonationTitle": "Add Manual Donation",
+      "amountRequired": "Amount must be greater than 0",
+      "employeeNotFound": "Employee ID not found",
+      "submitError": "Failed to submit donation",
+      "notAvailable": "Not available",
+      "fields": {
+        "donor": "Donor",
+        "email": "Email",
+        "phone": "Phone",
+        "amount": "Amount",
+        "frequency": "Frequency",
+        "status": "Status",
+        "createdAt": "Received",
+        "paymentProvider": "Payment provider",
+        "paymentReference": "Payment reference"
+      },
+      "frequency": {
+        "ONE_TIME": "One-time",
+        "MONTHLY": "Monthly"
+      },
+      "status": {
+        "RECEIVED": "Received",
+        "FAILED": "Failed"
+      },
+      "form": {
+        "amount": "Amount",
+        "currency": "Currency",
+        "event": "Associated Event",
+        "noEvent": "No event",
+        "date": "Donation Date",
+        "employeeId": "Employee ID",
+        "comments": "Comments",
+        "commentsPlaceholder": "Add any notes about this donation (optional)",
+        "submit": "Submit Donation"
       }
     }
   },

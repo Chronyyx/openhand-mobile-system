@@ -4,16 +4,22 @@ import com.mana.openhand_backend.donations.dataaccesslayer.Donation;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationFrequency;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationRepository;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationStatus;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationDetailResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationOptionsResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationRequestModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel;
+import com.mana.openhand_backend.donations.utils.DonationManagementMapper;
 import com.mana.openhand_backend.donations.utils.DonationResponseMapper;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,5 +78,59 @@ public class DonationServiceImpl implements DonationService {
 
         return DonationResponseMapper.toResponseModel(saved,
             "Donation received. Thank you for your support.");
+    }
+
+    @Override
+    public List<DonationSummaryResponseModel> getDonationsForStaff() {
+        return donationRepository.findAllWithUserOrderByCreatedAtDesc().stream()
+                .map(DonationManagementMapper::toSummary)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public DonationDetailResponseModel getDonationDetail(Long donationId) {
+        Donation donation = donationRepository.findByIdWithUser(donationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donation not found."));
+        return DonationManagementMapper.toDetail(donation);
+    }
+
+    @Override
+    @Transactional
+    public DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, 
+                                                             ManualDonationRequestModel request) {
+        User donorUser = userRepository.findById(donorUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donor user not found."));
+
+        if (request.getAmount() == null || request.getAmount().compareTo(MINIMUM_AMOUNT) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Donation amount must be at least " + MINIMUM_AMOUNT + ".");
+        }
+
+        String currency = request.getCurrency() != null ? request.getCurrency().trim().toUpperCase() : DEFAULT_CURRENCY;
+        if (!DEFAULT_CURRENCY.equals(currency)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported currency: " + currency);
+        }
+
+        Donation donation = new Donation(donorUser, request.getAmount(), currency, 
+                DonationFrequency.ONE_TIME, DonationStatus.RECEIVED);
+        
+        // Set donation date if provided, otherwise use current time
+        if (request.getDonationDate() != null) {
+            donation.setCreatedAt(request.getDonationDate());
+        } else {
+            donation.setCreatedAt(LocalDateTime.now());
+        }
+
+        // Set optional comments
+        if (request.getComments() != null && !request.getComments().trim().isEmpty()) {
+            donation.setComments(request.getComments().trim());
+        }
+
+        // Mark as manually entered by employee
+        donation.setPaymentProvider("Manual Entry");
+        donation.setPaymentReference("MANUAL-" + employeeId + "-" + System.currentTimeMillis());
+
+        Donation saved = donationRepository.save(donation);
+        return DonationManagementMapper.toSummary(saved);
     }
 }

@@ -20,6 +20,7 @@
     "home": "Home",
     "events": "Events",
     "donations": "Donations",
+    "adminDonations": "Donations Management",
     "attendance": "Live Attendance",
     "myRegistrations": "My Registrations",
     "dashboard": "Dashboard",
@@ -531,7 +532,9 @@
       "inactiveMember": "Your account is deactivated. You cannot register for events.",
       "usersDescription": "View accounts and update their access or details",
       "events": "Events",
-      "eventsDescription": "Create and manage upcoming events"
+      "eventsDescription": "Create and manage upcoming events",
+      "donations": "Donations",
+      "donationsDescription": "Review member donations and activity"
     },
     "events": {
       "title": "Events",
@@ -658,6 +661,36 @@
         "email": "Email address",
         "phone": "Phone number",
         "age": "Age"
+      }
+    },
+    "donations": {
+      "title": "Donations",
+      "subtitle": "Review donations from members.",
+      "searchPlaceholder": "Search by name or email",
+      "empty": "No donations found.",
+      "loadError": "Unable to load donations.",
+      "detailTitle": "Donation details",
+      "detailError": "Unable to load donation details.",
+      "unknownDonor": "Unknown donor",
+      "viewDetails": "View details",
+      "fields": {
+        "donor": "Donor",
+        "email": "Email",
+        "phone": "Phone",
+        "amount": "Amount",
+        "frequency": "Frequency",
+        "status": "Status",
+        "createdAt": "Received",
+        "paymentProvider": "Payment provider",
+        "paymentReference": "Payment reference"
+      },
+      "frequency": {
+        "ONE_TIME": "One-time",
+        "MONTHLY": "Monthly"
+      },
+      "status": {
+        "RECEIVED": "Received",
+        "FAILED": "Failed"
       }
     }
   },

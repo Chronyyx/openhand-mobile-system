@@ -461,7 +461,20 @@
       "inactiveMember": "Tu cuenta está desactivada. No puedes inscribirte en eventos.",
       "usersDescription": "Ver cuentas y actualizar su acceso o detalles",
       "events": "Eventos",
-      "eventsDescription": "Crear y gestionar próximos eventos"
+      "eventsDescription": "Crear y gestionar próximos eventos",
+      "attendanceReports": "Informes de asistencia",
+      "attendanceReportsDescription": "Generar informes de asistencia por rango de fechas"
+    },
+    "attendanceReports": {
+      "title": "Informes de asistencia",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "generate": "Generar",
+      "noResults": "Sin resultados",
+      "errorLoading": "Error al cargar informes",
+      "invalidDateRange": "La fecha de inicio debe ser anterior o igual a la fecha de fin.",
+      "totalAttended": "Total asistieron",
+      "attendanceRate": "Tasa de asistencia"
     },
     "events": {
       "title": "Eventos",

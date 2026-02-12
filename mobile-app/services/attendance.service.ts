@@ -1,5 +1,6 @@
 import { API_BASE } from '../utils/api';
 import type { EventStatus } from './events.service';
+import apiClient from './api.client';
 
 export type AttendanceEventSummary = {
     eventId: number;
@@ -39,6 +40,15 @@ export type AttendanceUpdate = {
     registeredCount: number;
     checkedInCount: number;
     occupancyPercent: number | null;
+};
+
+export type AttendanceReport = {
+    eventId: number;
+    eventTitle: string;
+    eventDate: string;
+    totalAttended: number;
+    totalRegistered: number;
+    attendanceRate: number;
 };
 
 async function handleResponse<T>(res: Response, context: string): Promise<T> {
@@ -113,4 +123,19 @@ export async function undoCheckInAttendee(
         },
     });
     return handleResponse<AttendanceUpdate>(res, 'attendance undo check-in');
+}
+
+export async function getAttendanceReports(
+    startDate: string,
+    endDate: string,
+    eventId?: number,
+): Promise<AttendanceReport[]> {
+    const response = await apiClient.get<AttendanceReport[]>('/admin/attendance-reports', {
+        params: {
+            startDate,
+            endDate,
+            ...(eventId != null ? { eventId } : {}),
+        },
+    });
+    return response.data;
 }

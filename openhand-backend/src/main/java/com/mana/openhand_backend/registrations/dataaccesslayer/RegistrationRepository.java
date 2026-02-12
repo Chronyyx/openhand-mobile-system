@@ -12,6 +12,12 @@ import java.util.Optional;
 
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
 
+    interface EventCountProjection {
+        Long getEventId();
+
+        Long getTotal();
+    }
+
     Optional<Registration> findByUserIdAndEventId(Long userId, Long eventId);
 
     List<Registration> findByUserId(Long userId);
@@ -34,6 +40,31 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     long countByEventIdAndStatusNot(Long eventId, RegistrationStatus status);
 
     long countByEventIdAndCheckedInAtIsNotNull(Long eventId);
+
+    @Query("""
+            SELECT r.event.id AS eventId, COUNT(r.id) AS total
+            FROM Registration r
+            WHERE r.event.id IN :eventIds
+              AND r.status <> :excludedStatus
+              AND r.checkedInAt IS NOT NULL
+            GROUP BY r.event.id
+            """)
+    List<EventCountProjection> countAttendanceGroupedByEventIds(
+            @Param("eventIds") List<Long> eventIds,
+            @Param("excludedStatus") RegistrationStatus excludedStatus
+    );
+
+    @Query("""
+            SELECT r.event.id AS eventId, COUNT(r.id) AS total
+            FROM Registration r
+            WHERE r.event.id IN :eventIds
+              AND r.status <> :excludedStatus
+            GROUP BY r.event.id
+            """)
+    List<EventCountProjection> countRegistrationsGroupedByEventIds(
+            @Param("eventIds") List<Long> eventIds,
+            @Param("excludedStatus") RegistrationStatus excludedStatus
+    );
 
     List<Registration> findByEventIdAndStatusIn(Long eventId, List<RegistrationStatus> statuses);
 

@@ -549,7 +549,6 @@
       "totalAttended": "Total Attended",
       "attendanceRate": "Attendance Rate"
     },
-    },
     "events": {
       "title": "Events",
       "subtitle": "Create upcoming events shown in the app.",

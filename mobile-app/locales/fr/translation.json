@@ -20,6 +20,7 @@
     "home": "Accueil",
     "events": "Événements",
     "donations": "Dons",
+    "adminDonations": "Gestion des dons",
     "attendance": "Présences en direct",
     "myRegistrations": "Mes inscriptions",
     "dashboard": "Tableau de bord",
@@ -531,7 +532,9 @@
       "users": "Utilisateurs",
       "usersDescription": "Consulter les comptes et mettre à jour l’accès ou les détails",
       "events": "Événements",
-      "eventsDescription": "Créer et gérer les événements à venir"
+      "eventsDescription": "Créer et gérer les événements à venir",
+      "donations": "Dons",
+      "donationsDescription": "Consulter l'activité des dons"
     },
     "events": {
       "title": "Événements",
@@ -658,6 +661,36 @@
         "email": "Adresse e-mail",
         "phone": "Numéro de téléphone",
         "age": "Âge"
+      }
+    },
+    "donations": {
+      "title": "Dons",
+      "subtitle": "Consultez les dons des membres.",
+      "searchPlaceholder": "Rechercher par nom ou e-mail",
+      "empty": "Aucun don trouvé.",
+      "loadError": "Impossible de charger les dons.",
+      "detailTitle": "Détails du don",
+      "detailError": "Impossible de charger les détails du don.",
+      "unknownDonor": "Donateur inconnu",
+      "viewDetails": "Voir les détails",
+      "fields": {
+        "donor": "Donateur",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "amount": "Montant",
+        "frequency": "Fréquence",
+        "status": "Statut",
+        "createdAt": "Reçu le",
+        "paymentProvider": "Fournisseur de paiement",
+        "paymentReference": "Référence de paiement"
+      },
+      "frequency": {
+        "ONE_TIME": "Ponctuel",
+        "MONTHLY": "Mensuel"
+      },
+      "status": {
+        "RECEIVED": "Reçu",
+        "FAILED": "Échec"
       }
     }
   },

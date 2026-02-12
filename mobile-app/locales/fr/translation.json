@@ -334,6 +334,11 @@
   "donations": {
     "title": "Dons",
     "subtitle": "Soutenez MANA avec un don rapide et sécurisé.",
+    "zeffyTitle": "Donner avec Zeffy",
+    "zeffySubtitle": "Ouvrez le formulaire officiel Zeffy pour finaliser votre don.",
+    "zeffyButton": "Donner sur Zeffy",
+    "zeffyNote": "Vous serez redirigé vers Zeffy pour terminer votre don.",
+    "inAppHint": "Vous préférez donner dans l'application ? Utilisez le formulaire ci-dessous.",
     "memberOnly": "Les dons sont réservés aux membres.",
     "amountLabel": "Choisir un montant",
     "customAmountLabel": "Montant personnalisé",
@@ -376,7 +381,8 @@
     "successMessage": "Votre don a été reçu.",
     "errors": {
       "loadFailed": "Impossible de charger les options de dons.",
-      "submitFailed": "Impossible d'envoyer le don. Veuillez réessayer."
+      "submitFailed": "Impossible d'envoyer le don. Veuillez réessayer.",
+      "zeffyOpenFailed": "Impossible d'ouvrir le formulaire Zeffy. Veuillez réessayer."
     },
     "validation": {
       "amountRequired": "Veuillez saisir un montant.",

@@ -70,6 +70,11 @@ export default function HomeScreen() {
     router.push("/registrations");
   };
 
+  const handleNavigateDonations = () => {
+    setMenuVisible(false);
+    router.push("/donations");
+  };
+
   const handleNavigateDashboard = () => {
     setMenuVisible(false);
     router.push("/admin");
@@ -236,6 +241,8 @@ export default function HomeScreen() {
         showAttendance={hasRole(["ROLE_ADMIN", "ROLE_EMPLOYEE"])}
         showDashboard={hasRole(["ROLE_ADMIN", "ROLE_EMPLOYEE"])}
         onNavigateDashboard={handleNavigateDashboard}
+        onNavigateDonations={handleNavigateDonations}
+        showDonations={hasRole(["ROLE_MEMBER"])}
         t={t}
       />
     </View>

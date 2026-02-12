@@ -24,6 +24,8 @@ export function getTranslatedNotificationText(
             return getEventFullText(eventTitle, language);
         case 'EVENT_UPDATE':
             return getEventUpdateText(eventTitle, language);
+        case 'DONATION_CONFIRMATION':
+            return getDonationConfirmationText(language);
         default:
             return '';
     }
@@ -131,5 +133,16 @@ function getEventUpdateText(eventTitle: string, language: string): string {
             return `Actualización: Los detalles del evento ${eventTitle} han cambiado.`;
         default:
             return `Update: Details for the event ${eventTitle} have changed.`;
+    }
+}
+
+function getDonationConfirmationText(language: string): string {
+    switch (language) {
+        case 'fr':
+            return 'Merci pour votre don. Votre paiement a été reçu.';
+        case 'es':
+            return 'Gracias por su donación. Su pago ha sido recibido.';
+        default:
+            return 'Thank you for your donation. Your payment was received.';
     }
 }

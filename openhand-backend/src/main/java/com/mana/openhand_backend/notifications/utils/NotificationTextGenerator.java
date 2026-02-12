@@ -53,6 +53,7 @@ public class NotificationTextGenerator {
             case EVENT_UPDATE -> generateEventUpdateText(eventTitle, eventStartDateTime, language);
             case EVENT_CAPACITY_WARNING -> generateCapacityWarningText(eventTitle, language);
             case EVENT_FULL_ALERT -> generateEventFullText(eventTitle, language);
+            case DONATION_CONFIRMATION -> generateDonationConfirmationText(language);
         };
     }
 
@@ -126,6 +127,14 @@ public class NotificationTextGenerator {
             case "fr" -> String.format("Alerte : L'événement %s est maintenant complet.", eventTitle);
             case "es" -> String.format("Alerta: El evento %s está completo.", eventTitle);
             default -> String.format("Alert: The event %s is now full.", eventTitle);
+        };
+    }
+
+    private String generateDonationConfirmationText(String language) {
+        return switch (language) {
+            case "fr" -> "Merci pour votre don. Votre paiement a été reçu.";
+            case "es" -> "Gracias por su donación. Su pago ha sido recibido.";
+            default -> "Thank you for your donation. Your payment was received.";
         };
     }
 }

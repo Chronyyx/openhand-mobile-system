@@ -32,6 +32,14 @@ public interface NotificationService {
      * Get all notifications for a user, ordered by newest first
      */
     List<Notification> getUserNotifications(Long userId);
+    /**
+     * Create a donation notification for a user
+     * 
+     * @param userId the user ID
+     * @param language the user's preferred language
+     * @return the created donation notification
+     */
+    Notification createDonationNotification(Long userId, String language);
 
     /**
      * Get count of unread notifications for a user

@@ -17,10 +17,12 @@ type NavigationMenuProps = {
     onNavigateAttendance?: () => void;
     onNavigateProfile?: () => void;
     onNavigateMyRegistrations?: () => void;
+    onNavigateDonations?: () => void;
     showAttendance?: boolean;
     showDashboard?: boolean;
     onNavigateDashboard?: () => void;
     showMyRegistrations?: boolean;
+    showDonations?: boolean;
     t: (key: string) => string;
 };
 
@@ -34,10 +36,12 @@ export function NavigationMenu({
     onNavigateAttendance,
     onNavigateProfile,
     onNavigateMyRegistrations,
+    onNavigateDonations,
     showAttendance = false,
     showDashboard = false,
     onNavigateDashboard,
     showMyRegistrations = false,
+    showDonations = false,
     t,
 }: NavigationMenuProps) {
     const { unreadCount } = useNotifications();
@@ -123,6 +127,26 @@ export function NavigationMenu({
                             <Ionicons name="chevron-forward" size={18} color={palette.primary} />
                         </View>
                     </Pressable>
+
+                    {showDonations && onNavigateDonations && (
+                        <Pressable
+                            style={({ pressed }) => [
+                                styles.menuItem,
+                                styles.menuItemElevated,
+                                pressed && styles.menuItemPressed,
+                            ]}
+                            onPress={onNavigateDonations}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('menu.donations')}
+                            accessibilityHint="Opens the donations page"
+                        >
+                            <View style={styles.menuItemLeft}>
+                                <Ionicons name="heart" size={20} color={palette.primary} />
+                                <Text style={styles.menuItemText}>{t('menu.donations')}</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={18} color={palette.primary} />
+                        </Pressable>
+                    )}
 
                     {showAttendance && onNavigateAttendance && (
                         <Pressable

@@ -105,6 +105,41 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
+    public Notification createDonationNotification(Long userId, String language) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
+
+        NotificationType type = NotificationType.DONATION_CONFIRMATION;
+
+        if (!preferenceService.isNotificationEnabled(userId, type)) {
+            return null;
+        }
+
+        String textContent = textGenerator.generateText(type, "Donation", language, null, null);
+
+        Notification notification = new Notification(
+                user,
+                null,
+                type,
+                language,
+                textContent,
+                "Donation");
+
+        Notification savedNotification = notificationRepository.save(notification);
+
+        try {
+            messagingTemplate.convertAndSend("/topic/notifications/" + userId,
+                    com.mana.openhand_backend.notifications.utils.NotificationResponseMapper
+                            .toResponseModel(savedNotification));
+        } catch (Exception e) {
+            logger.error("Failed to push donation notification via WebSocket: {}", e.getMessage());
+        }
+
+        return savedNotification;
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<Notification> getUserNotifications(Long userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);

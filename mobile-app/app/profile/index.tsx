@@ -116,6 +116,11 @@ export default function ProfileScreen() {
         router.push('/registrations');
     };
 
+    const handleNavigateDonations = () => {
+        setMenuVisible(false);
+        router.push('/donations');
+    };
+
     const handleNavigateDashboard = () => {
         setMenuVisible(false);
         router.push('/admin');
@@ -255,6 +260,8 @@ export default function ProfileScreen() {
                     showAttendance={false}
                     showDashboard={false}
                     onNavigateDashboard={handleNavigateDashboard}
+                    onNavigateDonations={handleNavigateDonations}
+                    showDonations={hasRole(['ROLE_MEMBER'])}
                     t={t}
                 />
             </View>
@@ -562,6 +569,8 @@ export default function ProfileScreen() {
                 showAttendance={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 onNavigateDashboard={handleNavigateDashboard}
+                onNavigateDonations={handleNavigateDonations}
+                showDonations={hasRole(['ROLE_MEMBER'])}
                 t={t}
             />
         </View >

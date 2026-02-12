@@ -333,6 +333,11 @@
   "donations": {
     "title": "Donations",
     "subtitle": "Support MANA with a quick, secure gift.",
+    "zeffyTitle": "Donate with Zeffy",
+    "zeffySubtitle": "Open the official Zeffy form to complete your donation.",
+    "zeffyButton": "Donate on Zeffy",
+    "zeffyNote": "You will be taken to Zeffy to finish your donation.",
+    "inAppHint": "Prefer to donate inside the app? Use the form below.",
     "memberOnly": "Donations are available to members only.",
     "amountLabel": "Choose an amount",
     "customAmountLabel": "Custom amount",
@@ -375,7 +380,8 @@
     "successMessage": "Your donation was received.",
     "errors": {
       "loadFailed": "Unable to load donation options.",
-      "submitFailed": "Unable to submit donation. Please try again."
+      "submitFailed": "Unable to submit donation. Please try again.",
+      "zeffyOpenFailed": "Unable to open the Zeffy form. Please try again."
     },
     "validation": {
       "amountRequired": "Please enter a donation amount.",

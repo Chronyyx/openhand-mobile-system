@@ -9,6 +9,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findByStartDateTimeAfterOrderByStartDateTimeAsc(LocalDateTime dateTime);
 
+    List<Event> findByStartDateTimeBetweenOrderByStartDateTimeAsc(LocalDateTime startDateTime, LocalDateTime endDateTime);
+
     List<Event> findByStartDateTimeGreaterThanEqualOrderByStartDateTimeAsc(LocalDateTime dateTime);
 
     List<Event> findByStartDateTimeGreaterThanEqualAndStatusNotOrderByStartDateTimeAsc(

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Pressable,
+    ScrollView,
     StyleSheet,
     Text,
     View,
@@ -180,177 +181,183 @@ export function DateTimePickerModal({
                     </Pressable>
                 </View>
 
-                <View style={styles.monthRow}>
-                    <Pressable
-                        style={styles.monthNav}
-                        onPress={() => setActiveMonth((m) => addMonths(m, -1))}
-                        hitSlop={10}
-                        accessibilityRole="button"
-                        accessibilityLabel="Previous month"
-                    >
-                        <Ionicons name="chevron-back" size={18} color={finalAccent} />
-                    </Pressable>
-                    <Text style={styles.monthTitle}>{formatMonthTitle(activeMonth)}</Text>
-                    <Pressable
-                        style={styles.monthNav}
-                        onPress={() => setActiveMonth((m) => addMonths(m, 1))}
-                        hitSlop={10}
-                        accessibilityRole="button"
-                        accessibilityLabel="Next month"
-                    >
-                        <Ionicons name="chevron-forward" size={18} color={finalAccent} />
-                    </Pressable>
-                </View>
+                <ScrollView
+                    style={styles.scroll}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.monthRow}>
+                        <Pressable
+                            style={styles.monthNav}
+                            onPress={() => setActiveMonth((m) => addMonths(m, -1))}
+                            hitSlop={10}
+                            accessibilityRole="button"
+                            accessibilityLabel="Previous month"
+                        >
+                            <Ionicons name="chevron-back" size={18} color={finalAccent} />
+                        </Pressable>
+                        <Text style={styles.monthTitle}>{formatMonthTitle(activeMonth)}</Text>
+                        <Pressable
+                            style={styles.monthNav}
+                            onPress={() => setActiveMonth((m) => addMonths(m, 1))}
+                            hitSlop={10}
+                            accessibilityRole="button"
+                            accessibilityLabel="Next month"
+                        >
+                            <Ionicons name="chevron-forward" size={18} color={finalAccent} />
+                        </Pressable>
+                    </View>
 
-                <View style={styles.weekHeader}>
-                    {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((label, index) => (
-                        <Text key={`${label}-${index}`} style={styles.weekLabel}>
-                            {label}
+                    <View style={styles.weekHeader}>
+                        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((label, index) => (
+                            <Text key={`${label}-${index}`} style={styles.weekLabel}>
+                                {label}
+                            </Text>
+                        ))}
+                    </View>
+
+                    <View style={styles.calendarGrid}>
+                        {dayCells.map((cell) => {
+                            const isSelected = sameDay(cell.date, selected);
+                            return (
+                                <Pressable
+                                    key={cell.key}
+                                    style={[
+                                        styles.dayCell,
+                                        isSelected && { backgroundColor: finalAccent },
+                                    ]}
+                                    onPress={() => {
+                                        const next = applyDay(selected, cell.date);
+                                        setSelected(next);
+                                        if (!cell.inMonth) {
+                                            setActiveMonth(startOfMonth(cell.date));
+                                        }
+                                    }}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={cell.date.toLocaleDateString()}
+                                    accessibilityState={{ selected: isSelected }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.dayText,
+                                            !cell.inMonth && styles.dayTextMuted,
+                                            isSelected && styles.dayTextSelected,
+                                        ]}
+                                    >
+                                        {cell.date.getDate()}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
+
+                    <Text style={styles.sectionTitle}>{timeLabel}</Text>
+                    <View style={styles.timeSummary}>
+                        <Text style={styles.timeSummaryLabel}>HH:MM</Text>
+                        <Text style={[styles.timeSummaryValue, { color: finalAccent }]}>
+                            {formattedTime}
                         </Text>
-                    ))}
-                </View>
+                    </View>
 
-                <View style={styles.calendarGrid}>
-                    {dayCells.map((cell) => {
-                        const isSelected = sameDay(cell.date, selected);
-                        return (
-                            <Pressable
-                                key={cell.key}
-                                style={[
-                                    styles.dayCell,
-                                    isSelected && { backgroundColor: finalAccent },
-                                ]}
-                                onPress={() => {
-                                    const next = applyDay(selected, cell.date);
-                                    setSelected(next);
-                                    if (!cell.inMonth) {
-                                        setActiveMonth(startOfMonth(cell.date));
-                                    }
-                                }}
-                                accessibilityRole="button"
-                                accessibilityLabel={cell.date.toLocaleDateString()}
-                                accessibilityState={{ selected: isSelected }}
-                            >
-                                <Text
-                                    style={[
-                                        styles.dayText,
-                                        !cell.inMonth && styles.dayTextMuted,
-                                        isSelected && styles.dayTextSelected,
-                                    ]}
+                    <View style={styles.timeRow}>
+                        <View style={styles.timeColumn}>
+                            <Text style={styles.timeLabel}>Hours</Text>
+                            <View style={styles.stepper}>
+                                <Pressable
+                                    style={styles.stepperButton}
+                                    onPress={() => adjustHours(-1)}
+                                    hitSlop={8}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Decrease hours"
                                 >
-                                    {cell.date.getDate()}
-                                </Text>
-                            </Pressable>
-                        );
-                    })}
-                </View>
-
-                <Text style={styles.sectionTitle}>{timeLabel}</Text>
-                <View style={styles.timeSummary}>
-                    <Text style={styles.timeSummaryLabel}>HH:MM</Text>
-                    <Text style={[styles.timeSummaryValue, { color: finalAccent }]}>
-                        {formattedTime}
-                    </Text>
-                </View>
-
-                <View style={styles.timeRow}>
-                    <View style={styles.timeColumn}>
-                        <Text style={styles.timeLabel}>Hours</Text>
-                        <View style={styles.stepper}>
-                            <Pressable
-                                style={styles.stepperButton}
-                                onPress={() => adjustHours(-1)}
-                                hitSlop={8}
-                                accessibilityRole="button"
-                                accessibilityLabel="Decrease hours"
-                            >
-                                <Ionicons name="remove" size={16} color={stepperIconColor} />
-                            </Pressable>
-                            <Text style={styles.stepperValue}>{pad2(selected.getHours())}</Text>
-                            <Pressable
-                                style={styles.stepperButton}
-                                onPress={() => adjustHours(1)}
-                                hitSlop={8}
-                                accessibilityRole="button"
-                                accessibilityLabel="Increase hours"
-                            >
-                                <Ionicons name="add" size={16} color={stepperIconColor} />
-                            </Pressable>
+                                    <Ionicons name="remove" size={16} color={stepperIconColor} />
+                                </Pressable>
+                                <Text style={styles.stepperValue}>{pad2(selected.getHours())}</Text>
+                                <Pressable
+                                    style={styles.stepperButton}
+                                    onPress={() => adjustHours(1)}
+                                    hitSlop={8}
+                                    accessibilityRole="button"
+                                    accessibilityLabel="Increase hours"
+                                >
+                                    <Ionicons name="add" size={16} color={stepperIconColor} />
+                                </Pressable>
+                            </View>
+                        </View>
+                        <View style={styles.timeColumn}>
+                            <Text style={styles.timeLabel}>Minutes</Text>
+                            <View style={styles.stepper}>
+                                <Pressable
+                                    style={styles.stepperButton}
+                                    onPress={() => adjustMinutes(-MINUTE_STEP)}
+                                    hitSlop={8}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Decrease minutes by ${MINUTE_STEP}`}
+                                >
+                                    <Ionicons name="remove" size={16} color={stepperIconColor} />
+                                </Pressable>
+                                <Text style={styles.stepperValue}>{pad2(selected.getMinutes())}</Text>
+                                <Pressable
+                                    style={styles.stepperButton}
+                                    onPress={() => adjustMinutes(MINUTE_STEP)}
+                                    hitSlop={8}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Increase minutes by ${MINUTE_STEP}`}
+                                >
+                                    <Ionicons name="add" size={16} color={stepperIconColor} />
+                                </Pressable>
+                            </View>
                         </View>
                     </View>
-                    <View style={styles.timeColumn}>
-                        <Text style={styles.timeLabel}>Minutes</Text>
-                        <View style={styles.stepper}>
-                            <Pressable
-                                style={styles.stepperButton}
-                                onPress={() => adjustMinutes(-MINUTE_STEP)}
-                                hitSlop={8}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Decrease minutes by ${MINUTE_STEP}`}
-                            >
-                                <Ionicons name="remove" size={16} color={stepperIconColor} />
-                            </Pressable>
-                            <Text style={styles.stepperValue}>{pad2(selected.getMinutes())}</Text>
-                            <Pressable
-                                style={styles.stepperButton}
-                                onPress={() => adjustMinutes(MINUTE_STEP)}
-                                hitSlop={8}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Increase minutes by ${MINUTE_STEP}`}
-                            >
-                                <Ionicons name="add" size={16} color={stepperIconColor} />
-                            </Pressable>
-                        </View>
-                    </View>
-                </View>
 
-                <Text style={styles.quickLabel}>Quick minutes</Text>
-                <View style={styles.quickRow}>
-                    {QUICK_MINUTES.map((minute) => {
-                        const selectedChip = selected.getMinutes() === minute;
-                        return (
-                            <Pressable
-                                key={minute}
-                                style={[
-                                    styles.quickChip,
-                                    selectedChip && { backgroundColor: finalAccent, borderColor: finalAccent },
-                                ]}
-                                onPress={() => setMinutes(minute)}
-                                accessibilityRole="button"
-                                accessibilityLabel={`Set minutes to ${pad2(minute)}`}
-                                accessibilityState={{ selected: selectedChip }}
-                            >
-                                <Text
+                    <Text style={styles.quickLabel}>Quick minutes</Text>
+                    <View style={styles.quickRow}>
+                        {QUICK_MINUTES.map((minute) => {
+                            const selectedChip = selected.getMinutes() === minute;
+                            return (
+                                <Pressable
+                                    key={minute}
                                     style={[
-                                        styles.quickChipText,
-                                        selectedChip && styles.quickChipTextSelected,
+                                        styles.quickChip,
+                                        selectedChip && { backgroundColor: finalAccent, borderColor: finalAccent },
                                     ]}
+                                    onPress={() => setMinutes(minute)}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={`Set minutes to ${pad2(minute)}`}
+                                    accessibilityState={{ selected: selectedChip }}
                                 >
-                                    {pad2(minute)}
-                                </Text>
-                            </Pressable>
-                        );
-                    })}
-                </View>
+                                    <Text
+                                        style={[
+                                            styles.quickChipText,
+                                            selectedChip && styles.quickChipTextSelected,
+                                        ]}
+                                    >
+                                        {pad2(minute)}
+                                    </Text>
+                                </Pressable>
+                            );
+                        })}
+                    </View>
 
-                <View style={styles.actions}>
-                    <Pressable
-                        style={styles.secondaryButton}
-                        onPress={onCancel}
-                        accessibilityRole="button"
-                        accessibilityLabel={cancelLabel}
-                    >
-                        <Text style={styles.secondaryText}>{cancelLabel}</Text>
-                    </Pressable>
-                    <Pressable
-                        style={[styles.primaryButton, { backgroundColor: finalAccent }]}
-                        onPress={handleConfirm}
-                        accessibilityRole="button"
-                        accessibilityLabel={confirmLabel}
-                    >
-                        <Text style={styles.primaryText}>{confirmLabel}</Text>
-                    </Pressable>
-                </View>
+                    <View style={styles.actions}>
+                        <Pressable
+                            style={styles.secondaryButton}
+                            onPress={onCancel}
+                            accessibilityRole="button"
+                            accessibilityLabel={cancelLabel}
+                        >
+                            <Text style={styles.secondaryText}>{cancelLabel}</Text>
+                        </Pressable>
+                        <Pressable
+                            style={[styles.primaryButton, { backgroundColor: finalAccent }]}
+                            onPress={handleConfirm}
+                            accessibilityRole="button"
+                            accessibilityLabel={confirmLabel}
+                        >
+                            <Text style={styles.primaryText}>{confirmLabel}</Text>
+                        </Pressable>
+                    </View>
+                </ScrollView>
             </View>
         </View>
     );
@@ -387,6 +394,12 @@ const getStyles = (scheme: 'light' | 'dark', accentColor?: string) => {
         elevation: 8,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: isDark ? '#2A313B' : '#E0E7F3',
+    },
+    scroll: {
+        marginTop: 8,
+    },
+    scrollContent: {
+        paddingBottom: 2,
     },
     header: {
         flexDirection: 'row',

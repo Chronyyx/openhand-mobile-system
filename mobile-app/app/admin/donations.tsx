@@ -65,7 +65,7 @@ export default function AdminDonationsScreen() {
         amount: 0,
         currency: 'CAD',
         eventId: null,
-        donationDate: new Date().toISOString(),
+        donationDate: new Date().toISOString().slice(0, 19),
         comments: '',
     });
 

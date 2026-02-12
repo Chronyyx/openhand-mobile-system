@@ -534,7 +534,21 @@
       "events": "Événements",
       "eventsDescription": "Créer et gérer les événements à venir",
       "donations": "Dons",
-      "donationsDescription": "Consulter l'activité des dons"
+      "donationsDescription": "Consulter l'activité des dons",
+      "attendanceReports": "Rapports de présence",
+      "attendanceReportsDescription": "Générer des rapports de présence par période"
+    },
+    "attendanceReports": {
+      "title": "Rapports de présence",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "generate": "Générer",
+      "noResults": "Aucun résultat",
+      "errorLoading": "Erreur lors du chargement des rapports",
+      "invalidDateRange": "La date de début doit être avant ou égale à la date de fin.",
+      "totalAttended": "Total présents",
+      "attendanceRate": "Taux de présence"
+    },
     },
     "events": {
       "title": "Événements",

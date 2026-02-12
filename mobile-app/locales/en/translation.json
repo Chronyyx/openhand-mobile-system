@@ -534,7 +534,21 @@
       "events": "Events",
       "eventsDescription": "Create and manage upcoming events",
       "donations": "Donations",
-      "donationsDescription": "Review member donations and activity"
+      "donationsDescription": "Review member donations and activity",
+      "attendanceReports": "Attendance Reports",
+      "attendanceReportsDescription": "Generate event attendance reports by date range"
+    },
+    "attendanceReports": {
+      "title": "Attendance Reports",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "generate": "Generate",
+      "noResults": "No results",
+      "errorLoading": "Error loading reports",
+      "invalidDateRange": "Start date must be before or equal to end date.",
+      "totalAttended": "Total Attended",
+      "attendanceRate": "Attendance Rate"
+    },
     },
     "events": {
       "title": "Events",

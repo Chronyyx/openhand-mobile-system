@@ -92,6 +92,28 @@ export default function AdminDashboardScreen() {
                     </Pressable>
                 )}
 
+                {isAdmin && (
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.card,
+                            pressed && styles.cardPressed,
+                        ]}
+                        onPress={() => router.push('/admin/attendance-reports')}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('admin.dashboard.attendanceReports')}
+                        accessibilityHint={t('admin.dashboard.attendanceReportsDescription')}
+                    >
+                        <View style={styles.cardIcon}>
+                            <Ionicons name="stats-chart" size={24} color={ACCENT} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.cardTitle}>{t('admin.dashboard.attendanceReports')}</Text>
+                            <Text style={styles.cardDescription}>{t('admin.dashboard.attendanceReportsDescription')}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                    </Pressable>
+                )}
+
                 <Pressable
                     style={({ pressed }) => [
                         styles.card,

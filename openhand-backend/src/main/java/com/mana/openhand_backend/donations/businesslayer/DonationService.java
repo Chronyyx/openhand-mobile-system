@@ -5,6 +5,7 @@ import com.mana.openhand_backend.donations.domainclientlayer.DonationOptionsResp
 import com.mana.openhand_backend.donations.domainclientlayer.DonationRequestModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel;
 import java.util.List;
 
 public interface DonationService {
@@ -16,4 +17,6 @@ public interface DonationService {
     List<DonationSummaryResponseModel> getDonationsForStaff();
 
     DonationDetailResponseModel getDonationDetail(Long donationId);
+
+    DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, ManualDonationRequestModel request);
 }

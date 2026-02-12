@@ -4,9 +4,12 @@ import com.mana.openhand_backend.donations.dataaccesslayer.Donation;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationFrequency;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationRepository;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationStatus;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationDetailResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationOptionsResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationRequestModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
+import com.mana.openhand_backend.donations.utils.DonationManagementMapper;
 import com.mana.openhand_backend.donations.utils.DonationResponseMapper;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
@@ -14,6 +17,7 @@ import com.mana.openhand_backend.notifications.businesslayer.NotificationService
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,5 +76,19 @@ public class DonationServiceImpl implements DonationService {
 
         return DonationResponseMapper.toResponseModel(saved,
             "Donation received. Thank you for your support.");
+    }
+
+    @Override
+    public List<DonationSummaryResponseModel> getDonationsForStaff() {
+        return donationRepository.findAllWithUserOrderByCreatedAtDesc().stream()
+                .map(DonationManagementMapper::toSummary)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public DonationDetailResponseModel getDonationDetail(Long donationId) {
+        Donation donation = donationRepository.findByIdWithUser(donationId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donation not found."));
+        return DonationManagementMapper.toDetail(donation);
     }
 }

@@ -20,6 +20,14 @@ export type DonationDetail = DonationSummary & {
     paymentReference: string | null;
 };
 
+export type ManualDonationFormData = {
+    amount: number;
+    currency: string;
+    eventId?: number | null;
+    donationDate: string; // ISO datetime string
+    comments?: string;
+};
+
 const getAuthHeaders = async () => {
     const currentUser = await AuthService.getCurrentUser();
     if (!currentUser || !currentUser.token) {
@@ -41,5 +49,18 @@ export const getManagedDonations = async (): Promise<DonationSummary[]> => {
 export const getDonationDetail = async (donationId: number): Promise<DonationDetail> => {
     const headers = await getAuthHeaders();
     const response = await axios.get(`${API_BASE}/admin/donations/${donationId}`, { headers });
+    return response.data;
+};
+
+export const submitManualDonation = async (
+    donorId: number,
+    formData: ManualDonationFormData
+): Promise<DonationSummary> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.post(
+        `${API_BASE}/employee/donations/manual?donorId=${donorId}`,
+        formData,
+        { headers }
+    );
     return response.data;
 };

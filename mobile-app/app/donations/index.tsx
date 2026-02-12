@@ -32,7 +32,7 @@ const formatCurrency = (amount: number, currency: string) => {
 
 const normalizeAmountInput = (value: string) => value.replace(',', '.').trim();
 
-const ZEFFY_DONATION_URL = 'https://www.zeffy.com/en-CA/donation-form/donate-to-change-lives-8186';
+const ZEFFY_DONATION_URL = 'https://www.zeffy.com/en-CA/donation-form/donate-to-change-lives-8217';
 
 export default function DonationsScreen() {
     const { t } = useTranslation();

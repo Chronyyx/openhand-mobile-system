@@ -730,7 +730,7 @@ const getStyles = (isDark: boolean) => {
             borderRadius: 8,
             padding: 10,
             color: MUTED,
-            backgroundColor: '#f0f0f0',
+            backgroundColor: BG,
             fontSize: 14,
         },
         formActions: {

@@ -20,6 +20,7 @@
     "home": "Inicio",
     "events": "Eventos",
     "donations": "Donaciones",
+    "adminDonations": "Gestión de donaciones",
     "attendance": "Asistencia en vivo",
     "myRegistrations": "Mis inscripciones",
     "dashboard": "Panel de control",
@@ -531,7 +532,9 @@
       "inactiveMember": "Tu cuenta está desactivada. No puedes inscribirte en eventos.",
       "usersDescription": "Ver cuentas y actualizar su acceso o detalles",
       "events": "Eventos",
-      "eventsDescription": "Crear y gestionar próximos eventos"
+      "eventsDescription": "Crear y gestionar próximos eventos",
+      "donations": "Donaciones",
+      "donationsDescription": "Revisar donaciones y actividad"
     },
     "events": {
       "title": "Eventos",
@@ -658,6 +661,36 @@
         "email": "Correo electrónico",
         "phone": "Número de teléfono",
         "age": "Edad"
+      }
+    },
+    "donations": {
+      "title": "Donaciones",
+      "subtitle": "Revisa las donaciones de los miembros.",
+      "searchPlaceholder": "Buscar por nombre o correo",
+      "empty": "No se encontraron donaciones.",
+      "loadError": "No se pudieron cargar las donaciones.",
+      "detailTitle": "Detalles de la donación",
+      "detailError": "No se pudieron cargar los detalles de la donación.",
+      "unknownDonor": "Donante desconocido",
+      "viewDetails": "Ver detalles",
+      "fields": {
+        "donor": "Donante",
+        "email": "Correo",
+        "phone": "Teléfono",
+        "amount": "Monto",
+        "frequency": "Frecuencia",
+        "status": "Estado",
+        "createdAt": "Recibido",
+        "paymentProvider": "Proveedor de pago",
+        "paymentReference": "Referencia de pago"
+      },
+      "frequency": {
+        "ONE_TIME": "Única",
+        "MONTHLY": "Mensual"
+      },
+      "status": {
+        "RECEIVED": "Recibida",
+        "FAILED": "Fallida"
       }
     }
   },

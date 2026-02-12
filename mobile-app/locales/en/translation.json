@@ -682,10 +682,17 @@
       "searchPlaceholder": "Search by name or email",
       "empty": "No donations found.",
       "loadError": "Unable to load donations.",
+      "loadEventsError": "Unable to load events for selection.",
       "detailTitle": "Donation details",
       "detailError": "Unable to load donation details.",
       "unknownDonor": "Unknown donor",
       "viewDetails": "View details",
+      "addButton": "Add Manual Donation",
+      "addDonationTitle": "Add Manual Donation",
+      "amountRequired": "Amount must be greater than 0",
+      "employeeNotFound": "Employee ID not found",
+      "submitError": "Failed to submit donation",
+      "notAvailable": "Not available",
       "fields": {
         "donor": "Donor",
         "email": "Email",
@@ -704,6 +711,17 @@
       "status": {
         "RECEIVED": "Received",
         "FAILED": "Failed"
+      },
+      "form": {
+        "amount": "Amount",
+        "currency": "Currency",
+        "event": "Associated Event",
+        "noEvent": "No event",
+        "date": "Donation Date",
+        "employeeId": "Employee ID",
+        "comments": "Comments",
+        "commentsPlaceholder": "Add any notes about this donation (optional)",
+        "submit": "Submit Donation"
       }
     }
   },

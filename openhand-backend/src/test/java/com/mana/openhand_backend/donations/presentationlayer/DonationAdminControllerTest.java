@@ -2,6 +2,7 @@ package com.mana.openhand_backend.donations.presentationlayer;
 
 import com.mana.openhand_backend.donations.businesslayer.DonationService;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationDetailResponseModel;
+import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +26,12 @@ class DonationAdminControllerTest {
     @MockBean
     private DonationService donationService;
 
+    @MockBean
+    private UserRepository userRepository;
+
     @Test
     void getDonationDetail_returnsDetail() throws Exception {
+        // Arrange
         DonationDetailResponseModel detail = new DonationDetailResponseModel(
                 5L,
                 11L,
@@ -43,6 +48,7 @@ class DonationAdminControllerTest {
         );
         when(donationService.getDonationDetail(5L)).thenReturn(detail);
 
+        // Act & Assert
         mockMvc.perform(get("/api/admin/donations/5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(5))

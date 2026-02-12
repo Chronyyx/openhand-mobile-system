@@ -682,10 +682,17 @@
       "searchPlaceholder": "Rechercher par nom ou e-mail",
       "empty": "Aucun don trouvé.",
       "loadError": "Impossible de charger les dons.",
+      "loadEventsError": "Impossible de charger la liste des événements.",
       "detailTitle": "Détails du don",
       "detailError": "Impossible de charger les détails du don.",
       "unknownDonor": "Donateur inconnu",
       "viewDetails": "Voir les détails",
+      "addButton": "Ajouter un don manuel",
+      "addDonationTitle": "Ajouter un don manuel",
+      "amountRequired": "Le montant doit être supérieur à 0",
+      "employeeNotFound": "ID de l'employé introuvable",
+      "submitError": "Impossible de soumettre le don",
+      "notAvailable": "Non disponible",
       "fields": {
         "donor": "Donateur",
         "email": "E-mail",
@@ -704,6 +711,17 @@
       "status": {
         "RECEIVED": "Reçu",
         "FAILED": "Échec"
+      },
+      "form": {
+        "amount": "Montant",
+        "currency": "Devise",
+        "event": "Événement associé",
+        "noEvent": "Aucun événement",
+        "date": "Date du don",
+        "employeeId": "ID de l'employé",
+        "comments": "Commentaires",
+        "commentsPlaceholder": "Ajouter des notes sur ce don (optionnel)",
+        "submit": "Soumettre le don"
       }
     }
   },

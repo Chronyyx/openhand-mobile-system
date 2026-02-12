@@ -9,12 +9,14 @@ import com.mana.openhand_backend.donations.domainclientlayer.DonationOptionsResp
 import com.mana.openhand_backend.donations.domainclientlayer.DonationRequestModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel;
 import com.mana.openhand_backend.donations.utils.DonationManagementMapper;
 import com.mana.openhand_backend.donations.utils.DonationResponseMapper;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -90,5 +92,45 @@ public class DonationServiceImpl implements DonationService {
         Donation donation = donationRepository.findByIdWithUser(donationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donation not found."));
         return DonationManagementMapper.toDetail(donation);
+    }
+
+    @Override
+    @Transactional
+    public DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, 
+                                                             ManualDonationRequestModel request) {
+        User donorUser = userRepository.findById(donorUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donor user not found."));
+
+        if (request.getAmount() == null || request.getAmount().compareTo(MINIMUM_AMOUNT) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Donation amount must be at least " + MINIMUM_AMOUNT + ".");
+        }
+
+        String currency = request.getCurrency() != null ? request.getCurrency().trim().toUpperCase() : DEFAULT_CURRENCY;
+        if (!DEFAULT_CURRENCY.equals(currency)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported currency: " + currency);
+        }
+
+        Donation donation = new Donation(donorUser, request.getAmount(), currency, 
+                DonationFrequency.ONE_TIME, DonationStatus.RECEIVED);
+        
+        // Set donation date if provided, otherwise use current time
+        if (request.getDonationDate() != null) {
+            donation.setCreatedAt(request.getDonationDate());
+        } else {
+            donation.setCreatedAt(LocalDateTime.now());
+        }
+
+        // Set optional comments
+        if (request.getComments() != null && !request.getComments().trim().isEmpty()) {
+            donation.setComments(request.getComments().trim());
+        }
+
+        // Mark as manually entered by employee
+        donation.setPaymentProvider("Manual Entry");
+        donation.setPaymentReference("MANUAL-" + employeeId + "-" + System.currentTimeMillis());
+
+        Donation saved = donationRepository.save(donation);
+        return DonationManagementMapper.toSummary(saved);
     }
 }

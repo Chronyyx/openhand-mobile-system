@@ -9,6 +9,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Redirect, useRouter } from 'expo-router';
@@ -20,9 +21,12 @@ import { useColorScheme } from '../../hooks/use-color-scheme';
 import {
     getDonationDetail,
     getManagedDonations,
+    submitManualDonation,
     type DonationDetail,
     type DonationSummary,
+    type ManualDonationFormData,
 } from '../../services/donation-management.service';
+import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
 
 const formatAmount = (amount: number, currency: string) => `${currency} ${amount.toFixed(2)}`;
 
@@ -34,7 +38,7 @@ const formatTimestamp = (value: string | null) => {
 export default function AdminDonationsScreen() {
     const router = useRouter();
     const { t } = useTranslation();
-    const { hasRole } = useAuth();
+    const { user, hasRole } = useAuth();
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme === 'dark');
     const isAdmin = hasRole(['ROLE_ADMIN']);
@@ -50,6 +54,20 @@ export default function AdminDonationsScreen() {
     const [detailLoading, setDetailLoading] = useState(false);
     const [detailError, setDetailError] = useState<string | null>(null);
     const [detail, setDetail] = useState<DonationDetail | null>(null);
+
+    // Manual donation form state
+    const [manualFormOpen, setManualFormOpen] = useState(false);
+    const [manualFormLoading, setManualFormLoading] = useState(false);
+    const [manualFormError, setManualFormError] = useState<string | null>(null);
+    const [events, setEvents] = useState<EventSummary[]>([]);
+    const [eventsLoading, setEventsLoading] = useState(false);
+    const [formData, setFormData] = useState<ManualDonationFormData>({
+        amount: 0,
+        currency: 'CAD',
+        eventId: null,
+        donationDate: new Date().toISOString(),
+        comments: '',
+    });
 
     const loadDonations = useCallback(async () => {
         setLoading(true);
@@ -103,6 +121,63 @@ export default function AdminDonationsScreen() {
         setDetailError(null);
     };
 
+    const handleOpenManualForm = useCallback(async () => {
+        setManualFormOpen(true);
+        setManualFormError(null);
+        setEventsLoading(true);
+        try {
+            const loadedEvents = await getUpcomingEvents();
+            setEvents(loadedEvents);
+        } catch (err) {
+            console.error('Failed to load events', err);
+            setManualFormError(t('admin.donations.loadEventsError'));
+        } finally {
+            setEventsLoading(false);
+        }
+    }, [t]);
+
+    const handleCloseManualForm = () => {
+        setManualFormOpen(false);
+        setManualFormError(null);
+        setFormData({
+            amount: 0,
+            currency: 'CAD',
+            eventId: null,
+            donationDate: new Date().toISOString(),
+            comments: '',
+        });
+    };
+
+    const validateForm = (): boolean => {
+        if (!formData.amount || formData.amount <= 0) {
+            setManualFormError(t('admin.donations.amountRequired'));
+            return false;
+        }
+        if (!user?.id) {
+            setManualFormError(t('admin.donations.employeeNotFound'));
+            return false;
+        }
+        return true;
+    };
+
+    const handleSubmitManualDonation = async () => {
+        if (!validateForm() || !user?.id) return;
+
+        setManualFormLoading(true);
+        setManualFormError(null);
+        try {
+            await submitManualDonation(user.id, formData);
+            // Reload donations list
+            await loadDonations();
+            handleCloseManualForm();
+        } catch (err) {
+            console.error('Failed to create manual donation', err);
+            setManualFormError(t('admin.donations.submitError'));
+        } finally {
+            setManualFormLoading(false);
+        }
+    };
+
     if (!canView) {
         return <Redirect href="/" />;
     }
@@ -125,6 +200,18 @@ export default function AdminDonationsScreen() {
                         onChangeText={setSearchQuery}
                     />
                 </View>
+
+                {isAdmin && (
+                    <Pressable
+                        style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
+                        onPress={handleOpenManualForm}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('admin.donations.addButton')}
+                    >
+                        <Ionicons name="add-circle" size={20} color="#FFFFFF" />
+                        <Text style={styles.addButtonText}>{t('admin.donations.addButton')}</Text>
+                    </Pressable>
+                )}
 
                 {loading ? (
                     <View style={styles.centered}>
@@ -290,6 +377,127 @@ export default function AdminDonationsScreen() {
                     </View>
                 </View>
             </Modal>
+
+            <Modal visible={manualFormOpen} transparent animationType="slide" onRequestClose={handleCloseManualForm}>
+                <View style={styles.modalOverlay}>
+                    <View style={[styles.modalContent, styles.largeModalContent]}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>{t('admin.donations.addDonationTitle')}</Text>
+                            <Pressable
+                                onPress={handleCloseManualForm}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('common.close')}
+                            >
+                                <Ionicons name="close" size={20} color={styles.modalTitle.color} />
+                            </Pressable>
+                        </View>
+
+                        {manualFormError && <Text style={styles.errorText}>{manualFormError}</Text>}
+
+                        <ScrollView style={styles.formScrollView}>
+                            <View style={styles.formGroup}>
+                                <Text style={styles.formLabel}>{t('admin.donations.form.amount')} *</Text>
+                                <TextInput
+                                    style={styles.formInput}
+                                    placeholder="0.00"
+                                    placeholderTextColor={styles.placeholder.color}
+                                    value={formData.amount ? formData.amount.toString() : ''}
+                                    onChangeText={(text) => setFormData({ ...formData, amount: parseFloat(text) || 0 })}
+                                    keyboardType="decimal-pad"
+                                />
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.formLabel}>{t('admin.donations.form.currency')} *</Text>
+                                <View style={styles.pickerWrapper}>
+                                    <Picker
+                                        selectedValue={formData.currency}
+                                        onValueChange={(value: string) => setFormData({ ...formData, currency: value })}
+                                        style={styles.picker}
+                                    >
+                                        <Picker.Item label="CAD" value="CAD" />
+                                        <Picker.Item label="USD" value="USD" />
+                                        <Picker.Item label="EUR" value="EUR" />
+                                    </Picker>
+                                </View>
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.formLabel}>{t('admin.donations.form.event')}</Text>
+                                <View style={styles.pickerWrapper}>
+                                    {eventsLoading ? (
+                                        <Text style={styles.loadingText}>{t('common.loading')}</Text>
+                                    ) : (
+                                        <Picker
+                                            selectedValue={formData.eventId || null}
+                                            onValueChange={(value: number | null) => setFormData({ ...formData, eventId: value })}
+                                            style={styles.picker}
+                                        >
+                                            <Picker.Item label={t('admin.donations.form.noEvent')} value={null} />
+                                            {events.map((event) => (
+                                                <Picker.Item key={event.id} label={event.title} value={event.id} />
+                                            ))}
+                                        </Picker>
+                                    )}
+                                </View>
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.formLabel}>{t('admin.donations.form.date')} *</Text>
+                                <TextInput
+                                    style={styles.formInput}
+                                    placeholder="YYYY-MM-DD HH:MM"
+                                    placeholderTextColor={styles.placeholder.color}
+                                    value={formData.donationDate ? formData.donationDate.slice(0, 16).replace('T', ' ') : ''}
+                                    onChangeText={(text) => {
+                                        const dateStr = text.replace(' ', 'T');
+                                        setFormData({ ...formData, donationDate: dateStr + ':00' });
+                                    }}
+                                />
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.formLabel}>{t('admin.donations.form.employeeId')}</Text>
+                                <Text style={styles.readOnlyField}>{user?.id || t('admin.donations.notAvailable')}</Text>
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.formLabel}>{t('admin.donations.form.comments')}</Text>
+                                <TextInput
+                                    style={[styles.formInput, styles.textAreaInput]}
+                                    placeholder={t('admin.donations.form.commentsPlaceholder')}
+                                    placeholderTextColor={styles.placeholder.color}
+                                    value={formData.comments}
+                                    onChangeText={(text) => setFormData({ ...formData, comments: text })}
+                                    multiline
+                                    numberOfLines={4}
+                                />
+                            </View>
+                        </ScrollView>
+
+                        <View style={styles.formActions}>
+                            <Pressable
+                                style={({ pressed }) => [styles.cancelButton, pressed && styles.buttonPressed]}
+                                onPress={handleCloseManualForm}
+                                disabled={manualFormLoading}
+                            >
+                                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                            </Pressable>
+                            <Pressable
+                                style={({ pressed }) => [styles.submitButton, pressed && styles.buttonPressed, manualFormLoading && styles.buttonDisabled]}
+                                onPress={handleSubmitManualDonation}
+                                disabled={manualFormLoading}
+                            >
+                                {manualFormLoading ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.submitButtonText}>{t('admin.donations.form.submit')}</Text>
+                                )}
+                            </Pressable>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -444,6 +652,9 @@ const getStyles = (isDark: boolean) => {
             borderRadius: 16,
             padding: 16,
         },
+        largeModalContent: {
+            maxHeight: '90%',
+        },
         modalHeader: {
             flexDirection: 'row',
             justifyContent: 'space-between',
@@ -459,5 +670,100 @@ const getStyles = (isDark: boolean) => {
             color: TEXT,
             marginBottom: 6,
         },
+        addButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            backgroundColor: ACCENT,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            borderRadius: 10,
+            marginBottom: 16,
+        },
+        addButtonPressed: {
+            transform: [{ scale: 0.98 }],
+        },
+        addButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '700',
+            fontSize: 16,
+        },
+        formScrollView: {
+            maxHeight: '60%',
+            marginBottom: 16,
+        },
+        formGroup: {
+            marginBottom: 16,
+        },
+        formLabel: {
+            color: TEXT,
+            fontWeight: '600',
+            marginBottom: 6,
+            fontSize: 14,
+        },
+        formInput: {
+            borderWidth: 1,
+            borderColor: BORDER,
+            borderRadius: 8,
+            padding: 10,
+            color: TEXT,
+            backgroundColor: BG,
+        },
+        textAreaInput: {
+            minHeight: 100,
+            textAlignVertical: 'top',
+        },
+        pickerWrapper: {
+            borderWidth: 1,
+            borderColor: BORDER,
+            borderRadius: 8,
+            backgroundColor: BG,
+            overflow: 'hidden',
+        },
+        picker: {
+            color: TEXT,
+        },
+        readOnlyField: {
+            borderWidth: 1,
+            borderColor: BORDER,
+            borderRadius: 8,
+            padding: 10,
+            color: MUTED,
+            backgroundColor: '#f0f0f0',
+            fontSize: 14,
+        },
+        formActions: {
+            flexDirection: 'row',
+            gap: 12,
+            justifyContent: 'flex-end',
+        },
+        cancelButton: {
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            borderRadius: 8,
+            borderWidth: 1,
+            borderColor: BORDER,
+            backgroundColor: 'transparent',
+        },
+        cancelButtonText: {
+            color: TEXT,
+            fontWeight: '600',
+        },
+        submitButton: {
+            paddingVertical: 10,
+            paddingHorizontal: 20,
+            borderRadius: 8,
+            backgroundColor: ACCENT,
+        },
+        submitButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '600',
+        },
+        buttonPressed: {
+            transform: [{ scale: 0.98 }],
+        },
+        buttonDisabled: {
+            opacity: 0.6,        },
     });
 };

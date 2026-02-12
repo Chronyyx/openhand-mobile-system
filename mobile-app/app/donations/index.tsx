@@ -8,6 +8,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
@@ -30,6 +31,8 @@ const formatCurrency = (amount: number, currency: string) => {
 };
 
 const normalizeAmountInput = (value: string) => value.replace(',', '.').trim();
+
+const ZEFFY_DONATION_URL = 'https://www.zeffy.com/en-CA/donation-form/donate-to-change-lives-8186';
 
 export default function DonationsScreen() {
     const { t } = useTranslation();
@@ -166,6 +169,16 @@ export default function DonationsScreen() {
         setShowPaymentModal(true);
     };
 
+    const handleOpenZeffy = async () => {
+        try {
+            setError(null);
+            await WebBrowser.openBrowserAsync(ZEFFY_DONATION_URL);
+        } catch (err) {
+            console.error('Failed to open Zeffy donation form', err);
+            setError(t('donations.errors.zeffyOpenFailed'));
+        }
+    };
+
     const handleConfirmPayment = async () => {
         if (!options) return;
 
@@ -244,6 +257,25 @@ export default function DonationsScreen() {
                     <>
                         {error && <ThemedText style={styles.errorText}>{error}</ThemedText>}
 
+                        <View style={styles.zeffyCard}>
+                            <ThemedText type="subtitle" style={styles.sectionTitle}>
+                                {t('donations.zeffyTitle')}
+                            </ThemedText>
+                            <ThemedText style={styles.zeffySubtitle}>{t('donations.zeffySubtitle')}</ThemedText>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.primaryButton,
+                                    pressed && styles.primaryButtonPressed,
+                                ]}
+                                onPress={handleOpenZeffy}
+                                accessibilityRole="button"
+                                accessibilityLabel={t('donations.zeffyButton')}
+                            >
+                                <ThemedText style={styles.primaryButtonText}>{t('donations.zeffyButton')}</ThemedText>
+                            </Pressable>
+                            <ThemedText style={styles.zeffyNote}>{t('donations.zeffyNote')}</ThemedText>
+                        </View>
+
                         {confirmation && (
                             <View style={styles.successCard}>
                                 <ThemedText type="subtitle" style={styles.successTitle}>
@@ -257,6 +289,8 @@ export default function DonationsScreen() {
                                 </ThemedText>
                             </View>
                         )}
+
+                        <ThemedText style={styles.inAppHint}>{t('donations.inAppHint')}</ThemedText>
 
                         {options && (
                             <View style={styles.formCard}>
@@ -641,6 +675,26 @@ const getStyles = (scheme: 'light' | 'dark') => {
         subtitle: {
             color: colors.textMuted,
             marginBottom: 20,
+        },
+        zeffyCard: {
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            borderWidth: 1,
+            borderColor: colors.border,
+            gap: 10,
+            marginBottom: 16,
+        },
+        zeffySubtitle: {
+            color: colors.text,
+        },
+        zeffyNote: {
+            color: colors.textMuted,
+            fontSize: 12,
+        },
+        inAppHint: {
+            color: colors.textMuted,
+            marginBottom: 12,
         },
         formCard: {
             backgroundColor: colors.surface,

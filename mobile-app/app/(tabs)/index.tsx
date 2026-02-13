@@ -108,6 +108,7 @@ export default function HomeScreen() {
           <Pressable
             style={[styles.primaryButton, styles.actionButton]}
             onPress={() => router.push("/events")}
+            testID="browse-events-button"
             accessibilityRole="button"
             accessibilityLabel={t("home.browseEvents")}
           >

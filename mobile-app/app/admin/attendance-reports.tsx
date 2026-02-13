@@ -1,12 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     FlatList,
     Pressable,
     StyleSheet,
     View,
 } from 'react-native';
 import { Redirect } from 'expo-router';
+import * as FileSystem from 'expo-file-system/legacy';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,7 +18,11 @@ import { ThemedText } from '../../components/themed-text';
 import { ThemedView } from '../../components/themed-view';
 import { useAuth } from '../../context/AuthContext';
 import { useColorScheme } from '../../hooks/use-color-scheme';
-import { getAttendanceReports, type AttendanceReport } from '../../services/attendance.service';
+import {
+    exportAttendanceReportsCsv,
+    getAttendanceReports,
+    type AttendanceReport,
+} from '../../services/attendance.service';
 import { formatIsoDate, formatIsoTime } from '../../utils/date-time';
 
 function pad2(value: number) {
@@ -50,6 +56,7 @@ export default function AttendanceReportsScreen() {
     const [activePicker, setActivePicker] = useState<'start' | 'end' | null>(null);
     const [reports, setReports] = useState<AttendanceReport[]>([]);
     const [loading, setLoading] = useState(false);
+    const [exporting, setExporting] = useState(false);
     const [hasGenerated, setHasGenerated] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -103,6 +110,56 @@ export default function AttendanceReportsScreen() {
         }
     };
 
+    const onExportCsv = async () => {
+        if (startDate.getTime() > endDate.getTime()) {
+            setError(t('admin.attendanceReports.invalidDateRange'));
+            return;
+        }
+
+        const targetDirectory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+        if (!targetDirectory) {
+            Alert.alert(t('common.error'), t('admin.attendanceReports.exportError'));
+            return;
+        }
+
+        const fileDate = formatDateForApi(new Date());
+        const fileName = `attendance-report-${fileDate}.csv`;
+        const fileUri = `${targetDirectory}${fileName}`;
+
+        try {
+            setExporting(true);
+            const csvContent = await exportAttendanceReportsCsv(
+                formatDateForApi(startDate),
+                formatDateForApi(endDate),
+            );
+
+            await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+                encoding: FileSystem.EncodingType.UTF8,
+            });
+
+            // eslint-disable-next-line import/no-unresolved -- dependency is declared in package.json and resolved after install
+            const Sharing = await import('expo-sharing');
+            const sharingAvailable = await Sharing.isAvailableAsync();
+            if (!sharingAvailable) {
+                Alert.alert(t('common.error'), t('admin.attendanceReports.shareUnavailable'));
+                return;
+            }
+
+            await Sharing.shareAsync(fileUri, {
+                mimeType: 'text/csv',
+                dialogTitle: fileName,
+                UTI: 'public.comma-separated-values-text',
+            });
+
+            Alert.alert(t('common.success'), t('admin.attendanceReports.exportSuccess'));
+        } catch (err) {
+            console.error('Failed to export attendance report CSV', err);
+            Alert.alert(t('common.error'), t('admin.attendanceReports.exportError'));
+        } finally {
+            setExporting(false);
+        }
+    };
+
     return (
         <MenuLayout>
             <ThemedView style={styles.container}>
@@ -135,34 +192,48 @@ export default function AttendanceReportsScreen() {
                         </View>
                     </Pressable>
 
-                    <Pressable
-                        onPress={onGenerate}
-                        style={[styles.generateButton, loading && styles.generateButtonDisabled]}
-                        disabled={loading}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('admin.attendanceReports.generate')}
-                    >
-                        <ThemedText style={styles.generateButtonText}>
-                            {t('admin.attendanceReports.generate')}
-                        </ThemedText>
-                    </Pressable>
+                    <View style={styles.actionRow}>
+                        <Pressable
+                            onPress={onGenerate}
+                            style={[styles.actionButton, (loading || exporting) && styles.generateButtonDisabled]}
+                            disabled={loading || exporting}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('admin.attendanceReports.generate')}
+                        >
+                            <ThemedText style={styles.generateButtonText}>
+                                {t('admin.attendanceReports.generate')}
+                            </ThemedText>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={onExportCsv}
+                            style={[styles.actionButton, (loading || exporting) && styles.generateButtonDisabled]}
+                            disabled={loading || exporting}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('admin.attendanceReports.exportCsv')}
+                        >
+                            <ThemedText style={styles.generateButtonText}>
+                                {t('admin.attendanceReports.exportCsv')}
+                            </ThemedText>
+                        </Pressable>
+                    </View>
                 </View>
 
-                {loading && (
+                {(loading || exporting) && (
                     <View style={styles.centered}>
                         <ActivityIndicator size="large" color={isDark ? '#9FC3FF' : '#0056A8'} />
                     </View>
                 )}
 
-                {!loading && error && (
+                {!loading && !exporting && error && (
                     <ThemedText style={styles.errorText}>{error}</ThemedText>
                 )}
 
-                {!loading && !error && hasGenerated && reports.length === 0 && (
+                {!loading && !exporting && !error && hasGenerated && reports.length === 0 && (
                     <ThemedText style={styles.emptyText}>{t('admin.attendanceReports.noResults')}</ThemedText>
                 )}
 
-                {!loading && !error && reports.length > 0 && (
+                {!loading && !exporting && !error && reports.length > 0 && (
                     <FlatList
                         data={reports}
                         keyExtractor={(item) => item.eventId.toString()}
@@ -268,7 +339,12 @@ const getStyles = (isDark: boolean) => {
             color: textPrimary,
             fontWeight: '700',
         },
-        generateButton: {
+        actionRow: {
+            flexDirection: 'row',
+            gap: 10,
+        },
+        actionButton: {
+            flex: 1,
             backgroundColor: accent,
             borderRadius: 12,
             alignItems: 'center',

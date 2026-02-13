@@ -139,3 +139,22 @@ export async function getAttendanceReports(
     });
     return response.data;
 }
+
+export async function exportAttendanceReportsCsv(
+    startDate: string,
+    endDate: string,
+    eventId?: number,
+): Promise<string> {
+    const response = await apiClient.get<string>('/admin/attendance-reports/export', {
+        params: {
+            startDate,
+            endDate,
+            ...(eventId != null ? { eventId } : {}),
+        },
+        responseType: 'text',
+        headers: {
+            Accept: 'text/csv',
+        },
+    });
+    return response.data;
+}

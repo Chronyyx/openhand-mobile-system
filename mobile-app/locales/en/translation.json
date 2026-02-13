@@ -543,8 +543,12 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "generate": "Generate",
+      "exportCsv": "Export CSV",
       "noResults": "No results",
       "errorLoading": "Error loading reports",
+      "exportSuccess": "CSV exported successfully.",
+      "exportError": "Failed to export CSV.",
+      "shareUnavailable": "Sharing is not available on this device.",
       "invalidDateRange": "Start date must be before or equal to end date.",
       "totalAttended": "Total Attended",
       "attendanceRate": "Attendance Rate"

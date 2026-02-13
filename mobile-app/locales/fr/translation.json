@@ -543,8 +543,12 @@
       "startDate": "Date de début",
       "endDate": "Date de fin",
       "generate": "Générer",
+      "exportCsv": "Exporter CSV",
       "noResults": "Aucun résultat",
       "errorLoading": "Erreur lors du chargement des rapports",
+      "exportSuccess": "CSV exporté avec succès.",
+      "exportError": "Échec de l'export CSV.",
+      "shareUnavailable": "Le partage n'est pas disponible sur cet appareil.",
       "invalidDateRange": "La date de début doit être avant ou égale à la date de fin.",
       "totalAttended": "Total présents",
       "attendanceRate": "Taux de présence"

@@ -66,6 +66,7 @@ export function EventCard({ event, onPress, t, onClose, showNotificationDot }: E
                     pressed && !isCancelled && { opacity: 0.7 }
                 ]}
                 disabled={isCancelled}
+                testID="event-card"
                 accessibilityRole="button"
                 accessibilityLabel={`${translatedTitle}. ${statusLabel}.`}
                 accessibilityHint={t('events.actions.viewDetails', 'View details')}

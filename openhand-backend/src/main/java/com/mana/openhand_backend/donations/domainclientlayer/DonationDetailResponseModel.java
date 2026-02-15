@@ -3,6 +3,7 @@ package com.mana.openhand_backend.donations.domainclientlayer;
 import java.math.BigDecimal;
 
 public class DonationDetailResponseModel {
+    private String eventName;
 
     private Long id;
     private Long userId;
@@ -18,11 +19,19 @@ public class DonationDetailResponseModel {
     private String paymentReference;
 
     public DonationDetailResponseModel() {
+        }
+
+        public String getEventName() {
+            return eventName;
+        }
+
+        public void setEventName(String eventName) {
+            this.eventName = eventName;
     }
 
     public DonationDetailResponseModel(Long id, Long userId, String donorName, String donorEmail,
             String donorPhone, BigDecimal amount, String currency, String frequency, String status,
-            String createdAt, String paymentProvider, String paymentReference) {
+            String createdAt, String paymentProvider, String paymentReference, String eventName) {
         this.id = id;
         this.userId = userId;
         this.donorName = donorName;
@@ -35,6 +44,7 @@ public class DonationDetailResponseModel {
         this.createdAt = createdAt;
         this.paymentProvider = paymentProvider;
         this.paymentReference = paymentReference;
+        this.eventName = eventName;
     }
 
     public Long getId() {

@@ -78,7 +78,8 @@ class RegistrationServiceIdempotencyTest {
         LocalDateTime firstCancelledAt = cancelled1.getCancelledAt();
 
         if (cancelled1.getStatus() != RegistrationStatus.CANCELLED) {
-            throw new RuntimeException("DB START FAIL: Status is " + cancelled1.getStatus());
+            assertEquals(RegistrationStatus.CANCELLED, cancelled1.getStatus(),
+                    "DB START FAIL: Expected initial cancellation to set status to CANCELLED");
         }
 
         // Act 2: Second Cancellation
@@ -87,11 +88,6 @@ class RegistrationServiceIdempotencyTest {
 
         // Assert
         assertEquals(RegistrationStatus.CANCELLED, cancelled2.getStatus());
-
-        if (firstCancelledAt != null && !firstCancelledAt.equals(secondCancelledAt)) {
-            throw new RuntimeException("IDEMPOTENCY FAIL: First=" + firstCancelledAt + ", Second=" + secondCancelledAt
-                    + ", Status2=" + cancelled2.getStatus());
-        }
 
         assertEquals(firstCancelledAt, secondCancelledAt,
                 "CancelledAt timestamp should not change on second cancellation");

@@ -273,7 +273,8 @@ public class RegistrationServiceImpl implements RegistrationService {
             boolean skipCompletionCheck,
             Long eventIdOverride) {
         if (registration.getStatus() == RegistrationStatus.CANCELLED) {
-            return registration;
+            return registrationRepository.findById(registration.getId())
+                    .orElse(registration);
         }
 
         Event event = registration.getEvent();

@@ -32,6 +32,12 @@ public class UserMemberServiceImpl implements UserMemberService {
     }
 
     @Override
+    public User getProfileByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+    }
+
+    @Override
     @Transactional
     public User updateProfile(Long userId,
             com.mana.openhand_backend.identity.presentationlayer.payload.ProfileRequest request) {

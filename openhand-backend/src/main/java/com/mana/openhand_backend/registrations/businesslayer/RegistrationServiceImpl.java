@@ -272,6 +272,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     private Registration cancelRegistrationInternal(Registration registration, String reason,
             boolean skipCompletionCheck,
             Long eventIdOverride) {
+        if (registration.getStatus() == RegistrationStatus.CANCELLED) {
+            return registration;
+        }
+
         Event event = registration.getEvent();
         if (!skipCompletionCheck && event != null
                 && eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now())) {

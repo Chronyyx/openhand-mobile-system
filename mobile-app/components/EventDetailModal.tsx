@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme, Alert } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
@@ -238,21 +238,30 @@ export function EventDetailModal({
     };
 
     const handleUnregisterPress = () => {
-        Alert.alert(
-            t('events.actions.confirmUnregisterTitle', 'Cancel Registration?'),
-            t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.'),
-            [
-                {
-                    text: t('events.actions.confirmUnregisterNo', 'No, Keep it'),
-                    style: 'cancel'
-                },
-                {
-                    text: t('events.actions.confirmUnregisterYes', 'Yes, Cancel'),
-                    style: 'destructive',
-                    onPress: onUnregister
-                }
-            ]
-        );
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(
+                t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.')
+            );
+            if (confirmed) {
+                onUnregister();
+            }
+        } else {
+            Alert.alert(
+                t('events.actions.confirmUnregisterTitle', 'Cancel Registration?'),
+                t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.'),
+                [
+                    {
+                        text: t('events.actions.confirmUnregisterNo', 'No, Keep it'),
+                        style: 'cancel'
+                    },
+                    {
+                        text: t('events.actions.confirmUnregisterYes', 'Yes, Cancel'),
+                        style: 'destructive',
+                        onPress: onUnregister
+                    }
+                ]
+            );
+        }
     };
 
     const isInactiveMember = user?.memberStatus === 'INACTIVE';

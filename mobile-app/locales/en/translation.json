@@ -701,7 +701,18 @@
       "employeeNotFound": "Employee ID not found",
       "submitError": "Failed to submit donation",
       "notAvailable": "Not available",
+      "filter": {
+        "eventName": "Event Name",
+        "eventNamePlaceholder": "Select event...",
+        "year": "Year",
+        "yearPlaceholder": "YYYY",
+        "month": "Month",
+        "monthPlaceholder": "MM",
+        "day": "Day",
+        "dayPlaceholder": "DD"
+      },
       "fields": {
+        "event": "Event",
         "donor": "Donor",
         "email": "Email",
         "phone": "Phone",
@@ -722,14 +733,21 @@
       },
       "form": {
         "amount": "Amount",
+        "amountPlaceholder": "0.00",
         "currency": "Currency",
         "event": "Associated Event",
         "noEvent": "No event",
         "date": "Donation Date",
+        "datePlaceholder": "YYYY-MM-DD HH:MM",
         "employeeId": "Employee ID",
         "comments": "Comments",
         "commentsPlaceholder": "Add any notes about this donation (optional)",
         "submit": "Submit Donation"
+      },
+      "currency": {
+        "CAD": "CAD",
+        "USD": "USD",
+        "EUR": "EUR"
       }
     }
   },

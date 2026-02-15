@@ -2,7 +2,6 @@ package com.mana.openhand_backend.registrations.presentationlayer;
 
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.businesslayer.UserMemberService;
-import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.registrations.businesslayer.RegistrationService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.domainclientlayer.RegistrationHistoryFilter;
@@ -84,7 +83,6 @@ public class RegistrationController {
         return RegistrationResponseMapper.toResponseModel(registration);
     }
 
-    // Helper method to extract user ID from email
     // Helper method to extract user ID from email
     private Long extractUserIdFromEmail(String email) {
         User user = userMemberService.getProfileByEmail(email);

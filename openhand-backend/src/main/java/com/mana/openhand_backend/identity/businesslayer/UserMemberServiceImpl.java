@@ -34,7 +34,7 @@ public class UserMemberServiceImpl implements UserMemberService {
     @Override
     public User getProfileByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new UserNotFoundException(email));
     }
 
     @Override

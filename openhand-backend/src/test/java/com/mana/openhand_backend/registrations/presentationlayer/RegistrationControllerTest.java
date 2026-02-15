@@ -187,7 +187,8 @@ class RegistrationControllerTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("nonexistent@example.com");
         when(userMemberService.getProfileByEmail("nonexistent@example.com"))
-                .thenThrow(new RuntimeException("User not found"));
+                .thenThrow(
+                        new com.mana.openhand_backend.identity.utils.UserNotFoundException("nonexistent@example.com"));
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> registrationController.getMyRegistrations(authentication));
@@ -232,7 +233,8 @@ class RegistrationControllerTest {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("nonexistent@example.com");
         when(userMemberService.getProfileByEmail("nonexistent@example.com"))
-                .thenThrow(new RuntimeException("User not found"));
+                .thenThrow(
+                        new com.mana.openhand_backend.identity.utils.UserNotFoundException("nonexistent@example.com"));
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> registrationController.cancelRegistration(1L, authentication));

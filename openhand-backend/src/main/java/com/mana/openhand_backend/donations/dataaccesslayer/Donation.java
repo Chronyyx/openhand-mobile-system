@@ -54,6 +54,17 @@ public class Donation {
     @Column(name = "comments", columnDefinition = "TEXT")
     private String comments;
 
+        @ManyToOne(fetch = FetchType.LAZY)
+        @JoinColumn(name = "event_id")
+        private com.mana.openhand_backend.events.dataaccesslayer.Event event;
+
+        public com.mana.openhand_backend.events.dataaccesslayer.Event getEvent() {
+            return event;
+        }
+
+        public void setEvent(com.mana.openhand_backend.events.dataaccesslayer.Event event) {
+            this.event = event;
+        }
     protected Donation() {
     }
 

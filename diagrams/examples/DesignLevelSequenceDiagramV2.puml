@@ -1,0 +1,69 @@
+@startuml DesignLevelSequenceDiagramV2
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ParticipantBorderColor #1976D2
+skinparam SequenceLifeLineBorderColor #757575
+skinparam ArrowColor #424242
+
+title Design Level Sequence Diagram (Layered View): Submit Document
+
+actor "Client" as Client
+box "Presentation Layer" #E8F5E9
+  participant "DocumentController" as Controller
+end box
+box "Business Layer" #FFF3E0
+  participant "DocumentService" as Service
+  participant "NotificationService" as Notif
+end box
+box "Data / Infrastructure Layer" #F3E5F5
+  participant "DocumentRepository" as DocRepo
+  participant "ObjectStorageService" as Storage
+  database "PostgreSQL" as DB
+  database "Cloudflare R2" as R2
+end box
+
+== Submit Document Flow ==
+
+Client -> Controller: POST /transactions/{id}/documents/{reqId}/submit
+activate Controller
+
+Controller -> Service: submitDocument(transactionId, requestId, file, userId)
+activate Service
+
+Service -> DocRepo: findByRequestId(requestId)
+activate DocRepo
+DocRepo -> DB: SELECT
+DB --> DocRepo: Document
+DocRepo --> Service: Document
+deactivate DocRepo
+
+Service -> Service: validateFile(file)
+
+Service -> Storage: uploadFile(transactionId, requestId, file)
+activate Storage
+Storage -> R2: PutObject
+R2 --> Storage: success
+Storage --> Service: StorageObject
+deactivate Storage
+
+Service -> DocRepo: save(document)
+activate DocRepo
+DocRepo -> DB: UPDATE / INSERT
+DB --> DocRepo: saved
+DocRepo --> Service: updatedEntity
+deactivate DocRepo
+
+Service -> Notif: notifyDocumentSubmitted(document)
+activate Notif
+Notif -> DB: INSERT notification
+Notif --> Service: done
+deactivate Notif
+
+Service --> Controller: DocumentResponseDTO
+deactivate Service
+
+Controller --> Client: HTTP 200 + JSON
+deactivate Controller
+
+@enduml

@@ -1,0 +1,82 @@
+@startuml SystemSequenceDiagram
+!pragma teoz true
+
+title System Sequence Diagram: Manage Transaction Documents
+
+actor "Broker" as Broker
+actor "Client" as Client
+participant "CourtierPro\nSystem" as System
+
+== Scenario 1: Broker Creates Document Request ==
+
+Broker -> System: navigateToDocuments(transactionId)
+System --> Broker: documentsList, requestableTypes
+
+Broker -> System: createDocument(transactionId, docType, expectedFrom, notes, visible)
+System --> Broker: createdDocument
+
+note right of System
+  System internally:
+  - Validates transaction
+  - Creates Document (REQUESTED or DRAFT)
+  - Records timeline entry
+  - Sends notification to Client
+end note
+
+== Scenario 2: Client Submits Document ==
+
+Client -> System: getDocumentsForTransaction(transactionId)
+System --> Client: pendingDocuments
+
+Client -> System: submitDocument(transactionId, documentId, file)
+System --> Client: updatedDocument
+
+note right of System
+  System internally:
+  - Validates file (type, size)
+  - Uploads to Cloudflare R2
+  - Creates DocumentVersion
+  - Updates status to SUBMITTED
+  - Notifies Broker
+end note
+
+== Scenario 3: Broker Reviews Document ==
+
+Broker -> System: getDocumentsForTransaction(transactionId)
+System --> Broker: documentsWithSubmissions
+
+Broker -> System: getDocumentDownloadUrl(requestId, documentId)
+System --> Broker: preSignedUrl
+
+Broker -> System: reviewDocument(documentId, decision, notes)
+System --> Broker: updatedDocument
+
+note right of System
+  decision can be:
+  - APPROVED
+  - NEEDS_REVISION
+  - REJECTED
+  
+  System notifies Client of decision
+end note
+
+== Scenario 4: Download Document ==
+
+Client -> System: getDocumentDownloadUrl(documentId, versionId)
+alt Authorized
+  System --> Client: preSignedUrl
+else Not Authorized
+  System --> Client: accessDeniedError
+end
+
+== Scenario 5: Broker Deletes Document Request ==
+
+Broker -> System: deleteDocument(documentId)
+System --> Broker: success
+
+note right of System
+  System soft-deletes request
+  and logs to audit trail
+end note
+
+@enduml

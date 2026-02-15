@@ -539,6 +539,8 @@
       "eventsDescription": "Créer et gérer les événements à venir",
       "donations": "Dons",
       "donationsDescription": "Consulter l'activité des dons",
+      "donationMetrics": "Indicateurs des dons",
+      "donationMetricsDescription": "Suivre les KPI et tendances des dons",
       "attendanceReports": "Rapports de présence",
       "attendanceReportsDescription": "Générer des rapports de présence par période"
     },
@@ -682,6 +684,51 @@
         "email": "Adresse e-mail",
         "phone": "Numéro de téléphone",
         "age": "Âge"
+      }
+    },
+    "donationMetrics": {
+      "title": "Indicateurs des dons",
+      "subtitle": "Suivez la performance des dons et le comportement des donateurs.",
+      "refresh": "Actualiser les indicateurs",
+      "loadError": "Impossible de charger les indicateurs des dons.",
+      "cards": {
+        "totalAmount": "Montant total",
+        "totalDonations": "Nombre de dons",
+        "averageAmount": "Don moyen",
+        "uniqueDonors": "Donateurs uniques",
+        "repeatDonors": "Donateurs récurrents",
+        "firstTimeDonors": "Nouveaux donateurs"
+      },
+      "breakdown": {
+        "frequency": "Répartition par fréquence",
+        "status": "Répartition par statut"
+      },
+      "channels": {
+        "title": "Canaux de saisie",
+        "manual": "Saisies manuelles",
+        "external": "Externe/dans l’app"
+      },
+      "comments": {
+        "title": "Couverture des commentaires",
+        "count": "Dons avec commentaires",
+        "usageRate": "Taux d'utilisation"
+      },
+      "notifications": {
+        "title": "Notifications de dons",
+        "created": "Créées",
+        "read": "Lues",
+        "unread": "Non lues"
+      },
+      "trend": {
+        "title": "Tendance mensuelle (6 derniers mois)",
+        "empty": "Aucune donnée de tendance disponible."
+      },
+      "topDonors": {
+        "title": "Principaux donateurs",
+        "byAmount": "Par montant",
+        "byCount": "Par volume",
+        "empty": "Aucune donnée donateur disponible.",
+        "donationsCount": "{{count}} dons"
       }
     },
     "donations": {

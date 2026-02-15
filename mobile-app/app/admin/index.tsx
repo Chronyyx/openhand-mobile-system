@@ -16,7 +16,6 @@ export default function AdminDashboardScreen() {
     const [menuVisible, setMenuVisible] = React.useState(false);
     const colorScheme = useColorScheme() ?? 'light';
     const ACCENT = colorScheme === 'dark' ? '#6AA9FF' : '#0056A8';
-    const SURFACE = colorScheme === 'dark' ? '#0F1419' : '#F5F7FB';
     const styles = getStyles(colorScheme);
 
     const handleNavigateHome = () => {
@@ -37,6 +36,11 @@ export default function AdminDashboardScreen() {
     const handleNavigateDonations = () => {
         setMenuVisible(false);
         router.push('/admin/donations');
+    };
+
+    const handleNavigateDonationMetrics = () => {
+        setMenuVisible(false);
+        router.push('/admin/donations-metrics');
     };
 
     const handleNavigateDashboard = () => {
@@ -139,7 +143,7 @@ export default function AdminDashboardScreen() {
                         styles.card,
                         pressed && styles.cardPressed,
                     ]}
-                    onPress={() => router.push('/admin/donations')}
+                    onPress={handleNavigateDonations}
                     accessibilityRole="button"
                     accessibilityLabel={t('admin.dashboard.donations')}
                     accessibilityHint={t('admin.dashboard.donationsDescription')}
@@ -153,6 +157,28 @@ export default function AdminDashboardScreen() {
                     </View>
                     <Ionicons name="chevron-forward" size={18} color={ACCENT} />
                 </Pressable>
+
+                {isAdmin && (
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.card,
+                            pressed && styles.cardPressed,
+                        ]}
+                        onPress={handleNavigateDonationMetrics}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('admin.dashboard.donationMetrics')}
+                        accessibilityHint={t('admin.dashboard.donationMetricsDescription')}
+                    >
+                        <View style={styles.cardIcon}>
+                            <Ionicons name="analytics" size={24} color={ACCENT} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.cardTitle}>{t('admin.dashboard.donationMetrics')}</Text>
+                            <Text style={styles.cardDescription}>{t('admin.dashboard.donationMetricsDescription')}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                    </Pressable>
+                )}
             </View>
 
             <NavigationMenu
@@ -165,8 +191,6 @@ export default function AdminDashboardScreen() {
                 showAttendance={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 onNavigateDashboard={handleNavigateDashboard}
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
-                onNavigateAdminDonations={handleNavigateDonations}
-                showAdminDonations={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 t={t}
             />
         </View>

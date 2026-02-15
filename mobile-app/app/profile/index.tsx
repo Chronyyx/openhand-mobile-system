@@ -131,11 +131,6 @@ export default function ProfileScreen() {
         router.push('/admin/attendance');
     };
 
-    const handleNavigateAdminDonations = () => {
-        setMenuVisible(false);
-        router.push('/admin/donations');
-    };
-
     useEffect(() => {
         setProfilePictureUrl(user?.profilePictureUrl ?? null);
         if (user) {
@@ -265,8 +260,6 @@ export default function ProfileScreen() {
                     showAttendance={false}
                     showDashboard={false}
                     onNavigateDashboard={handleNavigateDashboard}
-                    onNavigateAdminDonations={handleNavigateAdminDonations}
-                    showAdminDonations={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                     onNavigateDonations={handleNavigateDonations}
                     showDonations={hasRole(['ROLE_MEMBER'])}
                     t={t}
@@ -576,8 +569,6 @@ export default function ProfileScreen() {
                 showAttendance={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 onNavigateDashboard={handleNavigateDashboard}
-                    onNavigateAdminDonations={handleNavigateAdminDonations}
-                    showAdminDonations={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 onNavigateDonations={handleNavigateDonations}
                 showDonations={hasRole(['ROLE_MEMBER'])}
                 t={t}

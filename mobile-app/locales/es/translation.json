@@ -539,6 +539,8 @@
       "eventsDescription": "Crear y gestionar próximos eventos",
       "donations": "Donaciones",
       "donationsDescription": "Revisar donaciones y actividad",
+      "donationMetrics": "Métricas de donaciones",
+      "donationMetricsDescription": "Seguir KPIs y tendencias de donaciones",
       "attendanceReports": "Informes de asistencia",
       "attendanceReportsDescription": "Generar informes de asistencia por rango de fechas"
     },
@@ -682,6 +684,51 @@
         "email": "Correo electrónico",
         "phone": "Número de teléfono",
         "age": "Edad"
+      }
+    },
+    "donationMetrics": {
+      "title": "Métricas de donaciones",
+      "subtitle": "Monitorea el rendimiento de donaciones y el comportamiento de donantes.",
+      "refresh": "Actualizar métricas",
+      "loadError": "No se pudieron cargar las métricas de donaciones.",
+      "cards": {
+        "totalAmount": "Monto total",
+        "totalDonations": "Total de donaciones",
+        "averageAmount": "Donación promedio",
+        "uniqueDonors": "Donantes únicos",
+        "repeatDonors": "Donantes recurrentes",
+        "firstTimeDonors": "Donantes nuevos"
+      },
+      "breakdown": {
+        "frequency": "Desglose por frecuencia",
+        "status": "Desglose por estado"
+      },
+      "channels": {
+        "title": "Canales de ingreso",
+        "manual": "Ingresos manuales",
+        "external": "Externo/en la app"
+      },
+      "comments": {
+        "title": "Cobertura de comentarios",
+        "count": "Donaciones con comentarios",
+        "usageRate": "Tasa de uso"
+      },
+      "notifications": {
+        "title": "Notificaciones de donaciones",
+        "created": "Creadas",
+        "read": "Leídas",
+        "unread": "No leídas"
+      },
+      "trend": {
+        "title": "Tendencia mensual (últimos 6 meses)",
+        "empty": "No hay datos de tendencia."
+      },
+      "topDonors": {
+        "title": "Principales donantes",
+        "byAmount": "Por monto",
+        "byCount": "Por cantidad",
+        "empty": "No hay datos de donantes.",
+        "donationsCount": "{{count}} donaciones"
       }
     },
     "donations": {

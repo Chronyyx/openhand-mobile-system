@@ -102,16 +102,6 @@ public class DonationServiceImpl implements DonationService {
       this.eventRepository = eventRepository;
   }
 
-
-    public DonationServiceImpl(DonationRepository donationRepository, UserRepository userRepository,
-            NotificationService notificationService,
-            com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository) {
-        this.donationRepository = donationRepository;
-        this.userRepository = userRepository;
-        this.notificationService = notificationService;
-        this.eventRepository = eventRepository;
-    }
-
     @Override
     public DonationOptionsResponseModel getDonationOptions() {
         List<String> frequencies = List.of(DonationFrequency.ONE_TIME.name(), DonationFrequency.MONTHLY.name());

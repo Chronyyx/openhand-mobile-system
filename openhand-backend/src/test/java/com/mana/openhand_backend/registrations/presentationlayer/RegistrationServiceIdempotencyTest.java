@@ -73,8 +73,10 @@ class RegistrationServiceIdempotencyTest {
         // Act 1: First Cancellation
         registrationService.cancelRegistration(user.getId(), event.getId());
 
-        // Reload from DB to ensure we have the persisted timestamp (handling DB precision truncation)
-        Registration cancelled1 = registrationRepository.findByUserIdAndEventId(user.getId(), event.getId()).orElseThrow();
+        // Reload from DB to ensure we have the persisted timestamp (handling DB
+        // precision truncation)
+        Registration cancelled1 = registrationRepository.findByUserIdAndEventId(user.getId(), event.getId())
+                .orElseThrow();
         LocalDateTime firstCancelledAt = cancelled1.getCancelledAt();
 
         if (cancelled1.getStatus() != RegistrationStatus.CANCELLED) {

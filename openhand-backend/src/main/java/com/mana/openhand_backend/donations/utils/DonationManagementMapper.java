@@ -20,16 +20,18 @@ public class DonationManagementMapper {
         String frequency = donation.getFrequency() != null ? donation.getFrequency().name() : null;
         String status = donation.getStatus() != null ? donation.getStatus().name() : null;
 
+        Long eventId = (donation.getEvent() != null) ? donation.getEvent().getId() : null;
         return new DonationSummaryResponseModel(
-                donation.getId(),
-                user != null ? user.getId() : null,
-                user != null ? user.getName() : null,
-                user != null ? user.getEmail() : null,
-                donation.getAmount(),
-                donation.getCurrency(),
-                frequency,
-                status,
-                createdAt
+            donation.getId(),
+            user != null ? user.getId() : null,
+            eventId,
+            user != null ? user.getName() : null,
+            user != null ? user.getEmail() : null,
+            donation.getAmount(),
+            donation.getCurrency(),
+            frequency,
+            status,
+            createdAt
         );
     }
 
@@ -43,19 +45,22 @@ public class DonationManagementMapper {
         String frequency = donation.getFrequency() != null ? donation.getFrequency().name() : null;
         String status = donation.getStatus() != null ? donation.getStatus().name() : null;
 
+        String eventName = (donation.getEvent() != null && donation.getEvent().getTitle() != null)
+            ? donation.getEvent().getTitle() : null;
         return new DonationDetailResponseModel(
-                donation.getId(),
-                user != null ? user.getId() : null,
-                user != null ? user.getName() : null,
-                user != null ? user.getEmail() : null,
-                user != null ? user.getPhoneNumber() : null,
-                donation.getAmount(),
-                donation.getCurrency(),
-                frequency,
-                status,
-                createdAt,
-                donation.getPaymentProvider(),
-                donation.getPaymentReference()
+            donation.getId(),
+            user != null ? user.getId() : null,
+            user != null ? user.getName() : null,
+            user != null ? user.getEmail() : null,
+            user != null ? user.getPhoneNumber() : null,
+            donation.getAmount(),
+            donation.getCurrency(),
+            frequency,
+            status,
+            createdAt,
+            donation.getPaymentProvider(),
+            donation.getPaymentReference(),
+            eventName
         );
     }
 }

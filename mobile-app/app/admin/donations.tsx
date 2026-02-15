@@ -9,6 +9,7 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,7 @@ import {
     type DonationSummary,
     type ManualDonationFormData,
 } from '../../services/donation-management.service';
-import { getUpcomingEvents, type EventSummary } from '../../services/events.service';
+import { getAllEvents, type EventSummary } from '../../services/events.service';
 
 const formatAmount = (amount: number, currency: string) => `${currency} ${amount.toFixed(2)}`;
 
@@ -36,6 +37,13 @@ const formatTimestamp = (value: string | null) => {
 };
 
 export default function AdminDonationsScreen() {
+        // Filter state
+        const [eventId, setEventId] = useState<string>('');
+        const [year, setYear] = useState('');
+        const [month, setMonth] = useState('');
+        const [day, setDay] = useState('');
+        const [events, setEvents] = useState<EventSummary[]>([]);
+        const [eventsLoading, setEventsLoading] = useState(false);
     const router = useRouter();
     const { t } = useTranslation();
     const { user, hasRole } = useAuth();
@@ -59,8 +67,6 @@ export default function AdminDonationsScreen() {
     const [manualFormOpen, setManualFormOpen] = useState(false);
     const [manualFormLoading, setManualFormLoading] = useState(false);
     const [manualFormError, setManualFormError] = useState<string | null>(null);
-    const [events, setEvents] = useState<EventSummary[]>([]);
-    const [eventsLoading, setEventsLoading] = useState(false);
     const [formData, setFormData] = useState<ManualDonationFormData>({
         amount: 0,
         currency: 'CAD',
@@ -73,21 +79,39 @@ export default function AdminDonationsScreen() {
         setLoading(true);
         setError(null);
         try {
-            const data = await getManagedDonations();
+            const filters: { eventId?: number; year?: number; month?: number; day?: number } = {};
+            if (eventId && !isNaN(Number(eventId)) && Number(eventId) > 0) {
+                filters.eventId = parseInt(eventId);
+            }
+            if (year) filters.year = parseInt(year);
+            if (month) filters.month = parseInt(month);
+            if (day) filters.day = parseInt(day);
+            const data = await getManagedDonations(filters);
             setDonations(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to load donations for staff', err);
-            setError(t('admin.donations.loadError'));
+            setError(err?.response?.data?.message || t('admin.donations.loadError'));
         } finally {
             setLoading(false);
         }
-    }, [t]);
+    }, [t, eventId, year, month, day]);
 
     useEffect(() => {
         if (canView) {
             loadDonations();
         }
     }, [canView, loadDonations]);
+
+    // Load all events for dropdown
+    useEffect(() => {
+        setEventsLoading(true);
+        getAllEvents()
+            .then(setEvents)
+            .catch((err) => {
+                console.error('Failed to load events', err);
+            })
+            .finally(() => setEventsLoading(false));
+    }, []);
 
     const filteredDonations = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();
@@ -126,7 +150,7 @@ export default function AdminDonationsScreen() {
         setManualFormError(null);
         setEventsLoading(true);
         try {
-            const loadedEvents = await getUpcomingEvents();
+            const loadedEvents = await getAllEvents();
             setEvents(loadedEvents);
         } catch (err) {
             console.error('Failed to load events', err);
@@ -185,11 +209,80 @@ export default function AdminDonationsScreen() {
     return (
         <View style={styles.container}>
             <AppHeader onMenuPress={() => setMenuVisible(true)} />
-
             <ScrollView contentContainerStyle={styles.content}>
                 <Text style={styles.title}>{t('admin.donations.title')}</Text>
                 <Text style={styles.subtitle}>{t('admin.donations.subtitle')}</Text>
-
+                                {/* Filter controls - responsive for mobile */}
+                <View style={styles.filterSection}>
+                    <View style={styles.filterGroupFullWidth}>
+                        <Text style={styles.filterLabel}>{t('admin.donations.filter.eventName')}</Text>
+                        <View style={styles.pickerWrapper}>
+                            {eventsLoading ? (
+                                <ActivityIndicator size="small" />
+                            ) : Platform.OS === 'web' ? (
+                                <select
+                                    data-testid="event-filter-dropdown"
+                                    value={eventId ?? ''}
+                                    onChange={e => setEventId(e.target.value)}
+                                    style={{ width: '100%', padding: 8, borderRadius: 6, borderColor: '#E0E7F3', fontSize: 15 }}
+                                >
+                                    <option value="">{t('admin.donations.filter.eventNamePlaceholder')}</option>
+                                    {events.map(event => (
+                                        <option key={event.id} value={event.id}>{event.title}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <Picker
+                                    selectedValue={eventId}
+                                    onValueChange={setEventId}
+                                >
+                                    <Picker.Item label={t('admin.donations.filter.eventNamePlaceholder')} value="" />
+                                    {events.map((event) => (
+                                        <Picker.Item key={event.id} label={event.title} value={String(event.id)} />
+                                    ))}
+                                </Picker>
+                            )}
+                        </View>
+                    </View>
+                    <View style={styles.dateFiltersRow}>
+                        <View style={styles.filterGroupSmall}>
+                            <Text style={styles.filterLabel}>{t('admin.donations.filter.year')}</Text>
+                            <TextInput
+                                style={styles.filterInput}
+                                placeholder={t('admin.donations.filter.yearPlaceholder')}
+                                value={year}
+                                onChangeText={setYear}
+                                keyboardType="numeric"
+                                maxLength={4}
+                                testID="date-filter-year"
+                            />
+                        </View>
+                        <View style={styles.filterGroupSmall}>
+                            <Text style={styles.filterLabel}>{t('admin.donations.filter.month')}</Text>
+                            <TextInput
+                                style={styles.filterInput}
+                                placeholder={t('admin.donations.filter.monthPlaceholder')}
+                                value={month}
+                                onChangeText={setMonth}
+                                keyboardType="numeric"
+                                maxLength={2}
+                                testID="date-filter-month"
+                            />
+                        </View>
+                        <View style={styles.filterGroupSmall}>
+                            <Text style={styles.filterLabel}>{t('admin.donations.filter.day')}</Text>
+                            <TextInput
+                                style={styles.filterInput}
+                                placeholder={t('admin.donations.filter.dayPlaceholder')}
+                                value={day}
+                                onChangeText={setDay}
+                                keyboardType="numeric"
+                                maxLength={2}
+                                testID="date-filter-day"
+                            />
+                        </View>
+                    </View>
+                </View>
                 <View style={styles.searchWrapper}>
                     <Ionicons name="search" size={18} color={styles.icon.color} />
                     <TextInput
@@ -200,7 +293,6 @@ export default function AdminDonationsScreen() {
                         onChangeText={setSearchQuery}
                     />
                 </View>
-
                 {isAdmin && (
                     <Pressable
                         style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
@@ -212,7 +304,6 @@ export default function AdminDonationsScreen() {
                         <Text style={styles.addButtonText}>{t('admin.donations.addButton')}</Text>
                     </Pressable>
                 )}
-
                 {loading ? (
                     <View style={styles.centered}>
                         <ActivityIndicator />
@@ -232,7 +323,7 @@ export default function AdminDonationsScreen() {
                                         ? donation.donorName
                                         : donation.donorEmail ?? t('admin.donations.unknownDonor');
                                     return (
-                                        <View key={donation.id} style={styles.card}>
+                                        <View key={donation.id} style={styles.card} data-testid="donation-card">
                                             <View style={styles.cardHeader}>
                                                 <View>
                                                     <Text style={styles.cardTitle}>{donorLabel}</Text>
@@ -246,7 +337,6 @@ export default function AdminDonationsScreen() {
                                                     </Text>
                                                 </View>
                                             </View>
-
                                             <View style={styles.metaRow}>
                                                 <Text style={styles.metaLabel}>{t('admin.donations.fields.status')}:</Text>
                                                 <Text style={styles.metaValue}>
@@ -259,11 +349,10 @@ export default function AdminDonationsScreen() {
                                                     {t(`admin.donations.frequency.${donation.frequency}`, { defaultValue: donation.frequency })}
                                                 </Text>
                                             </View>
-                                            <View style={styles.metaRow}>
+                                            <View className="metaRow">
                                                 <Text style={styles.metaLabel}>{t('admin.donations.fields.createdAt')}:</Text>
                                                 <Text style={styles.metaValue}>{formatTimestamp(donation.createdAt)}</Text>
                                             </View>
-
                                             {isAdmin && (
                                                 <Pressable
                                                     style={({ pressed }) => [
@@ -341,6 +430,9 @@ export default function AdminDonationsScreen() {
                         ) : detail ? (
                             <View>
                                 <Text style={styles.detailLine}>
+                                    {t('admin.donations.fields.event')}: {detail.eventName ? detail.eventName : '-'}
+                                </Text>
+                                <Text style={styles.detailLine}>
                                     {t('admin.donations.fields.donor')}: {detail.donorName ?? t('admin.donations.unknownDonor')}
                                 </Text>
                                 <Text style={styles.detailLine}>
@@ -394,7 +486,7 @@ export default function AdminDonationsScreen() {
                                 <Text style={styles.formLabel}>{t('admin.donations.form.amount')} *</Text>
                                 <TextInput
                                     style={styles.formInput}
-                                    placeholder="0.00"
+                                    placeholder={t('admin.donations.form.amountPlaceholder')}
                                     placeholderTextColor={styles.placeholder.color}
                                     value={formData.amount ? formData.amount.toString() : ''}
                                     onChangeText={(text) => setFormData({ ...formData, amount: parseFloat(text) || 0 })}
@@ -410,9 +502,9 @@ export default function AdminDonationsScreen() {
                                         onValueChange={(value: string) => setFormData({ ...formData, currency: value })}
                                         style={styles.picker}
                                     >
-                                        <Picker.Item label="CAD" value="CAD" />
-                                        <Picker.Item label="USD" value="USD" />
-                                        <Picker.Item label="EUR" value="EUR" />
+                                        <Picker.Item label={t('admin.donations.currency.CAD')} value="CAD" />
+                                        <Picker.Item label={t('admin.donations.currency.USD')} value="USD" />
+                                        <Picker.Item label={t('admin.donations.currency.EUR')} value="EUR" />
                                     </Picker>
                                 </View>
                             </View>
@@ -424,13 +516,13 @@ export default function AdminDonationsScreen() {
                                         <Text style={styles.loadingText}>{t('common.loading')}</Text>
                                     ) : (
                                         <Picker
-                                            selectedValue={formData.eventId || null}
-                                            onValueChange={(value: number | null) => setFormData({ ...formData, eventId: value })}
+                                            selectedValue={formData.eventId !== null && formData.eventId !== undefined ? String(formData.eventId) : ''}
+                                            onValueChange={(value: string) => setFormData({ ...formData, eventId: value === '' ? null : Number(value) })}
                                             style={styles.picker}
                                         >
-                                            <Picker.Item label={t('admin.donations.form.noEvent')} value={null} />
+                                            <Picker.Item label={t('admin.donations.form.noEvent')} value={''} />
                                             {events.map((event) => (
-                                                <Picker.Item key={event.id} label={event.title} value={event.id} />
+                                                <Picker.Item key={event.id} label={event.title} value={String(event.id)} />
                                             ))}
                                         </Picker>
                                     )}
@@ -441,7 +533,7 @@ export default function AdminDonationsScreen() {
                                 <Text style={styles.formLabel}>{t('admin.donations.form.date')} *</Text>
                                 <TextInput
                                     style={styles.formInput}
-                                    placeholder="YYYY-MM-DD HH:MM"
+                                    placeholder={t('admin.donations.form.datePlaceholder')}
                                     placeholderTextColor={styles.placeholder.color}
                                     value={formData.donationDate ? formData.donationDate.slice(0, 16).replace('T', ' ') : ''}
                                     onChangeText={(text) => {
@@ -514,6 +606,35 @@ const getStyles = (isDark: boolean) => {
         content: {
             padding: 18,
             paddingBottom: 40,
+        },
+        filterSection: {
+            marginBottom: 16,
+        },
+        filterGroupFullWidth: {
+            marginBottom: 10,
+        },
+        dateFiltersRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            gap: 8,
+        },
+        filterGroupSmall: {
+            flex: 1,
+            minWidth: 0,
+        },
+        filterLabel: {
+            fontSize: 14,
+            color: MUTED,
+            marginBottom: 4,
+        },
+        filterInput: {
+            borderWidth: 1,
+            borderColor: BORDER,
+            borderRadius: 6,
+            padding: 8,
+            fontSize: 15,
+            color: TEXT,
+            backgroundColor: CARD,
         },
         title: {
             fontSize: 22,
@@ -718,6 +839,8 @@ const getStyles = (isDark: boolean) => {
         },
         picker: {
             color: TEXT,
+            backgroundColor: BG,
+            minHeight: 44,
         },
         readOnlyField: {
             borderWidth: 1,

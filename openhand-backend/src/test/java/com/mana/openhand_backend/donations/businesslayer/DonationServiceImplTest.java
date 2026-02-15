@@ -52,6 +52,9 @@ class DonationServiceImplTest {
     @Mock
     private NotificationRepository notificationRepository;
 
+    @Mock
+    private com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository;
+
     @InjectMocks
     private DonationServiceImpl donationService;
 
@@ -183,6 +186,9 @@ class DonationServiceImplTest {
             saved.setId(101L);
             return saved;
         });
+        // Mock eventRepository for eventId lookup
+        com.mana.openhand_backend.events.dataaccesslayer.Event mockEvent = org.mockito.Mockito.mock(com.mana.openhand_backend.events.dataaccesslayer.Event.class);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(mockEvent));
 
         // Act
         com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel response =

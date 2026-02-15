@@ -20,6 +20,11 @@ import java.util.NoSuchElementException;
 @Service
 public class EventAdminServiceImpl implements EventAdminService {
 
+    @Override
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll();
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(EventAdminServiceImpl.class);
 
     private final EventRepository eventRepository;

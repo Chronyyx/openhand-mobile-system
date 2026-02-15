@@ -75,18 +75,19 @@ class DonationAdminControllerTest {
     void getDonationDetail_returnsDetail() throws Exception {
         // Arrange
         DonationDetailResponseModel detail = new DonationDetailResponseModel(
-                5L,
-                11L,
-                "Sam Rivera",
-                "sam@mana.org",
-                "+15141234567",
-                new BigDecimal("25.00"),
-                "CAD",
-                "MONTHLY",
-                "RECEIVED",
-                "2025-02-01T12:00:00",
-                "Zeffy",
-                "PAY-123"
+            5L,
+            11L,
+            "Sam Rivera",
+            "sam@mana.org",
+            "+15141234567",
+            new BigDecimal("25.00"),
+            "CAD",
+            "MONTHLY",
+            "RECEIVED",
+            "2025-02-01T12:00:00",
+            "Zeffy",
+            "PAY-123",
+            "Spring Gala"
         );
         when(donationService.getDonationDetail(5L)).thenReturn(detail);
 

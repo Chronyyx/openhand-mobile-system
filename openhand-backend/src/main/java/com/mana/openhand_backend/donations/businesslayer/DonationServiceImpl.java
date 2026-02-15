@@ -44,6 +44,43 @@ public class DonationServiceImpl implements DonationService {
     private static final String DEFAULT_CURRENCY = "CAD";
     private static final BigDecimal MINIMUM_AMOUNT = new BigDecimal("1.00");
     private static final List<Integer> PRESET_AMOUNTS = List.of(10, 25, 50, 100);
+    @Override
+    public List<DonationSummaryResponseModel> getDonationsForStaffFilteredFlexible(Long eventId, String campaignName, Integer year, Integer month, Integer day) {
+        List<Donation> donations = donationRepository.findAll();
+        return donations.stream()
+                .filter(donation -> {
+                    // Event ID filter (preferred)
+                    if (eventId != null) {
+                        if (donation.getEvent() == null || !eventId.equals(donation.getEvent().getId())) {
+                            return false;
+                        }
+                    } else if (campaignName != null && donation.getEvent() != null) {
+                        // Fallback: Campaign name filter (case-insensitive, backward compatibility)
+                        String eventTitle = donation.getEvent().getTitle();
+                        if (eventTitle == null || !eventTitle.toLowerCase().contains(campaignName.toLowerCase())) {
+                            return false;
+                        }
+                    } else if (campaignName != null && donation.getEvent() == null) {
+                        return false;
+                    }
+                    // Date filtering
+                    if (year != null) {
+                        int donationYear = donation.getCreatedAt().getYear();
+                        if (donationYear != year) return false;
+                        if (month != null) {
+                            int donationMonth = donation.getCreatedAt().getMonthValue();
+                            if (donationMonth != month) return false;
+                            if (day != null) {
+                                int donationDay = donation.getCreatedAt().getDayOfMonth();
+                                if (donationDay != day) return false;
+                            }
+                        }
+                    }
+                    return true;
+                })
+                .map(DonationManagementMapper::toSummary)
+                .collect(Collectors.toList());
+    }
 
     private final DonationRepository donationRepository;
     private final UserRepository userRepository;
@@ -56,6 +93,15 @@ public class DonationServiceImpl implements DonationService {
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.notificationRepository = notificationRepository;
+    private final com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository;
+
+    public DonationServiceImpl(DonationRepository donationRepository, UserRepository userRepository,
+            NotificationService notificationService,
+            com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository) {
+        this.donationRepository = donationRepository;
+        this.userRepository = userRepository;
+        this.notificationService = notificationService;
+        this.eventRepository = eventRepository;
     }
 
     @Override
@@ -128,7 +174,14 @@ public class DonationServiceImpl implements DonationService {
 
         Donation donation = new Donation(donorUser, request.getAmount(), currency, 
                 DonationFrequency.ONE_TIME, DonationStatus.RECEIVED);
-        
+
+        // Set event if eventId is provided
+        if (request.getEventId() != null) {
+            com.mana.openhand_backend.events.dataaccesslayer.Event event = eventRepository.findById(request.getEventId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event not found for eventId: " + request.getEventId()));
+            donation.setEvent(event);
+        }
+
         // Set donation date if provided, otherwise use current time
         if (request.getDonationDate() != null) {
             donation.setCreatedAt(request.getDonationDate());

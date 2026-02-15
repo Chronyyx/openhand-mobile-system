@@ -301,9 +301,10 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
                     .collect(Collectors.toList());
 
-            // If nothing to cancel, just return the registration
+            // If nothing to cancel, return the latest registration state from the database
             if (toCancel.isEmpty()) {
-                return registration;
+                return registrationRepository.findById(registration.getId())
+                        .orElse(registration);
             }
 
             int confirmedCount = (int) toCancel.stream()

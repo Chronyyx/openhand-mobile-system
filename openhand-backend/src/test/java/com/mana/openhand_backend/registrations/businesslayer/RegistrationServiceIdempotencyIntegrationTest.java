@@ -1,11 +1,10 @@
-package com.mana.openhand_backend.registrations.presentationlayer;
+package com.mana.openhand_backend.registrations.businesslayer;
 
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
-import com.mana.openhand_backend.registrations.businesslayer.RegistrationService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
@@ -19,11 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
-class RegistrationServiceIdempotencyTest {
+class RegistrationServiceIdempotencyIntegrationTest {
 
     @Autowired
     private RegistrationService registrationService;
@@ -77,10 +77,12 @@ class RegistrationServiceIdempotencyTest {
                 .orElseThrow();
         LocalDateTime firstCancelledAt = cancelled1.getCancelledAt();
 
-        if (cancelled1.getStatus() != RegistrationStatus.CANCELLED) {
-            assertEquals(RegistrationStatus.CANCELLED, cancelled1.getStatus(),
-                    "DB START FAIL: Expected initial cancellation to set status to CANCELLED");
-        }
+        // Check status directly with assertion, no if-check needed
+        assertEquals(RegistrationStatus.CANCELLED, cancelled1.getStatus(),
+                "DB START FAIL: Expected initial cancellation to set status to CANCELLED");
+
+        // Copilot suggestion: Ensure timestamp is set
+        assertNotNull(firstCancelledAt, "First cancellation should set cancelledAt timestamp");
 
         // Act 2: Second Cancellation
         Registration cancelled2 = registrationService.cancelRegistration(user.getId(), event.getId());

@@ -18,6 +18,7 @@ export type DonationDetail = DonationSummary & {
     donorPhone: string | null;
     paymentProvider: string | null;
     paymentReference: string | null;
+    eventName?: string | null;
 };
 
 export type ManualDonationFormData = {
@@ -40,9 +41,18 @@ const getAuthHeaders = async () => {
     };
 };
 
-export const getManagedDonations = async (): Promise<DonationSummary[]> => {
+export const getManagedDonations = async (filters?: { eventId?: number; year?: number; month?: number; day?: number }): Promise<DonationSummary[]> => {
     const headers = await getAuthHeaders();
-    const response = await axios.get(`${API_BASE}/employee/donations`, { headers });
+    let query = '';
+    if (filters) {
+        const params = [];
+        if (filters.eventId) params.push(`eventId=${filters.eventId}`);
+        if (filters.year) params.push(`year=${filters.year}`);
+        if (filters.month) params.push(`month=${filters.month}`);
+        if (filters.day) params.push(`day=${filters.day}`);
+        if (params.length > 0) query = '?' + params.join('&');
+    }
+    const response = await axios.get(`${API_BASE}/employee/donations${query}`, { headers });
     return response.data;
 };
 

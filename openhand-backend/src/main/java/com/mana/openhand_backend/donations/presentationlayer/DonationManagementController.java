@@ -37,8 +37,38 @@ public class DonationManagementController {
     }
 
     @GetMapping
-    public List<DonationSummaryResponseModel> getDonationsForStaff() {
-        return donationService.getDonationsForStaff();
+    public List<DonationSummaryResponseModel> getDonationsForStaff(
+            @RequestParam(value = "eventId", required = false) Long eventId,
+            @RequestParam(value = "campaignName", required = false) String campaignName,
+            @RequestParam(value = "year", required = false) Integer year,
+            @RequestParam(value = "month", required = false) Integer month,
+            @RequestParam(value = "day", required = false) Integer day) {
+        // Debug: Log incoming eventId
+        System.out.println("[DonationManagementController] eventId param: " + eventId);
+        // Validate year/month/day
+        if (month != null && (month < 1 || month > 12)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Invalid month. Must be between 1 and 12."
+            );
+        }
+        if (day != null && (month == null || year == null)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.BAD_REQUEST,
+                "Day filter requires both year and month."
+            );
+        }
+        if (day != null && month != null && year != null) {
+            try {
+                java.time.LocalDate.of(year, month, day);
+            } catch (Exception e) {
+                throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Invalid day for the given month/year."
+                );
+            }
+        }
+        return donationService.getDonationsForStaffFilteredFlexible(eventId, campaignName, year, month, day);
     }
 
     @PostMapping("/manual")

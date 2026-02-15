@@ -2,10 +2,15 @@ package com.mana.openhand_backend.donations.domainclientlayer;
 
 import java.math.BigDecimal;
 
-public class DonationSummaryResponseModel {
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class DonationSummaryResponseModel {
+    @JsonProperty("id")
     private Long id;
     private Long userId;
+    @JsonProperty("eventId")
+    private Long eventId;
     private String donorName;
     private String donorEmail;
     private BigDecimal amount;
@@ -14,13 +19,15 @@ public class DonationSummaryResponseModel {
     private String status;
     private String createdAt;
 
+
     public DonationSummaryResponseModel() {
     }
 
-    public DonationSummaryResponseModel(Long id, Long userId, String donorName, String donorEmail,
+    public DonationSummaryResponseModel(Long id, Long userId, Long eventId, String donorName, String donorEmail,
             BigDecimal amount, String currency, String frequency, String status, String createdAt) {
         this.id = id;
         this.userId = userId;
+        this.eventId = eventId;
         this.donorName = donorName;
         this.donorEmail = donorEmail;
         this.amount = amount;
@@ -30,6 +37,17 @@ public class DonationSummaryResponseModel {
         this.createdAt = createdAt;
     }
 
+    @JsonProperty("eventId")
+    public Long getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
+    }
+
+
+    @JsonProperty("id")
     public Long getId() {
         return id;
     }

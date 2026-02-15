@@ -44,11 +44,18 @@ class DonationManagementControllerTest {
     private UserRepository userRepository;
 
     @Test
+    @WithMockUser(username = "employee@example.com", roles = "EMPLOYEE")
     void getDonationsForStaff_returnsList() throws Exception {
         // Arrange
+        User employeeUser = new User();
+        employeeUser.setId(10L);
+        employeeUser.setEmail("employee@example.com");
+        when(userRepository.findByEmail("employee@example.com")).thenReturn(Optional.of(employeeUser));
+
         DonationSummaryResponseModel summary = new DonationSummaryResponseModel(
                 1L,
                 10L,
+                200L, // eventId
                 "Alex Doe",
                 "alex@mana.org",
                 new BigDecimal("15.00"),
@@ -57,7 +64,7 @@ class DonationManagementControllerTest {
                 "RECEIVED",
                 "2025-01-01T10:00:00"
         );
-        when(donationService.getDonationsForStaff()).thenReturn(List.of(summary));
+        when(donationService.getDonationsForStaffFilteredFlexible(null, null, null, null, null)).thenReturn(List.of(summary));
 
         // Act & Assert
         mockMvc.perform(get("/api/employee/donations"))
@@ -73,14 +80,17 @@ class DonationManagementControllerTest {
         User employeeUser = new User();
         employeeUser.setId(1L);
         employeeUser.setEmail("employee@example.com");
+        employeeUser.setPasswordHash("password");
+        employeeUser.setRoles(new java.util.HashSet<>(java.util.List.of("ROLE_EMPLOYEE")));
+        employeeUser.setAccountNonLocked(true);
         when(userRepository.findByEmail("employee@example.com")).thenReturn(Optional.of(employeeUser));
         
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("25.00"), "CAD", 1L, LocalDateTime.of(2025, 1, 15, 14, 30), "Test donation");
         DonationSummaryResponseModel response = new DonationSummaryResponseModel(
-                101L, 2L, "John Donor", "john@example.com", new BigDecimal("25.00"),
+                101L, 2L, 201L, "John Donor", "john@example.com", new BigDecimal("25.00"),
                 "CAD", "ONE_TIME", "RECEIVED", "2025-01-15T14:30:00");
-        when(donationService.createManualDonation(eq(1L), eq(2L), any(ManualDonationRequestModel.class)))
+        when(donationService.createManualDonation(any(Long.class), eq(2L), any(ManualDonationRequestModel.class)))
                 .thenReturn(response);
 
         // Act & Assert
@@ -101,14 +111,17 @@ class DonationManagementControllerTest {
         User employeeUser = new User();
         employeeUser.setId(1L);
         employeeUser.setEmail("employee@example.com");
+        employeeUser.setPasswordHash("password");
+        employeeUser.setRoles(new java.util.HashSet<>(java.util.List.of("ROLE_EMPLOYEE")));
+        employeeUser.setAccountNonLocked(true);
         when(userRepository.findByEmail("employee@example.com")).thenReturn(Optional.of(employeeUser));
         
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("15.00"), "CAD", null, null, null);
         DonationSummaryResponseModel response = new DonationSummaryResponseModel(
-                102L, 3L, "Jane Donor", "jane@example.com", new BigDecimal("15.00"),
+                102L, 3L, 202L, "Jane Donor", "jane@example.com", new BigDecimal("15.00"),
                 "CAD", "ONE_TIME", "RECEIVED", "2025-01-01T00:00:00");
-        when(donationService.createManualDonation(eq(1L), eq(3L), any(ManualDonationRequestModel.class)))
+        when(donationService.createManualDonation(any(Long.class), eq(3L), any(ManualDonationRequestModel.class)))
                 .thenReturn(response);
 
         // Act & Assert

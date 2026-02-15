@@ -16,6 +16,8 @@ public interface DonationService {
 
     List<DonationSummaryResponseModel> getDonationsForStaff();
 
+    List<DonationSummaryResponseModel> getDonationsForStaffFilteredFlexible(Long eventId, String campaignName, Integer year, Integer month, Integer day);
+
     DonationDetailResponseModel getDonationDetail(Long donationId);
 
     DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, ManualDonationRequestModel request);

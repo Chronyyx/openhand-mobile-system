@@ -357,6 +357,14 @@
     }
   },
   "donations": {
+          "filter": {
+            "campaign": "Campaña",
+            "allCampaigns": "Todas las campañas",
+            "startDate": "Fecha de inicio",
+            "endDate": "Fecha de fin",
+            "startDatePlaceholder": "AAAA-MM-DD",
+            "endDatePlaceholder": "AAAA-MM-DD"
+          },
     "title": "Donaciones",
     "subtitle": "Apoya a MANA con un aporte rápido y seguro.",
     "zeffyTitle": "Donar con Zeffy",

@@ -17,12 +17,20 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.NoSuchElementException;
+import java.util.List;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/admin/events")
 @PreAuthorize("hasRole('ADMIN')")
 public class EventAdminController {
+    @GetMapping("/all")
+    public List<EventResponseModel> getAllEvents() {
+        List<Event> events = eventAdminService.getAllEvents();
+        return events.stream()
+                .map(EventResponseMapper::toResponseModel)
+                .toList();
+    }
 
     private final EventAdminService eventAdminService;
 

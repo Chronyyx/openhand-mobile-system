@@ -17,6 +17,7 @@ public interface DonationService {
 
     List<DonationSummaryResponseModel> getDonationsForStaff();
 
+    @Override
     List<DonationSummaryResponseModel> getDonationsForStaffFilteredFlexible(Long eventId, String campaignName, Integer year, Integer month, Integer day);
 
     DonationDetailResponseModel getDonationDetail(Long donationId);

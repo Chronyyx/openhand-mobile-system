@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @TestPropertySource(locations = "classpath:application-test.properties")
+@Transactional
 class RegistrationServiceIdempotencyTest {
 
     @Autowired
@@ -40,10 +42,6 @@ class RegistrationServiceIdempotencyTest {
 
     @BeforeEach
     void setup() {
-        registrationRepository.deleteAll();
-        eventRepository.deleteAll();
-        userRepository.deleteAll();
-
         user = new User();
         user.setEmail("idempotency@example.com");
         user.setPasswordHash("pw");

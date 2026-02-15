@@ -272,6 +272,11 @@ public class RegistrationServiceImpl implements RegistrationService {
     private Registration cancelRegistrationInternal(Registration registration, String reason,
             boolean skipCompletionCheck,
             Long eventIdOverride) {
+        if (registration.getStatus() == RegistrationStatus.CANCELLED) {
+            return registrationRepository.findById(registration.getId())
+                    .orElse(registration);
+        }
+
         Event event = registration.getEvent();
         if (!skipCompletionCheck && event != null
                 && eventCompletionService.ensureCompletedIfEnded(event, LocalDateTime.now())) {
@@ -286,10 +291,23 @@ public class RegistrationServiceImpl implements RegistrationService {
             List<Registration> groupRegistrations = eventId != null
                     ? registrationRepository.findByEventIdAndRegistrationGroupId(eventId, groupId)
                     : registrationRepository.findByRegistrationGroupId(groupId);
+
             if (groupRegistrations.isEmpty()) {
                 groupRegistrations = List.of(registration);
             }
-            int confirmedCount = (int) groupRegistrations.stream()
+
+            // Filter to only registrations that aren't already cancelled
+            List<Registration> toCancel = groupRegistrations.stream()
+                    .filter(reg -> reg.getStatus() != RegistrationStatus.CANCELLED)
+                    .collect(Collectors.toList());
+
+            // If nothing to cancel, return the latest registration state from the database
+            if (toCancel.isEmpty()) {
+                return registrationRepository.findById(registration.getId())
+                        .orElse(registration);
+            }
+
+            int confirmedCount = (int) toCancel.stream()
                     .filter(reg -> reg.getStatus() == RegistrationStatus.CONFIRMED)
                     .count();
 
@@ -301,12 +319,12 @@ public class RegistrationServiceImpl implements RegistrationService {
             }
 
             LocalDateTime cancelledAt = LocalDateTime.now();
-            groupRegistrations.forEach(reg -> {
+            toCancel.forEach(reg -> {
                 reg.setStatus(RegistrationStatus.CANCELLED);
                 reg.setCancelledAt(cancelledAt);
             });
 
-            List<Registration> cancelledGroup = registrationRepository.saveAll(groupRegistrations);
+            List<Registration> cancelledGroup = registrationRepository.saveAll(toCancel);
             cancelledRegistration = cancelledGroup.stream()
                     .filter(reg -> Objects.equals(reg.getId(), registration.getId()))
                     .findFirst()

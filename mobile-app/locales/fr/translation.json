@@ -255,7 +255,11 @@
       "register": "📝 S'inscrire à cet événement",
       "joinWaitlist": "📝 Rejoindre la liste d'attente",
       "undo": "Annuler l'inscription",
-      "unregister": "Se désinscrire"
+      "unregister": "Se désinscrire",
+      "confirmUnregisterTitle": "Annuler l'inscription ?",
+      "confirmUnregisterMessage": "Êtes-vous sûr de vouloir annuler votre inscription ? Cette action est irréversible.",
+      "confirmUnregisterYes": "Oui, annuler",
+      "confirmUnregisterNo": "Non, garder"
     },
     "inactiveMember": "Votre compte est désactivé. Vous ne pouvez pas vous inscrire aux événements.",
     "errors": {

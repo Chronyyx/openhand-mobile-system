@@ -255,7 +255,11 @@
       "register": "📝 Registrarse para este evento",
       "joinWaitlist": "📝 Unirse a la lista de espera",
       "undo": "Deshacer registro",
-      "unregister": "Cancelar inscripción"
+      "unregister": "Cancelar inscripción",
+      "confirmUnregisterTitle": "¿Cancelar inscripción?",
+      "confirmUnregisterMessage": "¿Estás seguro de que deseas cancelar tu inscripción? Esta acción no se puede deshacer.",
+      "confirmUnregisterYes": "Sí, cancelar",
+      "confirmUnregisterNo": "No, mantener"
     },
     "errors": {
       "loadFailed": "No se pudo cargar el evento.",

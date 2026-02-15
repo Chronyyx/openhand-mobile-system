@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
@@ -237,6 +237,33 @@ export function EventDetailModal({
         router.push(`/events/${displayEvent.id}/attendees`);
     };
 
+    const handleUnregisterPress = () => {
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(
+                t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.')
+            );
+            if (confirmed) {
+                onUnregister();
+            }
+        } else {
+            Alert.alert(
+                t('events.actions.confirmUnregisterTitle', 'Cancel Registration?'),
+                t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.'),
+                [
+                    {
+                        text: t('events.actions.confirmUnregisterNo', 'No, Keep it'),
+                        style: 'cancel'
+                    },
+                    {
+                        text: t('events.actions.confirmUnregisterYes', 'Yes, Cancel'),
+                        style: 'destructive',
+                        onPress: onUnregister
+                    }
+                ]
+            );
+        }
+    };
+
     const isInactiveMember = user?.memberStatus === 'INACTIVE';
 
     return (
@@ -302,7 +329,7 @@ export function EventDetailModal({
                                 )}
                                 <Pressable
                                     style={styles.undoButton}
-                                    onPress={onUnregister}
+                                    onPress={handleUnregisterPress}
                                     accessibilityRole="button"
                                     accessibilityLabel={t('events.actions.undo', "Cancel registration")}
                                     accessibilityHint={t('events.actions.undoHint', 'Cancels your registration')}
@@ -460,7 +487,7 @@ export function EventDetailModal({
                                                         onPress={() => setWalkinSelected(r)}
                                                         style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}
                                                         accessibilityRole="button"
-                                                        accessibilityLabel={t('events.walkin.selectUser', 'Select user')} 
+                                                        accessibilityLabel={t('events.walkin.selectUser', 'Select user')}
                                                         accessibilityHint={r.email}
                                                         accessibilityState={{ selected: walkinSelected?.id === r.id }}
                                                     >
@@ -589,7 +616,7 @@ export function EventDetailModal({
                                                 {userRegistration ? (
                                                     <Pressable
                                                         style={[styles.unregisterButton, isRegistering && { opacity: 0.6 }]}
-                                                        onPress={onUnregister}
+                                                        onPress={handleUnregisterPress}
                                                         disabled={isRegistering}
                                                         accessibilityRole="button"
                                                         accessibilityLabel={t('events.actions.unregister', 'Unregister')}

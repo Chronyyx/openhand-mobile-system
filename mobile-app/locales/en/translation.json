@@ -255,7 +255,11 @@
       "register": "📝 Register for this event",
       "joinWaitlist": "📝 Join waitlist",
       "undo": "Undo registration",
-      "unregister": "Unregister"
+      "unregister": "Unregister",
+      "confirmUnregisterTitle": "Cancel Registration?",
+      "confirmUnregisterMessage": "Are you sure you want to cancel your registration? This action cannot be undone.",
+      "confirmUnregisterYes": "Yes, Cancel",
+      "confirmUnregisterNo": "No, Keep it"
     },
     "errors": {
       "loadFailed": "Unable to load event.",

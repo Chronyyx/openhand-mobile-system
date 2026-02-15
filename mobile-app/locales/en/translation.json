@@ -255,7 +255,11 @@
       "register": "📝 Register for this event",
       "joinWaitlist": "📝 Join waitlist",
       "undo": "Undo registration",
-      "unregister": "Unregister"
+      "unregister": "Unregister",
+      "confirmUnregisterTitle": "Cancel Registration?",
+      "confirmUnregisterMessage": "Are you sure you want to cancel your registration? This action cannot be undone.",
+      "confirmUnregisterYes": "Yes, Cancel",
+      "confirmUnregisterNo": "No, Keep it"
     },
     "errors": {
       "loadFailed": "Unable to load event.",
@@ -543,8 +547,12 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "generate": "Generate",
+      "exportCsv": "Export CSV",
       "noResults": "No results",
       "errorLoading": "Error loading reports",
+      "exportSuccess": "CSV exported successfully.",
+      "exportError": "Failed to export CSV.",
+      "shareUnavailable": "Sharing is not available on this device.",
       "invalidDateRange": "Start date must be before or equal to end date.",
       "totalAttended": "Total Attended",
       "attendanceRate": "Attendance Rate"

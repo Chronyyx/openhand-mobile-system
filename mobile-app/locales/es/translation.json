@@ -255,7 +255,11 @@
       "register": "📝 Registrarse para este evento",
       "joinWaitlist": "📝 Unirse a la lista de espera",
       "undo": "Deshacer registro",
-      "unregister": "Cancelar inscripción"
+      "unregister": "Cancelar inscripción",
+      "confirmUnregisterTitle": "¿Cancelar inscripción?",
+      "confirmUnregisterMessage": "¿Estás seguro de que deseas cancelar tu inscripción? Esta acción no se puede deshacer.",
+      "confirmUnregisterYes": "Sí, cancelar",
+      "confirmUnregisterNo": "No, mantener"
     },
     "errors": {
       "loadFailed": "No se pudo cargar el evento.",
@@ -551,8 +555,12 @@
       "startDate": "Fecha de inicio",
       "endDate": "Fecha de fin",
       "generate": "Generar",
+      "exportCsv": "Exportar CSV",
       "noResults": "Sin resultados",
       "errorLoading": "Error al cargar informes",
+      "exportSuccess": "CSV exportado correctamente.",
+      "exportError": "No se pudo exportar el CSV.",
+      "shareUnavailable": "Compartir no está disponible en este dispositivo.",
       "invalidDateRange": "La fecha de inicio debe ser anterior o igual a la fecha de fin.",
       "totalAttended": "Total asistieron",
       "attendanceRate": "Tasa de asistencia"

@@ -13,6 +13,14 @@ public interface UserMemberService {
     User getProfile(Long userId);
 
     /**
+     * Get profile of a user by email.
+     *
+     * @param email user email
+     * @return user entity
+     */
+    User getProfileByEmail(String email);
+
+    /**
      * Update profile of the authenticated member.
      *
      * @param userId  authenticated user id

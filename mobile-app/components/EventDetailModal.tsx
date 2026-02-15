@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme } from 'react-native';
+import { View, Modal, Image, ScrollView, Animated, Pressable, ActivityIndicator, TextInput, useColorScheme, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ThemedText } from './themed-text';
@@ -237,6 +237,33 @@ export function EventDetailModal({
         router.push(`/events/${displayEvent.id}/attendees`);
     };
 
+    const handleUnregisterPress = () => {
+        if (Platform.OS === 'web') {
+            const confirmed = window.confirm(
+                t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.')
+            );
+            if (confirmed) {
+                onUnregister();
+            }
+        } else {
+            Alert.alert(
+                t('events.actions.confirmUnregisterTitle', 'Cancel Registration?'),
+                t('events.actions.confirmUnregisterMessage', 'Are you sure you want to cancel your registration? This action cannot be undone.'),
+                [
+                    {
+                        text: t('events.actions.confirmUnregisterNo', 'No, Keep it'),
+                        style: 'cancel'
+                    },
+                    {
+                        text: t('events.actions.confirmUnregisterYes', 'Yes, Cancel'),
+                        style: 'destructive',
+                        onPress: onUnregister
+                    }
+                ]
+            );
+        }
+    };
+
     const isInactiveMember = user?.memberStatus === 'INACTIVE';
 
     return (
@@ -285,7 +312,7 @@ export function EventDetailModal({
                                 <ThemedText type="subtitle" style={styles.successTitle}>
                                     {t('alerts.registerSuccess', 'Inscription confirmée !')}
                                 </ThemedText>
-                                <ThemedText style={styles.successMessage}>
+                                <ThemedText testID="success-message" style={styles.successMessage}>
                                     {t('alerts.registerSuccessMessage', "Vous êtes inscrit(e) à l'événement.")}
                                 </ThemedText>
                                 {registrationParticipants && registrationParticipants.length > 0 && (
@@ -302,7 +329,7 @@ export function EventDetailModal({
                                 )}
                                 <Pressable
                                     style={styles.undoButton}
-                                    onPress={onUnregister}
+                                    onPress={handleUnregisterPress}
                                     accessibilityRole="button"
                                     accessibilityLabel={t('events.actions.undo', "Cancel registration")}
                                     accessibilityHint={t('events.actions.undoHint', 'Cancels your registration')}
@@ -460,7 +487,7 @@ export function EventDetailModal({
                                                         onPress={() => setWalkinSelected(r)}
                                                         style={({ pressed }) => [styles.unregisterButton, pressed && { opacity: 0.9 }]}
                                                         accessibilityRole="button"
-                                                        accessibilityLabel={t('events.walkin.selectUser', 'Select user')} 
+                                                        accessibilityLabel={t('events.walkin.selectUser', 'Select user')}
                                                         accessibilityHint={r.email}
                                                         accessibilityState={{ selected: walkinSelected?.id === r.id }}
                                                     >
@@ -497,6 +524,7 @@ export function EventDetailModal({
                                             <Pressable
                                                 style={styles.familyAddButton}
                                                 onPress={handleAddFamilyMember}
+                                                testID="add-family-member"
                                                 accessibilityRole="button"
                                                 accessibilityLabel={t('events.family.addButton', 'Add Family Member')}
                                                 accessibilityHint={t('events.family.addHint', 'Adds another family member to this registration')}
@@ -562,7 +590,7 @@ export function EventDetailModal({
                                 {/* Buttons */}
                                 {user ? (
                                     isInactiveMember ? (
-                                        <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
+                                        <View testID="error-message" style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
                                             <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>
                                                 {t('events.inactiveMember')}
                                             </ThemedText>
@@ -578,7 +606,7 @@ export function EventDetailModal({
                                             <View style={{ marginTop: 24, gap: 12 }}>
                                                 {/* Error Message Display */}
                                                 {registrationError && (
-                                                    <View style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
+                                                    <View testID="error-message" style={[styles.infoBox, { borderLeftColor: infoPalette.errorBorder, borderLeftWidth: 4, backgroundColor: infoPalette.errorBg }]}>
                                                         <ThemedText style={[styles.infoText, { color: infoPalette.errorText }]}>
                                                             {registrationError}
                                                         </ThemedText>
@@ -588,7 +616,7 @@ export function EventDetailModal({
                                                 {userRegistration ? (
                                                     <Pressable
                                                         style={[styles.unregisterButton, isRegistering && { opacity: 0.6 }]}
-                                                        onPress={onUnregister}
+                                                        onPress={handleUnregisterPress}
                                                         disabled={isRegistering}
                                                         accessibilityRole="button"
                                                         accessibilityLabel={t('events.actions.unregister', 'Unregister')}
@@ -604,7 +632,7 @@ export function EventDetailModal({
                                                         )}
                                                     </Pressable>
                                                 ) : (
-                                                    <View style={{ gap: 10 }}>
+                                                    <View testID="register-button" style={{ gap: 10 }}>
                                                         <View style={styles.participantCountRow}>
                                                             <ThemedText style={styles.participantCountLabel}>
                                                                 {t('events.family.totalParticipants', 'Total participants')}
@@ -617,6 +645,7 @@ export function EventDetailModal({
                                                             style={[styles.registerButton, isRegistering && { opacity: 0.6 }]}
                                                             onPress={() => onRegister(familyMembers)}
                                                             disabled={isRegistering}
+                                                            testID="confirm-register"
                                                             accessibilityRole="button"
                                                             accessibilityLabel={displayEvent?.status === 'FULL'
                                                                 ? t('events.actions.joinWaitlist')

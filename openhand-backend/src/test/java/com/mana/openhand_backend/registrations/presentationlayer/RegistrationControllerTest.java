@@ -2,8 +2,8 @@ package com.mana.openhand_backend.registrations.presentationlayer;
 
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
+import com.mana.openhand_backend.identity.businesslayer.UserMemberService;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
-import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.registrations.businesslayer.RegistrationService;
 import com.mana.openhand_backend.registrations.dataaccesslayer.Registration;
 import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
@@ -33,7 +33,7 @@ class RegistrationControllerTest {
     private RegistrationService registrationService;
 
     @Mock
-    private UserRepository userRepository;
+    private UserMemberService userMemberService;
 
     @Mock
     private Authentication authentication;
@@ -83,7 +83,7 @@ class RegistrationControllerTest {
     private void setupAuthentication(String email) {
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn(email);
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
+        when(userMemberService.getProfileByEmail(email)).thenReturn(testUser);
     }
 
     // ========== registerForEvent Tests ==========
@@ -103,7 +103,7 @@ class RegistrationControllerTest {
         assertNotNull(response);
         assertEquals("CONFIRMED", response.getStatus());
         verify(registrationService).registerForEvent(1L, 1L);
-        verify(userRepository).findByEmail("test@example.com");
+        verify(userMemberService).getProfileByEmail("test@example.com");
     }
 
     @Test
@@ -132,7 +132,8 @@ class RegistrationControllerTest {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("nonexistent@example.com");
-        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        when(userMemberService.getProfileByEmail("nonexistent@example.com"))
+                .thenThrow(new RuntimeException("User not found"));
 
         RegistrationRequestModel request = new RegistrationRequestModel(1L);
 
@@ -185,7 +186,9 @@ class RegistrationControllerTest {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("nonexistent@example.com");
-        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        when(userMemberService.getProfileByEmail("nonexistent@example.com"))
+                .thenThrow(
+                        new com.mana.openhand_backend.identity.utils.UserNotFoundException("nonexistent@example.com"));
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> registrationController.getMyRegistrations(authentication));
@@ -229,7 +232,9 @@ class RegistrationControllerTest {
         // Arrange
         when(authentication.getPrincipal()).thenReturn(userDetails);
         when(userDetails.getUsername()).thenReturn("nonexistent@example.com");
-        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        when(userMemberService.getProfileByEmail("nonexistent@example.com"))
+                .thenThrow(
+                        new com.mana.openhand_backend.identity.utils.UserNotFoundException("nonexistent@example.com"));
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> registrationController.cancelRegistration(1L, authentication));

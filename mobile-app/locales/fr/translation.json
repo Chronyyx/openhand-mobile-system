@@ -255,7 +255,11 @@
       "register": "📝 S'inscrire à cet événement",
       "joinWaitlist": "📝 Rejoindre la liste d'attente",
       "undo": "Annuler l'inscription",
-      "unregister": "Se désinscrire"
+      "unregister": "Se désinscrire",
+      "confirmUnregisterTitle": "Annuler l'inscription ?",
+      "confirmUnregisterMessage": "Êtes-vous sûr de vouloir annuler votre inscription ? Cette action est irréversible.",
+      "confirmUnregisterYes": "Oui, annuler",
+      "confirmUnregisterNo": "Non, garder"
     },
     "inactiveMember": "Votre compte est désactivé. Vous ne pouvez pas vous inscrire aux événements.",
     "errors": {
@@ -551,8 +555,12 @@
       "startDate": "Date de début",
       "endDate": "Date de fin",
       "generate": "Générer",
+      "exportCsv": "Exporter CSV",
       "noResults": "Aucun résultat",
       "errorLoading": "Erreur lors du chargement des rapports",
+      "exportSuccess": "CSV exporté avec succès.",
+      "exportError": "Échec de l'export CSV.",
+      "shareUnavailable": "Le partage n'est pas disponible sur cet appareil.",
       "invalidDateRange": "La date de début doit être avant ou égale à la date de fin.",
       "totalAttended": "Total présents",
       "attendanceRate": "Taux de présence"

@@ -1,3 +1,7 @@
+export async function getAllEvents(): Promise<EventSummary[]> {
+    const res = await apiClient.get('/admin/events/all');
+    return res.data;
+}
 // mobile-app/services/events.service.ts
 import apiClient from './api.client';
 import type { RegistrationParticipant } from './registration.service';

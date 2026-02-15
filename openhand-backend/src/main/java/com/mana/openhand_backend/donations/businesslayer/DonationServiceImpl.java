@@ -21,6 +21,7 @@ import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType;
+import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -82,18 +83,25 @@ public class DonationServiceImpl implements DonationService {
                 .collect(Collectors.toList());
     }
 
-    private final DonationRepository donationRepository;
-    private final UserRepository userRepository;
-    private final NotificationService notificationService;
-    private final NotificationRepository notificationRepository;
+  private final DonationRepository donationRepository;
+  private final UserRepository userRepository;
+  private final NotificationService notificationService;
+  private final NotificationRepository notificationRepository;
+  private final EventRepository eventRepository;
 
-    public DonationServiceImpl(DonationRepository donationRepository, UserRepository userRepository,
-            NotificationService notificationService, NotificationRepository notificationRepository) {
-        this.donationRepository = donationRepository;
-        this.userRepository = userRepository;
-        this.notificationService = notificationService;
-        this.notificationRepository = notificationRepository;
-    private final com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository;
+  public DonationServiceImpl(
+          DonationRepository donationRepository,
+          UserRepository userRepository,
+          NotificationService notificationService,
+          NotificationRepository notificationRepository,
+          EventRepository eventRepository) {
+      this.donationRepository = donationRepository;
+      this.userRepository = userRepository;
+      this.notificationService = notificationService;
+      this.notificationRepository = notificationRepository;
+      this.eventRepository = eventRepository;
+  }
+
 
     public DonationServiceImpl(DonationRepository donationRepository, UserRepository userRepository,
             NotificationService notificationService,

@@ -11,8 +11,12 @@ import com.mana.openhand_backend.identity.dataaccesslayer.MemberStatus;
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
+import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository;
+import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +49,8 @@ class DonationServiceImplTest {
     @Mock
     private NotificationService notificationService;
 
+    @Mock
+    private NotificationRepository notificationRepository;
 
     @Mock
     private com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository;
@@ -346,5 +352,93 @@ class DonationServiceImplTest {
         verify(donationRepository).save(donationCaptor.capture());
         Donation saved = donationCaptor.getValue();
         assertEquals(null, saved.getComments());
+    }
+
+    @Test
+    void getDonationMetrics_returnsAggregatedMetrics() {
+        // Arrange
+        User donorOne = new User();
+        donorOne.setId(10L);
+        donorOne.setName("Ada Lovelace");
+        donorOne.setEmail("ada@example.com");
+
+        User donorTwo = new User();
+        donorTwo.setId(11L);
+        donorTwo.setName("Grace Hopper");
+        donorTwo.setEmail("grace@example.com");
+
+        Donation one = new Donation(donorOne, new BigDecimal("100.00"), "CAD",
+                DonationFrequency.ONE_TIME, DonationStatus.RECEIVED);
+        one.setCreatedAt(LocalDateTime.of(2026, 1, 10, 10, 0));
+        one.setPaymentProvider("Manual Entry");
+        one.setComments("Cheque");
+
+        Donation two = new Donation(donorOne, new BigDecimal("50.00"), "CAD",
+                DonationFrequency.MONTHLY, DonationStatus.RECEIVED);
+        two.setCreatedAt(LocalDateTime.of(2026, 2, 5, 9, 30));
+
+        Donation three = new Donation(donorTwo, new BigDecimal("25.00"), "CAD",
+                DonationFrequency.ONE_TIME, DonationStatus.FAILED);
+        three.setCreatedAt(LocalDateTime.of(2026, 2, 15, 14, 45));
+        three.setPaymentProvider("Manual Entry");
+
+        when(donationRepository.findAllWithUserOrderByCreatedAtDesc()).thenReturn(List.of(one, two, three));
+        when(notificationRepository.countByNotificationType(NotificationType.DONATION_CONFIRMATION)).thenReturn(6L);
+        when(notificationRepository.countByNotificationTypeAndIsReadTrue(NotificationType.DONATION_CONFIRMATION))
+                .thenReturn(4L);
+        when(notificationRepository.countByNotificationTypeAndIsReadFalse(NotificationType.DONATION_CONFIRMATION))
+                .thenReturn(2L);
+
+        // Act
+        var metrics = donationService.getDonationMetrics();
+
+        // Assert
+        assertNotNull(metrics);
+        assertEquals("CAD", metrics.getCurrency());
+        assertEquals(3L, metrics.getTotalDonations());
+        assertEquals(new BigDecimal("175.00"), metrics.getTotalAmount());
+        assertEquals(new BigDecimal("58.33"), metrics.getAverageAmount());
+        assertEquals(2L, metrics.getUniqueDonors());
+        assertEquals(1L, metrics.getRepeatDonors());
+        assertEquals(1L, metrics.getFirstTimeDonors());
+        assertEquals(2L, metrics.getManualDonationsCount());
+        assertEquals(new BigDecimal("125.00"), metrics.getManualDonationsAmount());
+        assertEquals(1L, metrics.getExternalDonationsCount());
+        assertEquals(new BigDecimal("50.00"), metrics.getExternalDonationsAmount());
+        assertEquals(1L, metrics.getCommentsCount());
+        assertEquals(33.33d, metrics.getCommentsUsageRate());
+
+        assertEquals(2, metrics.getFrequencyBreakdown().size());
+        assertEquals("ONE_TIME", metrics.getFrequencyBreakdown().get(0).getKey());
+        assertEquals(2L, metrics.getFrequencyBreakdown().get(0).getCount());
+        assertEquals(new BigDecimal("125.00"), metrics.getFrequencyBreakdown().get(0).getAmount());
+        assertEquals("MONTHLY", metrics.getFrequencyBreakdown().get(1).getKey());
+        assertEquals(1L, metrics.getFrequencyBreakdown().get(1).getCount());
+        assertEquals(new BigDecimal("50.00"), metrics.getFrequencyBreakdown().get(1).getAmount());
+
+        assertEquals(2, metrics.getStatusBreakdown().size());
+        assertEquals("RECEIVED", metrics.getStatusBreakdown().get(0).getKey());
+        assertEquals(2L, metrics.getStatusBreakdown().get(0).getCount());
+        assertEquals(new BigDecimal("150.00"), metrics.getStatusBreakdown().get(0).getAmount());
+        assertEquals("FAILED", metrics.getStatusBreakdown().get(1).getKey());
+        assertEquals(1L, metrics.getStatusBreakdown().get(1).getCount());
+        assertEquals(new BigDecimal("25.00"), metrics.getStatusBreakdown().get(1).getAmount());
+
+        assertEquals(6, metrics.getMonthlyTrend().size());
+        String currentMonth = YearMonth.now().toString();
+        assertEquals(currentMonth, metrics.getMonthlyTrend().get(5).getPeriod());
+
+        assertEquals(2, metrics.getTopDonorsByAmount().size());
+        assertEquals(10L, metrics.getTopDonorsByAmount().get(0).getUserId());
+        assertEquals(new BigDecimal("150.00"), metrics.getTopDonorsByAmount().get(0).getTotalAmount());
+        assertEquals(2L, metrics.getTopDonorsByAmount().get(0).getDonationCount());
+
+        assertEquals(2, metrics.getTopDonorsByCount().size());
+        assertEquals(10L, metrics.getTopDonorsByCount().get(0).getUserId());
+        assertEquals(2L, metrics.getTopDonorsByCount().get(0).getDonationCount());
+
+        assertEquals(6L, metrics.getDonationNotificationsCreated());
+        assertEquals(4L, metrics.getDonationNotificationsRead());
+        assertEquals(2L, metrics.getDonationNotificationsUnread());
     }
 }

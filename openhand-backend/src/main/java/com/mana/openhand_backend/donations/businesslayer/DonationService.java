@@ -1,6 +1,7 @@
 package com.mana.openhand_backend.donations.businesslayer;
 
 import com.mana.openhand_backend.donations.domainclientlayer.DonationDetailResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationMetricsResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationOptionsResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationRequestModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationResponseModel;
@@ -21,4 +22,6 @@ public interface DonationService {
     DonationDetailResponseModel getDonationDetail(Long donationId);
 
     DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, ManualDonationRequestModel request);
+
+    DonationMetricsResponseModel getDonationMetrics();
 }

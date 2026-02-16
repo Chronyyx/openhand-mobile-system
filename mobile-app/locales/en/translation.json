@@ -539,6 +539,8 @@
       "eventsDescription": "Create and manage upcoming events",
       "donations": "Donations",
       "donationsDescription": "Review member donations and activity",
+      "donationMetrics": "Donations Metrics",
+      "donationMetricsDescription": "Track donation KPIs and trends",
       "attendanceReports": "Attendance Reports",
       "attendanceReportsDescription": "Generate event attendance reports by date range"
     },
@@ -682,6 +684,51 @@
         "email": "Email address",
         "phone": "Phone number",
         "age": "Age"
+      }
+    },
+    "donationMetrics": {
+      "title": "Donations Metrics",
+      "subtitle": "Monitor donation performance and donor behavior.",
+      "refresh": "Refresh metrics",
+      "loadError": "Unable to load donation metrics.",
+      "cards": {
+        "totalAmount": "Total amount",
+        "totalDonations": "Total donations",
+        "averageAmount": "Average donation",
+        "uniqueDonors": "Unique donors",
+        "repeatDonors": "Repeat donors",
+        "firstTimeDonors": "First-time donors"
+      },
+      "breakdown": {
+        "frequency": "Breakdown by frequency",
+        "status": "Breakdown by status"
+      },
+      "channels": {
+        "title": "Source channels",
+        "manual": "Manual entries",
+        "external": "External/in-app"
+      },
+      "comments": {
+        "title": "Comment coverage",
+        "count": "Donations with comments",
+        "usageRate": "Usage rate"
+      },
+      "notifications": {
+        "title": "Donation notifications",
+        "created": "Created",
+        "read": "Read",
+        "unread": "Unread"
+      },
+      "trend": {
+        "title": "Monthly trend (last 6 months)",
+        "empty": "No trend data available."
+      },
+      "topDonors": {
+        "title": "Top donors",
+        "byAmount": "By amount",
+        "byCount": "By count",
+        "empty": "No donor data available.",
+        "donationsCount": "{{count}} donations"
       }
     },
     "donations": {

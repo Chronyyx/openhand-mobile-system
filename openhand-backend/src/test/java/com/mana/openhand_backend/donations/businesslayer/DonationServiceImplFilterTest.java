@@ -8,6 +8,7 @@ import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResp
 import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
+import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -29,6 +30,8 @@ class DonationServiceImplFilterTest {
     @Mock
     private NotificationService notificationService;
     @Mock
+    private NotificationRepository notificationRepository;
+    @Mock
     private com.mana.openhand_backend.events.dataaccesslayer.EventRepository eventRepository;
     @InjectMocks
     private DonationServiceImpl donationService;
@@ -36,7 +39,13 @@ class DonationServiceImplFilterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        donationService = new DonationServiceImpl(donationRepository, userRepository, notificationService, eventRepository);
+        donationService = new DonationServiceImpl(
+                donationRepository,
+                userRepository,
+                notificationService,
+                notificationRepository,
+                eventRepository
+        );
     }
 
     @Test

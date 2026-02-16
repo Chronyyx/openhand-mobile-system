@@ -2,6 +2,7 @@ package com.mana.openhand_backend.donations.presentationlayer;
 
 import com.mana.openhand_backend.donations.businesslayer.DonationService;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationDetailResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationMetricsResponseModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,6 +52,11 @@ public class DonationAdminController {
 
     public DonationAdminController(DonationService donationService) {
         this.donationService = donationService;
+    }
+
+    @GetMapping("/metrics")
+    public DonationMetricsResponseModel getDonationMetrics() {
+        return donationService.getDonationMetrics();
     }
 
     @GetMapping("/{id}")

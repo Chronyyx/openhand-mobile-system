@@ -1,0 +1,259 @@
+@startuml DesignLevelClassDiagram
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+title Design Level Class Diagram: Document Management
+
+package "Presentation Layer" #LightBlue {
+  class DocumentController {
+    - service: DocumentService
+    --
+    + getDocuments(transactionId, userId): List<DocumentResponseDTO>
+    + createDocument(transactionId, dto): DocumentResponseDTO
+    + getDocument(transactionId, documentId, userId): DocumentResponseDTO
+    + updateDocument(transactionId, documentId, dto): DocumentResponseDTO
+    + deleteDocument(transactionId, documentId): void
+    + submitDocument(transactionId, documentId, file, userId, type): DocumentResponseDTO
+    + getDocumentDownloadUrl(transactionId, documentId, versionId): Map<String, String>
+    + reviewDocument(transactionId, documentId, reviewDto, brokerId): DocumentResponseDTO
+  }
+  
+  class GlobalDocumentController {
+    - service: DocumentService
+    --
+    + getDocumentById(documentId, userId): Map<String, String>
+  }
+  
+  class DocumentRequestDTO {
+    + docType: DocumentTypeEnum
+    + customTitle: String
+    + expectedFrom: DocumentPartyEnum
+    + relatedBuyerStage: BuyerStage
+    + relatedSellerStage: SellerStage
+    + stage: StageEnum
+    + brokerNotes: String
+    + visibleToClient: Boolean
+    + linkedConditionIds: List<UUID>
+  }
+  
+  class DocumentResponseDTO {
+    + documentId: UUID
+    + transactionId: UUID
+    + docType: DocumentTypeEnum
+    + customTitle: String
+    + status: DocumentStatusEnum
+    + expectedFrom: DocumentPartyEnum
+    + stage: StageEnum
+    + brokerNotes: String
+    + visibleToClient: Boolean
+    + versions: List<DocumentVersionDTO>
+    + lastUpdatedAt: LocalDateTime
+  }
+  
+  class DocumentReviewRequestDTO {
+    + decision: DocumentStatusEnum
+    + brokerNotes: String
+  }
+  
+  class DocumentVersionDTO {
+    + versionId: UUID
+    + fileName: String
+    + mimeType: String
+    + uploadedAt: LocalDateTime
+    + uploadedByParty: DocumentPartyEnum
+    + uploadedByName: String
+  }
+}
+
+package "Business Layer" #LightGreen {
+  interface DocumentService {
+    + getDocumentsForTransaction(transactionId, userId): List<DocumentResponseDTO>
+    + getDocument(documentId, userId): DocumentResponseDTO
+    + createDocument(transactionId, dto): DocumentResponseDTO
+    + updateDocument(documentId, dto): DocumentResponseDTO
+    + deleteDocument(documentId): void
+    + submitDocument(transactionId, documentId, file, userId, type): DocumentResponseDTO
+    + getAllDocumentsForUser(userId): List<DocumentResponseDTO>
+    + getDocumentDownloadUrl(documentId, versionId, userId): String
+    + reviewDocument(transactionId, documentId, dto, brokerId): DocumentResponseDTO
+    + getOutstandingDocumentSummary(brokerId): List<OutstandingDocumentDTO>
+    + sendDocumentReminder(documentId, brokerId): void
+  }
+  
+  class DocumentServiceImpl {
+    - documentRepository: DocumentRepository
+    - transactionRepository: TransactionRepository
+    - userAccountRepository: UserAccountRepository
+    - notificationService: NotificationService
+    - objectStorageService: ObjectStorageService
+    --
+    + getDocumentsForTransaction(transactionId, userId): List<DocumentResponseDTO>
+    + createDocument(transactionId, dto): DocumentResponseDTO
+    + submitDocument(transactionId, documentId, file, userId, type): DocumentResponseDTO
+    + reviewDocument(transactionId, documentId, dto, brokerId): DocumentResponseDTO
+    - validateFile(file): void
+    - validateCanSubmit(document): void
+    - validateCanReview(document): void
+    - mapToDTO(entity): DocumentResponseDTO
+  }
+  
+  interface NotificationService {
+    + sendDocumentRequestNotification(document): void
+    + sendDocumentSubmittedNotification(document): void
+    + sendDocumentReviewedNotification(document, decision): void
+  }
+}
+
+package "Data Layer" #LightYellow {
+  interface DocumentRepository {
+    + findByDocumentId(documentId): Optional<Document>
+    + findByTransactionRefTransactionId(transactionId): List<Document>
+    + findByTransactionRefClientId(clientId): List<Document>
+    + findByStatus(status): List<Document>
+    + countByStatus(status): Long
+  }
+  
+  interface TransactionRepository {
+    + findByTransactionId(transactionId): Optional<Transaction>
+    + findByClientId(clientId): List<Transaction>
+  }
+  
+  class Document <<Entity>> {
+    - id: Long
+    - documentId: UUID
+    - transactionRef: TransactionRef
+    - docType: DocumentTypeEnum
+    - customTitle: String
+    - status: DocumentStatusEnum
+    - expectedFrom: DocumentPartyEnum
+    - relatedBuyerStage: BuyerStage
+    - relatedSellerStage: SellerStage
+    - stage: StageEnum
+    - versions: List<DocumentVersion>
+    - brokerNotes: String
+    - visibleToClient: boolean
+    - lastUpdatedAt: LocalDateTime
+    - createdAt: LocalDateTime
+    - dueDate: LocalDateTime
+    - deletedAt: LocalDateTime
+    - deletedBy: UUID
+    --
+    + isVisibleToClient(): boolean
+    + getVisibleToClient(): boolean
+  }
+  
+  class DocumentVersion <<Entity>> {
+    - id: Long
+    - versionId: UUID
+    - uploadedAt: LocalDateTime
+    - uploadedBy: UploadedBy
+    - storageObject: StorageObject
+    - document: Document
+    - deletedAt: LocalDateTime
+    - deletedBy: UUID
+  }
+  
+  class TransactionRef <<Value Object>> {
+    - transactionId: UUID
+    - clientId: UUID
+    - side: TransactionSideEnum
+  }
+  
+  class StorageObject <<Value Object>> {
+    - s3Key: String
+    - fileName: String
+    - mimeType: String
+  }
+  
+  class UploadedBy <<Value Object>> {
+    - party: DocumentPartyEnum
+    - userId: UUID
+    - externalName: String
+  }
+}
+
+package "Infrastructure Layer" #LightCoral {
+  interface ObjectStorageService {
+    + uploadFile(transactionId, documentId, file): StorageObject
+    + getPreSignedUrl(s3Key, expirationMinutes): String
+    + deleteFile(s3Key): void
+  }
+  
+  class ObjectStorageServiceImpl {
+    - s3Client: S3Client  // Connects to Cloudflare R2 (S3-compatible)
+    - bucketName: String
+    --
+    + uploadFile(transactionId, documentId, file): StorageObject
+    + getPreSignedUrl(s3Key, expirationMinutes): String
+    - generateS3Key(transactionId, documentId, fileName): String
+  }
+}
+
+package "Enums" #LightGray {
+  enum DocumentTypeEnum {
+    MORTGAGE_PRE_APPROVAL
+    MORTGAGE_APPROVAL
+    PROOF_OF_FUNDS
+    ID_VERIFICATION
+    EMPLOYMENT_LETTER
+    PAY_STUBS
+    CREDIT_REPORT
+    CERTIFICATE_OF_LOCATION
+    PROMISE_TO_PURCHASE
+    INSPECTION_REPORT
+    INSURANCE_LETTER
+    BANK_STATEMENT
+    OTHER
+  }
+  
+  enum DocumentStatusEnum {
+    REQUESTED
+    SUBMITTED
+    APPROVED
+    NEEDS_REVISION
+    REJECTED
+  }
+  
+  enum DocumentPartyEnum {
+    BUYER
+    SELLER
+    BROKER
+    LENDER
+    NOTARY
+    INSPECTOR
+    OTHER
+  }
+}
+
+' Relationships
+DocumentController --> DocumentService : uses
+DocumentController ..> DocumentRequestDTO : receives
+DocumentController ..> DocumentResponseDTO : returns
+DocumentController ..> DocumentReviewRequestDTO : receives
+
+GlobalDocumentController --> DocumentService : uses
+
+DocumentServiceImpl ..|> DocumentService : implements
+DocumentServiceImpl --> DocumentRepository : uses
+DocumentServiceImpl --> TransactionRepository : uses
+DocumentServiceImpl --> NotificationService : uses
+DocumentServiceImpl --> ObjectStorageService : uses
+DocumentServiceImpl ..> Document : manages
+DocumentServiceImpl ..> DocumentResponseDTO : creates
+
+DocumentRepository ..> Document : persists
+
+Document "1" *-- "1" TransactionRef : contains
+Document "1" *-- "0..*" DocumentVersion : contains
+Document --> DocumentTypeEnum
+Document --> DocumentStatusEnum
+Document --> DocumentPartyEnum
+
+DocumentVersion "1" *-- "1" StorageObject : contains
+DocumentVersion "1" *-- "1" UploadedBy : contains
+
+ObjectStorageServiceImpl ..|> ObjectStorageService : implements
+
+DocumentResponseDTO ..> DocumentVersionDTO : contains
+
+@enduml

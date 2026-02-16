@@ -403,11 +403,6 @@ export default function AdminDonationsScreen() {
                     router.push('/admin');
                 }}
                 showDashboard={canView}
-                onNavigateAdminDonations={() => {
-                    setMenuVisible(false);
-                    router.push('/admin/donations');
-                }}
-                showAdminDonations={canView}
                 t={t}
             />
 

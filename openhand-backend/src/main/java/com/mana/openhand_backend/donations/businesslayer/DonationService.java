@@ -7,6 +7,7 @@ import com.mana.openhand_backend.donations.domainclientlayer.DonationRequestMode
 import com.mana.openhand_backend.donations.domainclientlayer.DonationResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel;
+import java.time.LocalDate;
 import java.util.List;
 
 public interface DonationService {
@@ -24,4 +25,6 @@ public interface DonationService {
     DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, ManualDonationRequestModel request);
 
     DonationMetricsResponseModel getDonationMetrics();
+
+    List<DonationSummaryResponseModel> getDonationReportByDateRange(LocalDate startDate, LocalDate endDate);
 }

@@ -737,6 +737,23 @@
         "byCount": "Por cantidad",
         "empty": "No hay datos de donantes.",
         "donationsCount": "{{count}} donaciones"
+      },
+      "reports": {
+        "title": "Reportes de donaciones",
+        "subtitle": "Genera un reporte por rango de fechas y expórtalo en CSV.",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de fin",
+        "generate": "Generar reporte",
+        "exportCsv": "Descargar CSV",
+        "totalRows": "Filas",
+        "totalAmount": "Monto total",
+        "generatedReady": "Reporte generado. El CSV está listo para descargar.",
+        "empty": "No se encontraron donaciones para este rango de fechas.",
+        "invalidDateRange": "La fecha de inicio debe ser anterior o igual a la fecha de fin.",
+        "generateError": "No se pudo generar el reporte de donaciones.",
+        "exportSuccess": "CSV exportado correctamente.",
+        "exportError": "No se pudo exportar el CSV.",
+        "shareUnavailable": "El uso compartido no está disponible en este dispositivo."
       }
     },
     "donations": {

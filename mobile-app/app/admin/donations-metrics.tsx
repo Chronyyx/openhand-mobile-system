@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Pressable,
     RefreshControl,
     ScrollView,
@@ -8,18 +9,23 @@ import {
     Text,
     View,
 } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { AppHeader } from '../../components/app-header';
+import { DateTimePickerModal } from '../../components/date-time-picker-modal';
 import { NavigationMenu } from '../../components/navigation-menu';
 import { useAuth } from '../../context/AuthContext';
 import { useColorScheme } from '../../hooks/use-color-scheme';
 import {
+    exportDonationReportCsv,
+    getDonationReport,
     getDonationMetrics,
     type DonationMetricBreakdown,
     type DonationMetrics,
+    type DonationReportRow,
     type DonationTopDonor,
 } from '../../services/donation-metrics.service';
 
@@ -28,6 +34,18 @@ type TopListMode = 'amount' | 'count';
 const formatCurrency = (amount: number, currency: string) => `${currency} ${Number(amount || 0).toFixed(2)}`;
 
 const formatPercent = (value: number) => `${Number.isFinite(value) ? value.toFixed(2) : '0.00'}%`;
+
+function pad2(value: number) {
+    return value.toString().padStart(2, '0');
+}
+
+function formatDateForApi(date: Date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function formatDateForDisplay(date: Date) {
+    return formatDateForApi(date);
+}
 
 const formatMonthLabel = (period: string) => {
     const parts = period.split('-');
@@ -98,6 +116,25 @@ export default function DonationMetricsScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [topListMode, setTopListMode] = useState<TopListMode>('amount');
+    const [reportStartDate, setReportStartDate] = useState(() => {
+        const now = new Date();
+        const start = new Date(now);
+        start.setDate(now.getDate() - 30);
+        start.setHours(0, 0, 0, 0);
+        return start;
+    });
+    const [reportEndDate, setReportEndDate] = useState(() => {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return now;
+    });
+    const [pickerVisible, setPickerVisible] = useState(false);
+    const [activePicker, setActivePicker] = useState<'start' | 'end' | null>(null);
+    const [reportRows, setReportRows] = useState<DonationReportRow[]>([]);
+    const [reportLoading, setReportLoading] = useState(false);
+    const [reportExporting, setReportExporting] = useState(false);
+    const [hasGeneratedReport, setHasGeneratedReport] = useState(false);
+    const [reportError, setReportError] = useState<string | null>(null);
 
     const loadMetrics = useCallback(
         async (asRefresh = false) => {
@@ -145,6 +182,115 @@ export default function DonationMetricsScreen() {
         return Math.max(...metrics.statusBreakdown.map((item) => Number(item.amount || 0)));
     }, [metrics]);
 
+    const pickerInitialValue = useMemo(() => {
+        if (activePicker === 'start') return reportStartDate;
+        if (activePicker === 'end') return reportEndDate;
+        return new Date();
+    }, [activePicker, reportEndDate, reportStartDate]);
+
+    const reportTotalAmount = useMemo(
+        () => reportRows.reduce((sum, row) => sum + Number(row.amount || 0), 0),
+        [reportRows],
+    );
+
+    const isReportBusy = reportLoading || reportExporting;
+    const isExportDisabled = !hasGeneratedReport || isReportBusy;
+
+    const openDatePicker = (target: 'start' | 'end') => {
+        setActivePicker(target);
+        setPickerVisible(true);
+    };
+
+    const onConfirmDatePicker = (value: Date) => {
+        const normalized = new Date(value);
+        normalized.setHours(0, 0, 0, 0);
+        if (activePicker === 'start') {
+            setReportStartDate(normalized);
+        }
+        if (activePicker === 'end') {
+            setReportEndDate(normalized);
+        }
+        setPickerVisible(false);
+        setActivePicker(null);
+    };
+
+    const onGenerateReport = async () => {
+        if (reportStartDate.getTime() > reportEndDate.getTime()) {
+            setReportError(t('admin.donationMetrics.reports.invalidDateRange'));
+            setHasGeneratedReport(false);
+            setReportRows([]);
+            return;
+        }
+
+        try {
+            setReportLoading(true);
+            setReportError(null);
+            const rows = await getDonationReport(
+                formatDateForApi(reportStartDate),
+                formatDateForApi(reportEndDate),
+            );
+            setReportRows(rows);
+            setHasGeneratedReport(true);
+        } catch (reportRequestError) {
+            console.error('Failed to generate donation report', reportRequestError);
+            setReportError(t('admin.donationMetrics.reports.generateError'));
+            setReportRows([]);
+            setHasGeneratedReport(false);
+        } finally {
+            setReportLoading(false);
+        }
+    };
+
+    const onExportReportCsv = async () => {
+        if (isExportDisabled) {
+            return;
+        }
+        if (reportStartDate.getTime() > reportEndDate.getTime()) {
+            setReportError(t('admin.donationMetrics.reports.invalidDateRange'));
+            return;
+        }
+
+        const targetDirectory = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+        if (!targetDirectory) {
+            Alert.alert(t('common.error'), t('admin.donationMetrics.reports.exportError'));
+            return;
+        }
+
+        const fileName = `donation-report-${formatDateForApi(reportStartDate)}-to-${formatDateForApi(reportEndDate)}.csv`;
+        const fileUri = `${targetDirectory}${fileName}`;
+
+        try {
+            setReportExporting(true);
+            const csvContent = await exportDonationReportCsv(
+                formatDateForApi(reportStartDate),
+                formatDateForApi(reportEndDate),
+            );
+            await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+                encoding: FileSystem.EncodingType.UTF8,
+            });
+
+            const Sharing = await import('expo-sharing');
+            const sharingAvailable = await Sharing.isAvailableAsync();
+            if (!sharingAvailable) {
+                Alert.alert(t('common.error'), t('admin.donationMetrics.reports.shareUnavailable'));
+                return;
+            }
+
+            await Sharing.shareAsync(fileUri, {
+                mimeType: 'text/csv',
+                dialogTitle: fileName,
+                UTI: 'public.comma-separated-values-text',
+            });
+
+            Alert.alert(t('common.success'), t('admin.donationMetrics.reports.exportSuccess'));
+        } catch (reportExportError) {
+            console.error('Failed to export donation report CSV', reportExportError);
+            Alert.alert(t('common.error'), t('admin.donationMetrics.reports.exportError'));
+        } finally {
+            setReportExporting(false);
+        }
+    };
+
     if (!canView) {
         return <Redirect href="/admin" />;
     }
@@ -183,6 +329,101 @@ export default function DonationMetricsScreen() {
                     </View>
                 ) : metrics ? (
                     <>
+                        <View style={styles.sectionCard}>
+                            <Text style={styles.sectionTitle}>{t('admin.donationMetrics.reports.title')}</Text>
+                            <Text style={styles.sectionSubtitle}>{t('admin.donationMetrics.reports.subtitle')}</Text>
+
+                            <View style={styles.reportControls}>
+                                <Pressable
+                                    onPress={() => openDatePicker('start')}
+                                    style={styles.dateField}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('admin.donationMetrics.reports.startDate')}
+                                >
+                                    <Ionicons name="calendar-outline" size={18} color={styles.rowValue.color} />
+                                    <View style={styles.dateTextWrap}>
+                                        <Text style={styles.dateLabel}>{t('admin.donationMetrics.reports.startDate')}</Text>
+                                        <Text style={styles.dateValue}>{formatDateForDisplay(reportStartDate)}</Text>
+                                    </View>
+                                </Pressable>
+
+                                <Pressable
+                                    onPress={() => openDatePicker('end')}
+                                    style={styles.dateField}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('admin.donationMetrics.reports.endDate')}
+                                >
+                                    <Ionicons name="calendar-outline" size={18} color={styles.rowValue.color} />
+                                    <View style={styles.dateTextWrap}>
+                                        <Text style={styles.dateLabel}>{t('admin.donationMetrics.reports.endDate')}</Text>
+                                        <Text style={styles.dateValue}>{formatDateForDisplay(reportEndDate)}</Text>
+                                    </View>
+                                </Pressable>
+                            </View>
+
+                            <View style={styles.actionRow}>
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.actionButton,
+                                        isReportBusy && styles.actionButtonDisabled,
+                                        pressed && !isReportBusy && styles.actionButtonPressed,
+                                    ]}
+                                    onPress={onGenerateReport}
+                                    disabled={isReportBusy}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('admin.donationMetrics.reports.generate')}
+                                >
+                                    <Text style={styles.actionButtonText}>
+                                        {t('admin.donationMetrics.reports.generate')}
+                                    </Text>
+                                </Pressable>
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.actionButton,
+                                        isExportDisabled && styles.actionButtonDisabled,
+                                        pressed && !isExportDisabled && styles.actionButtonPressed,
+                                    ]}
+                                    onPress={onExportReportCsv}
+                                    disabled={isExportDisabled}
+                                    accessibilityRole="button"
+                                    accessibilityLabel={t('admin.donationMetrics.reports.exportCsv')}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.actionButtonText,
+                                            isExportDisabled && styles.actionButtonTextDisabled,
+                                        ]}
+                                    >
+                                        {t('admin.donationMetrics.reports.exportCsv')}
+                                    </Text>
+                                </Pressable>
+                            </View>
+
+                            {reportError ? (
+                                <Text style={styles.errorText}>{reportError}</Text>
+                            ) : null}
+
+                            {hasGeneratedReport && !reportError ? (
+                                <>
+                                    <View style={styles.rowBetween}>
+                                        <Text style={styles.rowLabel}>{t('admin.donationMetrics.reports.totalRows')}</Text>
+                                        <Text style={styles.rowValue}>{reportRows.length}</Text>
+                                    </View>
+                                    <View style={styles.rowBetween}>
+                                        <Text style={styles.rowLabel}>{t('admin.donationMetrics.reports.totalAmount')}</Text>
+                                        <Text style={styles.rowValue}>
+                                            {formatCurrency(reportTotalAmount, metrics.currency)}
+                                        </Text>
+                                    </View>
+                                    <Text style={styles.reportStatusText}>
+                                        {reportRows.length > 0
+                                            ? t('admin.donationMetrics.reports.generatedReady')
+                                            : t('admin.donationMetrics.reports.empty')}
+                                    </Text>
+                                </>
+                            ) : null}
+                        </View>
+
                         <View style={styles.kpiGrid}>
                             <View style={styles.kpiCard}>
                                 <Text style={styles.kpiLabel}>{t('admin.donationMetrics.cards.totalAmount')}</Text>
@@ -402,6 +643,24 @@ export default function DonationMetricsScreen() {
                 showDashboard={hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE'])}
                 t={t}
             />
+
+            <DateTimePickerModal
+                visible={pickerVisible}
+                title={
+                    activePicker === 'start'
+                        ? t('admin.donationMetrics.reports.startDate')
+                        : t('admin.donationMetrics.reports.endDate')
+                }
+                initialValue={pickerInitialValue}
+                cancelLabel={t('common.cancel')}
+                confirmLabel={t('common.confirm')}
+                timeLabel={t('events.fields.time')}
+                onCancel={() => {
+                    setPickerVisible(false);
+                    setActivePicker(null);
+                }}
+                onConfirm={onConfirmDatePicker}
+            />
         </View>
     );
 }
@@ -517,6 +776,69 @@ const getStyles = (isDark: boolean) => {
             color: TEXT,
             fontSize: 16,
             fontWeight: '700',
+        },
+        sectionSubtitle: {
+            color: MUTED,
+            fontSize: 13,
+            marginTop: -2,
+        },
+        reportControls: {
+            gap: 8,
+        },
+        dateField: {
+            borderWidth: 1,
+            borderColor: BORDER,
+            borderRadius: 12,
+            backgroundColor: ACCENT_SOFT,
+            paddingHorizontal: 12,
+            paddingVertical: 10,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+        },
+        dateTextWrap: {
+            flex: 1,
+        },
+        dateLabel: {
+            color: MUTED,
+            fontSize: 12,
+        },
+        dateValue: {
+            color: TEXT,
+            fontSize: 14,
+            fontWeight: '700',
+            marginTop: 2,
+        },
+        actionRow: {
+            flexDirection: 'row',
+            gap: 10,
+        },
+        actionButton: {
+            flex: 1,
+            backgroundColor: ACCENT,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 11,
+        },
+        actionButtonDisabled: {
+            backgroundColor: isDark ? '#3D4755' : '#E0E6F0',
+        },
+        actionButtonPressed: {
+            transform: [{ scale: 0.98 }],
+        },
+        actionButtonText: {
+            color: '#FFFFFF',
+            fontSize: 13,
+            fontWeight: '700',
+        },
+        actionButtonTextDisabled: {
+            color: isDark ? '#C5CFDE' : '#7A8598',
+        },
+        reportStatusText: {
+            color: MUTED,
+            fontSize: 12,
+            fontStyle: 'italic',
         },
         mutedText: {
             color: MUTED,

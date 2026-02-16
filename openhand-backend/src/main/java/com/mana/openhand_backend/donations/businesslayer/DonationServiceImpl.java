@@ -24,7 +24,9 @@ import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationType;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -151,6 +153,18 @@ public class DonationServiceImpl implements DonationService {
         Donation donation = donationRepository.findByIdWithUser(donationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donation not found."));
         return DonationManagementMapper.toDetail(donation);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DonationSummaryResponseModel> getDonationReportByDateRange(LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+        return donationRepository.findByCreatedAtBetweenWithUserOrderByCreatedAtDesc(startDateTime, endDateTime)
+                .stream()
+                .map(DonationManagementMapper::toSummary)
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -278,6 +278,7 @@ const getStyles = (scheme: 'light' | 'dark') => {
         alignItems: 'center',
         backgroundColor: BG,
         borderRadius: 14,
+        marginTop: 10,
         padding: 14,
         gap: 12,
         shadowColor: '#000',

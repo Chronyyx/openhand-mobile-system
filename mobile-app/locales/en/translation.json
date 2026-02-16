@@ -729,6 +729,23 @@
         "byCount": "By count",
         "empty": "No donor data available.",
         "donationsCount": "{{count}} donations"
+      },
+      "reports": {
+        "title": "Donation Reports",
+        "subtitle": "Generate a date-range report and export it as CSV.",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "generate": "Generate report",
+        "exportCsv": "Download CSV",
+        "totalRows": "Rows",
+        "totalAmount": "Total amount",
+        "generatedReady": "Report generated. CSV is ready to download.",
+        "empty": "No donations found for this date range.",
+        "invalidDateRange": "Start date must be before or equal to end date.",
+        "generateError": "Unable to generate donation report.",
+        "exportSuccess": "CSV exported successfully.",
+        "exportError": "Failed to export CSV.",
+        "shareUnavailable": "Sharing is not available on this device."
       }
     },
     "donations": {

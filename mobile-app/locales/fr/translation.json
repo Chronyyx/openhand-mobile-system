@@ -769,11 +769,38 @@
       "viewDetails": "Voir les détails",
       "addButton": "Ajouter un don manuel",
       "addDonationTitle": "Ajouter un don manuel",
+      "manualScreenSubtitle": "Enregistrez un don hors ligne et attribuez-le à un membre ou à un donateur invité.",
+      "backToList": "Retour à la liste des dons",
       "amountRequired": "Le montant doit être supérieur à 0",
       "employeeNotFound": "ID de l'employé introuvable",
       "submitError": "Impossible de soumettre le don",
+      "manualSuccess": "Don manuel créé avec succès.",
       "notAvailable": "Non disponible",
+      "validation": {
+        "dateInvalid": "Utilisez le format de date AAAA-MM-JJ HH:MM",
+        "existingUserRequired": "Veuillez sélectionner un utilisateur existant.",
+        "guestNameRequired": "Le nom du donateur invité est requis.",
+        "guestEmailRequired": "L'e-mail du donateur invité est requis.",
+        "guestEmailInvalid": "L'e-mail du donateur invité est invalide."
+      },
+      "userPicker": {
+        "title": "Sélectionner un utilisateur existant",
+        "searchPlaceholder": "Rechercher des utilisateurs par nom ou e-mail",
+        "empty": "Aucun utilisateur correspondant.",
+        "loadError": "Impossible de charger la liste des utilisateurs."
+      },
+      "filter": {
+        "eventName": "Nom de l'événement",
+        "eventNamePlaceholder": "Sélectionnez un événement...",
+        "year": "Année",
+        "yearPlaceholder": "AAAA",
+        "month": "Mois",
+        "monthPlaceholder": "MM",
+        "day": "Jour",
+        "dayPlaceholder": "JJ"
+      },
       "fields": {
+        "event": "Événement",
         "donor": "Donateur",
         "email": "E-mail",
         "phone": "Téléphone",
@@ -794,14 +821,32 @@
       },
       "form": {
         "amount": "Montant",
+        "amountPlaceholder": "0.00",
         "currency": "Devise",
         "event": "Événement associé",
         "noEvent": "Aucun événement",
         "date": "Date du don",
+        "datePlaceholder": "AAAA-MM-JJ HH:MM",
+        "donorType": "Type de donateur",
+        "donorTypeHint": "Choisissez un utilisateur inscrit ou saisissez les détails d'un donateur invité.",
+        "existingUser": "Utilisateur existant",
+        "guestDonor": "Donateur invité",
+        "selectUser": "Sélectionner un utilisateur",
+        "changeUser": "Changer d'utilisateur",
+        "noUserSelected": "Aucun utilisateur sélectionné pour l'instant.",
+        "guestName": "Nom du donateur invité",
+        "guestNamePlaceholder": "Entrez le nom complet du donateur",
+        "guestEmail": "E-mail du donateur invité",
+        "guestEmailPlaceholder": "Entrez l'e-mail du donateur",
         "employeeId": "ID de l'employé",
         "comments": "Commentaires",
         "commentsPlaceholder": "Ajouter des notes sur ce don (optionnel)",
         "submit": "Soumettre le don"
+      },
+      "currency": {
+        "CAD": "CAD",
+        "USD": "USD",
+        "EUR": "EUR"
       }
     }
   },

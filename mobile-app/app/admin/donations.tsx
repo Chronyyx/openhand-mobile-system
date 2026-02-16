@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     ActivityIndicator,
     Modal,
+    Platform,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -9,11 +10,10 @@ import {
     TextInput,
     View,
 } from 'react-native';
-import { Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Redirect, useRouter } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 
 import { AppHeader } from '../../components/app-header';
 import { NavigationMenu } from '../../components/navigation-menu';
@@ -22,10 +22,8 @@ import { useColorScheme } from '../../hooks/use-color-scheme';
 import {
     getDonationDetail,
     getManagedDonations,
-    submitManualDonation,
     type DonationDetail,
     type DonationSummary,
-    type ManualDonationFormData,
 } from '../../services/donation-management.service';
 import { getAllEvents, type EventSummary } from '../../services/events.service';
 
@@ -37,16 +35,16 @@ const formatTimestamp = (value: string | null) => {
 };
 
 export default function AdminDonationsScreen() {
-        // Filter state
-        const [eventId, setEventId] = useState<string>('');
-        const [year, setYear] = useState('');
-        const [month, setMonth] = useState('');
-        const [day, setDay] = useState('');
-        const [events, setEvents] = useState<EventSummary[]>([]);
-        const [eventsLoading, setEventsLoading] = useState(false);
+    const [eventId, setEventId] = useState<string>('');
+    const [year, setYear] = useState('');
+    const [month, setMonth] = useState('');
+    const [day, setDay] = useState('');
+    const [events, setEvents] = useState<EventSummary[]>([]);
+    const [eventsLoading, setEventsLoading] = useState(false);
+
     const router = useRouter();
     const { t } = useTranslation();
-    const { user, hasRole } = useAuth();
+    const { hasRole } = useAuth();
     const colorScheme = useColorScheme() ?? 'light';
     const styles = getStyles(colorScheme === 'dark');
     const isAdmin = hasRole(['ROLE_ADMIN']);
@@ -63,29 +61,17 @@ export default function AdminDonationsScreen() {
     const [detailError, setDetailError] = useState<string | null>(null);
     const [detail, setDetail] = useState<DonationDetail | null>(null);
 
-    // Manual donation form state
-    const [manualFormOpen, setManualFormOpen] = useState(false);
-    const [manualFormLoading, setManualFormLoading] = useState(false);
-    const [manualFormError, setManualFormError] = useState<string | null>(null);
-    const [formData, setFormData] = useState<ManualDonationFormData>({
-        amount: 0,
-        currency: 'CAD',
-        eventId: null,
-        donationDate: new Date().toISOString().slice(0, 19),
-        comments: '',
-    });
-
     const loadDonations = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
             const filters: { eventId?: number; year?: number; month?: number; day?: number } = {};
             if (eventId && !isNaN(Number(eventId)) && Number(eventId) > 0) {
-                filters.eventId = parseInt(eventId);
+                filters.eventId = parseInt(eventId, 10);
             }
-            if (year) filters.year = parseInt(year);
-            if (month) filters.month = parseInt(month);
-            if (day) filters.day = parseInt(day);
+            if (year) filters.year = parseInt(year, 10);
+            if (month) filters.month = parseInt(month, 10);
+            if (day) filters.day = parseInt(day, 10);
             const data = await getManagedDonations(filters);
             setDonations(data);
         } catch (err: any) {
@@ -94,15 +80,16 @@ export default function AdminDonationsScreen() {
         } finally {
             setLoading(false);
         }
-    }, [t, eventId, year, month, day]);
+    }, [day, eventId, month, t, year]);
 
-    useEffect(() => {
-        if (canView) {
-            loadDonations();
-        }
-    }, [canView, loadDonations]);
+    useFocusEffect(
+        useCallback(() => {
+            if (canView) {
+                void loadDonations();
+            }
+        }, [canView, loadDonations]),
+    );
 
-    // Load all events for dropdown
     useEffect(() => {
         setEventsLoading(true);
         getAllEvents()
@@ -145,63 +132,6 @@ export default function AdminDonationsScreen() {
         setDetailError(null);
     };
 
-    const handleOpenManualForm = useCallback(async () => {
-        setManualFormOpen(true);
-        setManualFormError(null);
-        setEventsLoading(true);
-        try {
-            const loadedEvents = await getAllEvents();
-            setEvents(loadedEvents);
-        } catch (err) {
-            console.error('Failed to load events', err);
-            setManualFormError(t('admin.donations.loadEventsError'));
-        } finally {
-            setEventsLoading(false);
-        }
-    }, [t]);
-
-    const handleCloseManualForm = () => {
-        setManualFormOpen(false);
-        setManualFormError(null);
-        setFormData({
-            amount: 0,
-            currency: 'CAD',
-            eventId: null,
-            donationDate: new Date().toISOString(),
-            comments: '',
-        });
-    };
-
-    const validateForm = (): boolean => {
-        if (!formData.amount || formData.amount <= 0) {
-            setManualFormError(t('admin.donations.amountRequired'));
-            return false;
-        }
-        if (!user?.id) {
-            setManualFormError(t('admin.donations.employeeNotFound'));
-            return false;
-        }
-        return true;
-    };
-
-    const handleSubmitManualDonation = async () => {
-        if (!validateForm() || !user?.id) return;
-
-        setManualFormLoading(true);
-        setManualFormError(null);
-        try {
-            await submitManualDonation(user.id, formData);
-            // Reload donations list
-            await loadDonations();
-            handleCloseManualForm();
-        } catch (err) {
-            console.error('Failed to create manual donation', err);
-            setManualFormError(t('admin.donations.submitError'));
-        } finally {
-            setManualFormLoading(false);
-        }
-    };
-
     if (!canView) {
         return <Redirect href="/" />;
     }
@@ -212,7 +142,7 @@ export default function AdminDonationsScreen() {
             <ScrollView contentContainerStyle={styles.content}>
                 <Text style={styles.title}>{t('admin.donations.title')}</Text>
                 <Text style={styles.subtitle}>{t('admin.donations.subtitle')}</Text>
-                                {/* Filter controls - responsive for mobile */}
+
                 <View style={styles.filterSection}>
                     <View style={styles.filterGroupFullWidth}>
                         <Text style={styles.filterLabel}>{t('admin.donations.filter.eventName')}</Text>
@@ -223,19 +153,24 @@ export default function AdminDonationsScreen() {
                                 <select
                                     data-testid="event-filter-dropdown"
                                     value={eventId ?? ''}
-                                    onChange={e => setEventId(e.target.value)}
-                                    style={{ width: '100%', padding: 8, borderRadius: 6, borderColor: '#E0E7F3', fontSize: 15 }}
+                                    onChange={(e) => setEventId(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: 8,
+                                        borderRadius: 6,
+                                        borderColor: '#E0E7F3',
+                                        fontSize: 15,
+                                    }}
                                 >
                                     <option value="">{t('admin.donations.filter.eventNamePlaceholder')}</option>
-                                    {events.map(event => (
-                                        <option key={event.id} value={event.id}>{event.title}</option>
+                                    {events.map((event) => (
+                                        <option key={event.id} value={event.id}>
+                                            {event.title}
+                                        </option>
                                     ))}
                                 </select>
                             ) : (
-                                <Picker
-                                    selectedValue={eventId}
-                                    onValueChange={setEventId}
-                                >
+                                <Picker selectedValue={eventId} onValueChange={setEventId}>
                                     <Picker.Item label={t('admin.donations.filter.eventNamePlaceholder')} value="" />
                                     {events.map((event) => (
                                         <Picker.Item key={event.id} label={event.title} value={String(event.id)} />
@@ -283,6 +218,7 @@ export default function AdminDonationsScreen() {
                         </View>
                     </View>
                 </View>
+
                 <View style={styles.searchWrapper}>
                     <Ionicons name="search" size={18} color={styles.icon.color} />
                     <TextInput
@@ -293,10 +229,12 @@ export default function AdminDonationsScreen() {
                         onChangeText={setSearchQuery}
                     />
                 </View>
+
                 {isAdmin && (
                     <Pressable
+                        testID="open-manual-donation-screen"
                         style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
-                        onPress={handleOpenManualForm}
+                        onPress={() => router.push('/admin/manual-donation')}
                         accessibilityRole="button"
                         accessibilityLabel={t('admin.donations.addButton')}
                     >
@@ -304,6 +242,7 @@ export default function AdminDonationsScreen() {
                         <Text style={styles.addButtonText}>{t('admin.donations.addButton')}</Text>
                     </Pressable>
                 )}
+
                 {loading ? (
                     <View style={styles.centered}>
                         <ActivityIndicator />
@@ -340,16 +279,20 @@ export default function AdminDonationsScreen() {
                                             <View style={styles.metaRow}>
                                                 <Text style={styles.metaLabel}>{t('admin.donations.fields.status')}:</Text>
                                                 <Text style={styles.metaValue}>
-                                                    {t(`admin.donations.status.${donation.status}`, { defaultValue: donation.status })}
+                                                    {t(`admin.donations.status.${donation.status}`, {
+                                                        defaultValue: donation.status,
+                                                    })}
                                                 </Text>
                                             </View>
                                             <View style={styles.metaRow}>
                                                 <Text style={styles.metaLabel}>{t('admin.donations.fields.frequency')}:</Text>
                                                 <Text style={styles.metaValue}>
-                                                    {t(`admin.donations.frequency.${donation.frequency}`, { defaultValue: donation.frequency })}
+                                                    {t(`admin.donations.frequency.${donation.frequency}`, {
+                                                        defaultValue: donation.frequency,
+                                                    })}
                                                 </Text>
                                             </View>
-                                            <View className="metaRow">
+                                            <View style={styles.metaRow}>
                                                 <Text style={styles.metaLabel}>{t('admin.donations.fields.createdAt')}:</Text>
                                                 <Text style={styles.metaValue}>{formatTimestamp(donation.createdAt)}</Text>
                                             </View>
@@ -363,10 +306,12 @@ export default function AdminDonationsScreen() {
                                                     accessibilityRole="button"
                                                     accessibilityLabel={t('admin.donations.viewDetails')}
                                                 >
-                                                    <Text style={styles.detailButtonText}>
-                                                        {t('admin.donations.viewDetails')}
-                                                    </Text>
-                                                    <Ionicons name="chevron-forward" size={16} color={styles.detailButtonText.color} />
+                                                    <Text style={styles.detailButtonText}>{t('admin.donations.viewDetails')}</Text>
+                                                    <Ionicons
+                                                        name="chevron-forward"
+                                                        size={16}
+                                                        color={styles.detailButtonText.color}
+                                                    />
                                                 </Pressable>
                                             )}
                                         </View>
@@ -445,10 +390,16 @@ export default function AdminDonationsScreen() {
                                     {t('admin.donations.fields.amount')}: {formatAmount(detail.amount, detail.currency)}
                                 </Text>
                                 <Text style={styles.detailLine}>
-                                    {t('admin.donations.fields.frequency')}: {t(`admin.donations.frequency.${detail.frequency}`, { defaultValue: detail.frequency })}
+                                    {t('admin.donations.fields.frequency')}:{' '}
+                                    {t(`admin.donations.frequency.${detail.frequency}`, {
+                                        defaultValue: detail.frequency,
+                                    })}
                                 </Text>
                                 <Text style={styles.detailLine}>
-                                    {t('admin.donations.fields.status')}: {t(`admin.donations.status.${detail.status}`, { defaultValue: detail.status })}
+                                    {t('admin.donations.fields.status')}:{' '}
+                                    {t(`admin.donations.status.${detail.status}`, {
+                                        defaultValue: detail.status,
+                                    })}
                                 </Text>
                                 <Text style={styles.detailLine}>
                                     {t('admin.donations.fields.createdAt')}: {formatTimestamp(detail.createdAt)}
@@ -464,133 +415,11 @@ export default function AdminDonationsScreen() {
                     </View>
                 </View>
             </Modal>
-
-            <Modal visible={manualFormOpen} transparent animationType="slide" onRequestClose={handleCloseManualForm}>
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, styles.largeModalContent]}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{t('admin.donations.addDonationTitle')}</Text>
-                            <Pressable
-                                onPress={handleCloseManualForm}
-                                accessibilityRole="button"
-                                accessibilityLabel={t('common.close')}
-                            >
-                                <Ionicons name="close" size={20} color={styles.modalTitle.color} />
-                            </Pressable>
-                        </View>
-
-                        {manualFormError && <Text style={styles.errorText}>{manualFormError}</Text>}
-
-                        <ScrollView style={styles.formScrollView}>
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>{t('admin.donations.form.amount')} *</Text>
-                                <TextInput
-                                    style={styles.formInput}
-                                    placeholder={t('admin.donations.form.amountPlaceholder')}
-                                    placeholderTextColor={styles.placeholder.color}
-                                    value={formData.amount ? formData.amount.toString() : ''}
-                                    onChangeText={(text) => setFormData({ ...formData, amount: parseFloat(text) || 0 })}
-                                    keyboardType="decimal-pad"
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>{t('admin.donations.form.currency')} *</Text>
-                                <View style={styles.pickerWrapper}>
-                                    <Picker
-                                        selectedValue={formData.currency}
-                                        onValueChange={(value: string) => setFormData({ ...formData, currency: value })}
-                                        style={styles.picker}
-                                    >
-                                        <Picker.Item label={t('admin.donations.currency.CAD')} value="CAD" />
-                                        <Picker.Item label={t('admin.donations.currency.USD')} value="USD" />
-                                        <Picker.Item label={t('admin.donations.currency.EUR')} value="EUR" />
-                                    </Picker>
-                                </View>
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>{t('admin.donations.form.event')}</Text>
-                                <View style={styles.pickerWrapper}>
-                                    {eventsLoading ? (
-                                        <Text style={styles.loadingText}>{t('common.loading')}</Text>
-                                    ) : (
-                                        <Picker
-                                            selectedValue={formData.eventId !== null && formData.eventId !== undefined ? String(formData.eventId) : ''}
-                                            onValueChange={(value: string) => setFormData({ ...formData, eventId: value === '' ? null : Number(value) })}
-                                            style={styles.picker}
-                                        >
-                                            <Picker.Item label={t('admin.donations.form.noEvent')} value={''} />
-                                            {events.map((event) => (
-                                                <Picker.Item key={event.id} label={event.title} value={String(event.id)} />
-                                            ))}
-                                        </Picker>
-                                    )}
-                                </View>
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>{t('admin.donations.form.date')} *</Text>
-                                <TextInput
-                                    style={styles.formInput}
-                                    placeholder={t('admin.donations.form.datePlaceholder')}
-                                    placeholderTextColor={styles.placeholder.color}
-                                    value={formData.donationDate ? formData.donationDate.slice(0, 16).replace('T', ' ') : ''}
-                                    onChangeText={(text) => {
-                                        const dateStr = text.replace(' ', 'T');
-                                        setFormData({ ...formData, donationDate: dateStr + ':00' });
-                                    }}
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>{t('admin.donations.form.employeeId')}</Text>
-                                <Text style={styles.readOnlyField}>{user?.id || t('admin.donations.notAvailable')}</Text>
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.formLabel}>{t('admin.donations.form.comments')}</Text>
-                                <TextInput
-                                    style={[styles.formInput, styles.textAreaInput]}
-                                    placeholder={t('admin.donations.form.commentsPlaceholder')}
-                                    placeholderTextColor={styles.placeholder.color}
-                                    value={formData.comments}
-                                    onChangeText={(text) => setFormData({ ...formData, comments: text })}
-                                    multiline
-                                    numberOfLines={4}
-                                />
-                            </View>
-                        </ScrollView>
-
-                        <View style={styles.formActions}>
-                            <Pressable
-                                style={({ pressed }) => [styles.cancelButton, pressed && styles.buttonPressed]}
-                                onPress={handleCloseManualForm}
-                                disabled={manualFormLoading}
-                            >
-                                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-                            </Pressable>
-                            <Pressable
-                                style={({ pressed }) => [styles.submitButton, pressed && styles.buttonPressed, manualFormLoading && styles.buttonDisabled]}
-                                onPress={handleSubmitManualDonation}
-                                disabled={manualFormLoading}
-                            >
-                                {manualFormLoading ? (
-                                    <ActivityIndicator color="#FFFFFF" />
-                                ) : (
-                                    <Text style={styles.submitButtonText}>{t('admin.donations.form.submit')}</Text>
-                                )}
-                            </Pressable>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
         </View>
     );
 }
 
 const getStyles = (isDark: boolean) => {
-    const BG = isDark ? '#0F1419' : '#FFFFFF';
     const SURFACE = isDark ? '#141A21' : '#F5F7FB';
     const TEXT = isDark ? '#ECEDEE' : '#1E2A3B';
     const MUTED = isDark ? '#A0A7B1' : '#5C6A80';
@@ -607,6 +436,17 @@ const getStyles = (isDark: boolean) => {
             padding: 18,
             paddingBottom: 40,
         },
+        title: {
+            fontSize: 24,
+            fontWeight: '800',
+            color: TEXT,
+            marginBottom: 4,
+        },
+        subtitle: {
+            fontSize: 14,
+            color: MUTED,
+            marginBottom: 18,
+        },
         filterSection: {
             marginBottom: 16,
         },
@@ -620,156 +460,186 @@ const getStyles = (isDark: boolean) => {
         },
         filterGroupSmall: {
             flex: 1,
-            minWidth: 0,
         },
         filterLabel: {
-            fontSize: 14,
-            color: MUTED,
-            marginBottom: 4,
+            color: TEXT,
+            fontSize: 12,
+            marginBottom: 6,
+            fontWeight: '600',
         },
         filterInput: {
             borderWidth: 1,
             borderColor: BORDER,
-            borderRadius: 6,
-            padding: 8,
-            fontSize: 15,
-            color: TEXT,
+            borderRadius: 10,
             backgroundColor: CARD,
-        },
-        title: {
-            fontSize: 22,
-            fontWeight: '700',
             color: TEXT,
+            paddingHorizontal: 10,
+            paddingVertical: 8,
+            fontSize: 14,
         },
-        subtitle: {
-            color: MUTED,
-            marginTop: 4,
-            marginBottom: 16,
+        pickerWrapper: {
+            borderWidth: 1,
+            borderColor: BORDER,
+            borderRadius: 10,
+            backgroundColor: CARD,
+            overflow: 'hidden',
         },
         searchWrapper: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 8,
             borderWidth: 1,
             borderColor: BORDER,
-            backgroundColor: BG,
             borderRadius: 12,
+            backgroundColor: CARD,
             paddingHorizontal: 12,
-            paddingVertical: 10,
-            marginBottom: 16,
+            marginBottom: 14,
+            gap: 8,
         },
         searchInput: {
             flex: 1,
             color: TEXT,
-        },
-        placeholder: {
-            color: MUTED,
+            paddingVertical: 10,
+            fontSize: 14,
         },
         icon: {
             color: MUTED,
         },
+        placeholder: {
+            color: MUTED,
+        },
+        addButton: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            backgroundColor: ACCENT,
+            paddingVertical: 12,
+            borderRadius: 12,
+            marginBottom: 16,
+        },
+        addButtonPressed: {
+            opacity: 0.9,
+        },
+        addButtonText: {
+            color: '#FFFFFF',
+            fontWeight: '700',
+            fontSize: 15,
+        },
         centered: {
             alignItems: 'center',
             justifyContent: 'center',
-            paddingVertical: 20,
+            paddingVertical: 24,
         },
         loadingText: {
-            marginTop: 8,
             color: MUTED,
+            marginTop: 8,
         },
         errorText: {
-            color: '#D93025',
-            marginBottom: 12,
+            color: '#D14343',
+            marginBottom: 10,
+            fontWeight: '600',
         },
         emptyState: {
-            paddingVertical: 24,
             alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: 30,
         },
         emptyText: {
             color: MUTED,
+            fontSize: 14,
         },
         list: {
             gap: 12,
         },
         card: {
             backgroundColor: CARD,
-            borderRadius: 14,
-            padding: 14,
             borderWidth: 1,
             borderColor: BORDER,
+            borderRadius: 14,
+            padding: 14,
+            gap: 6,
             shadowColor: '#000',
-            shadowOpacity: 0.06,
+            shadowOpacity: 0.04,
             shadowRadius: 8,
             shadowOffset: { width: 0, height: 3 },
-            elevation: 3,
+            elevation: 2,
         },
         cardHeader: {
             flexDirection: 'row',
-            alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 10,
+            alignItems: 'flex-start',
+            marginBottom: 6,
         },
         cardTitle: {
+            color: TEXT,
             fontSize: 16,
             fontWeight: '700',
-            color: TEXT,
+            marginBottom: 2,
         },
         cardSubtitle: {
             color: MUTED,
-            marginTop: 2,
+            fontSize: 12,
         },
         amountBadge: {
             backgroundColor: isDark ? '#1D2A3A' : '#EAF1FF',
             paddingHorizontal: 10,
             paddingVertical: 6,
-            borderRadius: 12,
+            borderRadius: 999,
         },
         amountText: {
             color: ACCENT,
             fontWeight: '700',
+            fontSize: 13,
         },
         metaRow: {
             flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 6,
+            gap: 6,
         },
         metaLabel: {
             color: MUTED,
+            fontWeight: '600',
+            fontSize: 12,
         },
         metaValue: {
             color: TEXT,
-            fontWeight: '600',
+            fontSize: 12,
+            flexShrink: 1,
         },
         detailButton: {
-            marginTop: 12,
-            paddingVertical: 10,
-            paddingHorizontal: 12,
-            borderRadius: 10,
-            backgroundColor: isDark ? '#1D2A3A' : '#EAF1FF',
+            marginTop: 8,
+            alignSelf: 'flex-start',
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
+            gap: 4,
+            paddingHorizontal: 10,
+            paddingVertical: 7,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: BORDER,
+            backgroundColor: isDark ? '#202A36' : '#F6F9FF',
         },
         detailButtonPressed: {
-            transform: [{ scale: 0.99 }],
+            opacity: 0.9,
         },
         detailButtonText: {
             color: ACCENT,
             fontWeight: '700',
+            fontSize: 12,
         },
         modalOverlay: {
             flex: 1,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'rgba(0,0,0,0.45)',
+            alignItems: 'center',
             justifyContent: 'center',
-            padding: 20,
+            padding: 18,
         },
         modalContent: {
-            backgroundColor: BG,
-            borderRadius: 16,
+            width: '100%',
+            borderRadius: 14,
             padding: 16,
-        },
-        largeModalContent: {
-            maxHeight: '90%',
+            backgroundColor: CARD,
+            borderWidth: 1,
+            borderColor: BORDER,
         },
         modalHeader: {
             flexDirection: 'row',
@@ -779,109 +649,13 @@ const getStyles = (isDark: boolean) => {
         },
         modalTitle: {
             color: TEXT,
-            fontSize: 18,
-            fontWeight: '700',
+            fontSize: 17,
+            fontWeight: '800',
         },
         detailLine: {
             color: TEXT,
             marginBottom: 6,
+            fontSize: 13,
         },
-        addButton: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            backgroundColor: ACCENT,
-            paddingVertical: 12,
-            paddingHorizontal: 16,
-            borderRadius: 10,
-            marginBottom: 16,
-        },
-        addButtonPressed: {
-            transform: [{ scale: 0.98 }],
-        },
-        addButtonText: {
-            color: '#FFFFFF',
-            fontWeight: '700',
-            fontSize: 16,
-        },
-        formScrollView: {
-            maxHeight: '60%',
-            marginBottom: 16,
-        },
-        formGroup: {
-            marginBottom: 16,
-        },
-        formLabel: {
-            color: TEXT,
-            fontWeight: '600',
-            marginBottom: 6,
-            fontSize: 14,
-        },
-        formInput: {
-            borderWidth: 1,
-            borderColor: BORDER,
-            borderRadius: 8,
-            padding: 10,
-            color: TEXT,
-            backgroundColor: BG,
-        },
-        textAreaInput: {
-            minHeight: 100,
-            textAlignVertical: 'top',
-        },
-        pickerWrapper: {
-            borderWidth: 1,
-            borderColor: BORDER,
-            borderRadius: 8,
-            backgroundColor: BG,
-            overflow: 'hidden',
-        },
-        picker: {
-            color: TEXT,
-            backgroundColor: BG,
-            minHeight: 44,
-        },
-        readOnlyField: {
-            borderWidth: 1,
-            borderColor: BORDER,
-            borderRadius: 8,
-            padding: 10,
-            color: MUTED,
-            backgroundColor: BG,
-            fontSize: 14,
-        },
-        formActions: {
-            flexDirection: 'row',
-            gap: 12,
-            justifyContent: 'flex-end',
-        },
-        cancelButton: {
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: BORDER,
-            backgroundColor: 'transparent',
-        },
-        cancelButtonText: {
-            color: TEXT,
-            fontWeight: '600',
-        },
-        submitButton: {
-            paddingVertical: 10,
-            paddingHorizontal: 20,
-            borderRadius: 8,
-            backgroundColor: ACCENT,
-        },
-        submitButtonText: {
-            color: '#FFFFFF',
-            fontWeight: '600',
-        },
-        buttonPressed: {
-            transform: [{ scale: 0.98 }],
-        },
-        buttonDisabled: {
-            opacity: 0.6,        },
     });
 };

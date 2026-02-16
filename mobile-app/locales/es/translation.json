@@ -769,11 +769,38 @@
       "viewDetails": "Ver detalles",
       "addButton": "Agregar donación manual",
       "addDonationTitle": "Agregar donación manual",
+      "manualScreenSubtitle": "Registra una donación fuera de línea y asígnala a un miembro o a un donante invitado.",
+      "backToList": "Volver a la lista de donaciones",
       "amountRequired": "El monto debe ser mayor a 0",
       "employeeNotFound": "ID de empleado no encontrado",
       "submitError": "No se pudo enviar la donación",
+      "manualSuccess": "Donación manual creada correctamente.",
       "notAvailable": "No disponible",
+      "validation": {
+        "dateInvalid": "Usa el formato de fecha AAAA-MM-DD HH:MM",
+        "existingUserRequired": "Selecciona un usuario existente.",
+        "guestNameRequired": "El nombre del donante invitado es obligatorio.",
+        "guestEmailRequired": "El correo del donante invitado es obligatorio.",
+        "guestEmailInvalid": "El correo del donante invitado no es válido."
+      },
+      "userPicker": {
+        "title": "Seleccionar usuario existente",
+        "searchPlaceholder": "Buscar usuarios por nombre o correo",
+        "empty": "No se encontraron usuarios.",
+        "loadError": "No se pudo cargar la lista de usuarios."
+      },
+      "filter": {
+        "eventName": "Nombre del evento",
+        "eventNamePlaceholder": "Selecciona un evento...",
+        "year": "Año",
+        "yearPlaceholder": "AAAA",
+        "month": "Mes",
+        "monthPlaceholder": "MM",
+        "day": "Día",
+        "dayPlaceholder": "DD"
+      },
       "fields": {
+        "event": "Evento",
         "donor": "Donante",
         "email": "Correo",
         "phone": "Teléfono",
@@ -794,14 +821,32 @@
       },
       "form": {
         "amount": "Monto",
+        "amountPlaceholder": "0.00",
         "currency": "Moneda",
         "event": "Evento asociado",
         "noEvent": "Sin evento",
         "date": "Fecha de la donación",
+        "datePlaceholder": "AAAA-MM-DD HH:MM",
+        "donorType": "Tipo de donante",
+        "donorTypeHint": "Elige un usuario registrado o ingresa los datos de un donante invitado.",
+        "existingUser": "Usuario existente",
+        "guestDonor": "Donante invitado",
+        "selectUser": "Seleccionar usuario",
+        "changeUser": "Cambiar usuario",
+        "noUserSelected": "Aún no hay usuario seleccionado.",
+        "guestName": "Nombre del donante invitado",
+        "guestNamePlaceholder": "Ingresa el nombre completo del donante",
+        "guestEmail": "Correo del donante invitado",
+        "guestEmailPlaceholder": "Ingresa el correo del donante",
         "employeeId": "ID de empleado",
         "comments": "Comentarios",
         "commentsPlaceholder": "Agregar notas sobre esta donación (opcional)",
         "submit": "Enviar donación"
+      },
+      "currency": {
+        "CAD": "CAD",
+        "USD": "USD",
+        "EUR": "EUR"
       }
     }
   },

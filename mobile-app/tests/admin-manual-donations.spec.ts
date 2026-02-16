@@ -1,6 +1,18 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-test.describe('Admin Manual Donation Entry', () => {
+type DonationRow = {
+    id: number;
+    userId: number | null;
+    donorName: string | null;
+    donorEmail: string | null;
+    amount: number;
+    currency: string;
+    frequency: string;
+    status: string;
+    createdAt: string;
+};
+
+test.describe('Admin manual donation entry', () => {
     const adminUser = {
         token: 'admin-token-manual-donations',
         refreshToken: 'refresh-token',
@@ -11,7 +23,42 @@ test.describe('Admin Manual Donation Entry', () => {
         name: 'Admin User',
     };
 
-    const donations = [
+    const events = [
+        {
+            id: 1,
+            title: 'MANA Recognition Gala',
+            startDateTime: '2026-03-15T18:00:00',
+            endDateTime: '2026-03-15T22:00:00',
+            locationName: 'Centre MANA',
+        },
+    ];
+
+    const users = [
+        {
+            id: 10,
+            email: 'ada@mana.org',
+            roles: ['ROLE_MEMBER'],
+            name: 'Ada Lovelace',
+            phoneNumber: '',
+            gender: 'FEMALE',
+            age: 37,
+            memberStatus: 'ACTIVE',
+            statusChangedAt: null,
+        },
+        {
+            id: 11,
+            email: 'grace@mana.org',
+            roles: ['ROLE_MEMBER'],
+            name: 'Grace Hopper',
+            phoneNumber: '',
+            gender: 'FEMALE',
+            age: 42,
+            memberStatus: 'ACTIVE',
+            statusChangedAt: null,
+        },
+    ];
+
+    let donations: DonationRow[] = [
         {
             id: 1,
             userId: 10,
@@ -21,29 +68,25 @@ test.describe('Admin Manual Donation Entry', () => {
             currency: 'CAD',
             frequency: 'ONE_TIME',
             status: 'RECEIVED',
-            createdAt: '2025-01-15T10:00:00',
-        },
-    ];
-
-    const events = [
-        {
-            id: 1,
-            title: 'MANA Recognition Gala',
-            startDateTime: '2025-03-15T18:00:00',
-            endDateTime: '2025-03-15T22:00:00',
-            locationName: 'Centre MANA',
-        },
-        {
-            id: 2,
-            title: 'Food Distribution',
-            startDateTime: '2025-03-20T10:00:00',
-            endDateTime: '2025-03-20T14:00:00',
-            locationName: 'Community Center',
+            createdAt: '2026-01-15T10:00:00',
         },
     ];
 
     test.beforeEach(async ({ page }) => {
-        // Mock donations list endpoint
+        donations = [
+            {
+                id: 1,
+                userId: 10,
+                donorName: 'Ada Lovelace',
+                donorEmail: 'ada@mana.org',
+                amount: 50,
+                currency: 'CAD',
+                frequency: 'ONE_TIME',
+                status: 'RECEIVED',
+                createdAt: '2026-01-15T10:00:00',
+            },
+        ];
+
         await page.route('**/api/employee/donations', async (route) => {
             if (route.request().method() === 'GET') {
                 await route.fulfill({
@@ -51,13 +94,12 @@ test.describe('Admin Manual Donation Entry', () => {
                     contentType: 'application/json',
                     body: JSON.stringify(donations),
                 });
-            } else {
-                await route.continue();
+                return;
             }
+            await route.continue();
         });
 
-        // Mock events endpoint for event dropdown
-        await page.route('**/api/events/upcoming', async (route) => {
+        await page.route('**/api/admin/events/all', async (route) => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -65,7 +107,14 @@ test.describe('Admin Manual Donation Entry', () => {
             });
         });
 
-        // Mock notifications endpoints
+        await page.route('**/api/admin/users', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(users),
+            });
+        });
+
         await page.route('**/api/notifications', async (route) => {
             if (route.request().method() === 'GET') {
                 await route.fulfill({
@@ -73,7 +122,9 @@ test.describe('Admin Manual Donation Entry', () => {
                     headers: { 'content-type': 'application/json' },
                     body: JSON.stringify([]),
                 });
+                return;
             }
+            await route.continue();
         });
 
         await page.route('**/api/notifications/unread-count', async (route) => {
@@ -89,201 +140,126 @@ test.describe('Admin Manual Donation Entry', () => {
         }, adminUser);
     });
 
-    test('Admin can open manual donation form and see all required fields', async ({ page }) => {
+    test('Admin can open manual donation as a dedicated screen from donations list', async ({ page }) => {
         await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
 
-        // Wait for page to load and verify we're on the right page
         await expect(page.getByText('Donations')).toBeVisible();
         await expect(page.getByText('Ada Lovelace')).toBeVisible();
 
-        // Click "Add Manual Donation" button
-        await page.getByText('Add Manual Donation').click();
+        await page.getByTestId('open-manual-donation-screen').click();
 
-        // Verify modal opens with correct title
-        await expect(page.getByText('Add Manual Donation')).toBeVisible();
-
-        // Verify all form fields are present
-        await expect(page.getByText('Amount *')).toBeVisible();
-        await expect(page.getByPlaceholder('0.00')).toBeVisible();
-
-        await expect(page.getByText('Currency *')).toBeVisible();
-        // Currency picker should be visible
-
-        await expect(page.getByText('Associated Event')).toBeVisible();
-        // Event picker should load events
-
-        await expect(page.getByText('Donation Date *')).toBeVisible();
-        await expect(page.getByPlaceholder('YYYY-MM-DD HH:MM')).toBeVisible();
-
-        await expect(page.getByText('Employee ID')).toBeVisible();
-        await expect(page.getByText('1')).toBeVisible(); // Admin user ID
-
-        await expect(page.getByText('Comments')).toBeVisible();
-        await expect(page.getByPlaceholder(/add any notes/i)).toBeVisible();
-
-        // Verify action buttons
-        await expect(page.getByText('Cancel')).toBeVisible();
-        await expect(page.getByText('Submit Donation')).toBeVisible();
+        await expect(page.getByTestId('manual-donation-title')).toBeVisible();
+        await expect(page.getByTestId('donor-type-existing-button')).toBeVisible();
+        await expect(page.getByTestId('donor-type-guest-button')).toBeVisible();
+        await expect(page.getByTestId('manual-donation-select-user')).toBeVisible();
     });
 
-    test('Admin can successfully create a manual donation with required fields', async ({ page }) => {
-        let manualDonationSubmitted = false;
-        const submittedData = {
-            amount: 0,
-            currency: '',
-            donorId: 0,
-        };
+    test('Admin can submit manual donation for a guest donor', async ({ page }) => {
+        let submittedPayload: any = null;
 
-        // Mock successful manual donation submission
-        await page.route('**/api/employee/donations/manual*', async (route) => {
+        await page.route('**/api/employee/donations/manual', async (route) => {
             if (route.request().method() === 'POST') {
-                manualDonationSubmitted = true;
-                const url = new URL(route.request().url());
-                submittedData.donorId = parseInt(url.searchParams.get('donorId') || '0');
+                submittedPayload = route.request().postDataJSON();
 
-                const body = route.request().postDataJSON();
-                submittedData.amount = body.amount;
-                submittedData.currency = body.currency;
-
-                const newDonation = {
+                const createdDonation = {
                     id: 2,
-                    userId: submittedData.donorId,
-                    donorName: 'Jane Donor',
-                    donorEmail: 'jane@example.com',
-                    amount: submittedData.amount,
-                    currency: submittedData.currency,
+                    userId: null,
+                    donorName: submittedPayload.donorName,
+                    donorEmail: submittedPayload.donorEmail,
+                    amount: submittedPayload.amount,
+                    currency: submittedPayload.currency,
                     frequency: 'ONE_TIME',
                     status: 'RECEIVED',
-                    createdAt: new Date().toISOString(),
+                    createdAt: submittedPayload.donationDate,
                 };
+
+                donations = [createdDonation, ...donations];
 
                 await route.fulfill({
                     status: 201,
                     contentType: 'application/json',
-                    body: JSON.stringify(newDonation),
+                    body: JSON.stringify(createdDonation),
                 });
-
-                // Update donations list to include the new donation
-                donations.push(newDonation);
-            } else {
-                await route.continue();
+                return;
             }
+
+            await route.continue();
         });
 
         await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
-        await page.getByText('Add Manual Donation').click();
+        await page.getByTestId('open-manual-donation-screen').click();
 
-        // Fill in required fields
-        await page.getByPlaceholder('0.00').fill('100');
-        
-        // Currency defaults to CAD, so no change needed
+        await page.getByTestId('donor-type-guest-button').click();
+        await page.getByPlaceholder('0.00').fill('120');
+        await page.getByPlaceholder('YYYY-MM-DD HH:MM').fill('2026-02-01 14:30');
+        await page.getByTestId('manual-donation-guest-name').fill('Guest Supporter');
+        await page.getByTestId('manual-donation-guest-email').fill('guest.supporter@example.com');
 
-        // Enter donation date
-        const dateInput = page.getByPlaceholder('YYYY-MM-DD HH:MM');
-        await dateInput.fill('2025-02-01 14:30');
+        page.once('dialog', (dialog) => dialog.accept().catch(() => {}));
+        await page.getByTestId('manual-donation-submit').click();
 
-        // Submit the form
-        await page.getByText('Submit Donation').click();
+        await expect.poll(() => submittedPayload).not.toBeNull();
+        expect(submittedPayload.amount).toBe(120);
+        expect(submittedPayload.donorName).toBe('Guest Supporter');
+        expect(submittedPayload.donorEmail).toBe('guest.supporter@example.com');
+        expect(submittedPayload.donorUserId ?? null).toBeNull();
 
-        // Wait for submission
-        await page.waitForTimeout(500);
-
-        // Verify submission occurred
-        expect(manualDonationSubmitted).toBeTruthy();
-        expect(submittedData.amount).toBe(100);
-        expect(submittedData.currency).toBe('CAD');
-        expect(submittedData.donorId).toBeGreaterThan(0);
-
-        // Verify modal closed and donation appears in list
-        await expect(page.getByText('Add Manual Donation').first()).not.toBeVisible();
-        await expect(page.getByText('Jane Donor')).toBeVisible();
+        await expect(page).toHaveURL(/\/admin\/donations/);
+        await expect(page.getByText('Guest Supporter')).toBeVisible();
     });
 
-    test('Form validation prevents submission with invalid amount', async ({ page }) => {
-        await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
-        await page.getByText('Add Manual Donation').click();
+    test('Admin can search and select an existing user for manual donation', async ({ page }) => {
+        let submittedPayload: any = null;
 
-        // Try to submit with amount = 0
-        await page.getByPlaceholder('0.00').fill('0');
-        await page.getByText('Submit Donation').click();
-
-        // Verify error message appears
-        await expect(page.getByText(/amount must be greater than 0/i)).toBeVisible();
-
-        // Modal should still be open
-        await expect(page.getByText('Add Manual Donation')).toBeVisible();
-    });
-
-    test('Admin can create manual donation with optional fields (event and comments)', async ({ page }) => {
-        let submittedFormData: any = null;
-
-        // Mock successful manual donation submission
-        await page.route('**/api/employee/donations/manual*', async (route) => {
+        await page.route('**/api/employee/donations/manual', async (route) => {
             if (route.request().method() === 'POST') {
-                const url = new URL(route.request().url());
-                const donorId = parseInt(url.searchParams.get('donorId') || '0');
-                submittedFormData = route.request().postDataJSON();
+                submittedPayload = route.request().postDataJSON();
+                const selectedUser = users.find((user) => user.id === submittedPayload.donorUserId);
 
-                const newDonation = {
+                const createdDonation = {
                     id: 3,
-                    userId: donorId,
-                    donorName: 'Bob Smith',
-                    donorEmail: 'bob@example.com',
-                    amount: submittedFormData.amount,
-                    currency: submittedFormData.currency,
+                    userId: selectedUser?.id ?? null,
+                    donorName: selectedUser?.name ?? 'Unknown donor',
+                    donorEmail: selectedUser?.email ?? null,
+                    amount: submittedPayload.amount,
+                    currency: submittedPayload.currency,
                     frequency: 'ONE_TIME',
                     status: 'RECEIVED',
-                    createdAt: new Date().toISOString(),
+                    createdAt: submittedPayload.donationDate,
                 };
+
+                donations = [createdDonation, ...donations];
 
                 await route.fulfill({
                     status: 201,
                     contentType: 'application/json',
-                    body: JSON.stringify(newDonation),
+                    body: JSON.stringify(createdDonation),
                 });
-            } else {
-                await route.continue();
+                return;
             }
+
+            await route.continue();
         });
 
         await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
-        await page.getByText('Add Manual Donation').click();
+        await page.getByTestId('open-manual-donation-screen').click();
 
-        // Wait for events to load
-        await page.waitForTimeout(300);
+        await page.getByTestId('manual-donation-select-user').click();
+        await page.getByTestId('manual-donation-user-search').fill('grace');
+        await page.getByText('Grace Hopper').click();
 
-        // Fill in required fields
-        await page.getByPlaceholder('0.00').fill('250');
+        await page.getByPlaceholder('0.00').fill('75');
+        await page.getByPlaceholder('YYYY-MM-DD HH:MM').fill('2026-02-02 09:15');
 
-        // Select currency (USD instead of default CAD)
-        // Note: Picker selection may vary by platform; testing default CAD is sufficient
-        
-        // Select an event from dropdown
-        // This is simplified - actual picker interaction may differ
-        // The important thing is that the eventId field is populated
+        page.once('dialog', (dialog) => dialog.accept().catch(() => {}));
+        await page.getByTestId('manual-donation-submit').click();
 
-        // Enter donation date
-        await page.getByPlaceholder('YYYY-MM-DD HH:MM').fill('2025-02-10 16:00');
+        await expect.poll(() => submittedPayload).not.toBeNull();
+        expect(submittedPayload.donorUserId).toBe(11);
+        expect(submittedPayload.donorName ?? null).toBeNull();
+        expect(submittedPayload.donorEmail ?? null).toBeNull();
 
-        // Add comments
-        const commentsField = page.getByPlaceholder(/add any notes/i);
-        await commentsField.fill('Donation received during community event. Cash payment.');
-
-        // Submit the form
-        await page.getByText('Submit Donation').click();
-
-        // Wait for submission
-        await page.waitForTimeout(500);
-
-        // Verify submission data includes optional fields
-        expect(submittedFormData).not.toBeNull();
-        expect(submittedFormData.amount).toBe(250);
-        expect(submittedFormData.currency).toBe('CAD');
-        expect(submittedFormData.comments).toBe('Donation received during community event. Cash payment.');
-        expect(submittedFormData.donationDate).toContain('2025-02-10');
-
-        // Verify modal closed
-        await expect(page.getByText('Add Manual Donation').first()).not.toBeVisible();
-        await expect(page.getByText('Bob Smith')).toBeVisible();
+        await expect(page).toHaveURL(/\/admin\/donations/);
+        await expect(page.getByText('Grace Hopper')).toBeVisible();
     });
 });

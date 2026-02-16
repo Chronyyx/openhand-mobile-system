@@ -4,22 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Update tests: Add `NotificationRepository` mock to `DonationServiceImplFilterTest` setup">
+    <list default="true" id="fc0f4501-cd4a-4f71-8fd6-c6fe68838a79" name="Changes" comment="Add attendee sorting and filtering capabilities to attendance screen">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/donations-metrics.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/donations-metrics.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/app/admin/donations.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/app/admin/donations.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/en/translation.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/es/translation.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/locales/fr/translation.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/services/donation-metrics.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/donation-metrics.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mobile-app/tests/admin-donations-metrics.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/tests/admin-donations-metrics.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/services/donation-management.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/services/donation-management.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mobile-app/tests/admin-manual-donations.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/mobile-app/tests/admin-manual-donations.spec.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/businesslayer/DonationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/businesslayer/DonationService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/businesslayer/DonationServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/businesslayer/DonationServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/dataaccesslayer/Donation.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/dataaccesslayer/Donation.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/dataaccesslayer/DonationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/dataaccesslayer/DonationRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/presentationlayer/DonationAdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/presentationlayer/DonationAdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/businesslayer/DonationServiceImplFilterTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/businesslayer/DonationServiceImplFilterTest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/presentationlayer/DonationAdminControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/presentationlayer/DonationAdminControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/domainclientlayer/ManualDonationRequestModel.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/domainclientlayer/ManualDonationRequestModel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/presentationlayer/DonationManagementController.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/presentationlayer/DonationManagementController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/utils/DonationManagementMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/main/java/com/mana/openhand_backend/donations/utils/DonationManagementMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/businesslayer/DonationServiceImplTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/businesslayer/DonationServiceImplTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/presentationlayer/DonationManagementControllerTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/presentationlayer/DonationManagementControllerTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/presentationlayer/DonationManualEntryIntegrationTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/openhand-backend/src/test/java/com/mana/openhand_backend/donations/presentationlayer/DonationManualEntryIntegrationTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,9 +74,6 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProblemsViewState">
-    <option name="selectedTabId" value="Security Analysis" />
-  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -104,7 +103,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "Spring Boot.OpenhandBackendApplication.executor": "Run",
-    "git-widget-placeholder": "feat/OP-10__Generate__Reports__for__Donations",
+    "git-widget-placeholder": "feat/OP-14__Manually__Record__Donations",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/Users/maximilian/Desktop/Final Project/openhand-mobile-system/diagrams/examples",
     "node.js.detected.package.eslint": "true",
@@ -253,7 +252,7 @@
       <workItem from="1769630245937" duration="8827000" />
       <workItem from="1770567650349" duration="201000" />
       <workItem from="1770610479146" duration="2899000" />
-      <workItem from="1770862947412" duration="34397000" />
+      <workItem from="1770862947412" duration="27496000" />
     </task>
     <task id="LOCAL-00001" summary="Initial commit: Backend + Mobile App setup">
       <option name="closed" value="true" />
@@ -391,31 +390,7 @@
       <option name="project" value="LOCAL" />
       <updated>1770007322570</updated>
     </task>
-    <task id="LOCAL-00018" summary="Add &quot;Donation Metrics&quot; feature for admins, improve navigation, and update translations">
-      <option name="closed" value="true" />
-      <created>1771196621676</created>
-      <option name="number" value="00018" />
-      <option name="presentableId" value="LOCAL-00018" />
-      <option name="project" value="LOCAL" />
-      <updated>1771196621676</updated>
-    </task>
-    <task id="LOCAL-00019" summary="Update tests: Replace `@MockBean` with `@MockitoBean` in `DonationManagementControllerTest`">
-      <option name="closed" value="true" />
-      <created>1771196636851</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1771196636851</updated>
-    </task>
-    <task id="LOCAL-00020" summary="Update tests: Add `NotificationRepository` mock to `DonationServiceImplFilterTest` setup">
-      <option name="closed" value="true" />
-      <created>1771200983406</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1771200983406</updated>
-    </task>
-    <option name="localTasksCounter" value="21" />
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -448,10 +423,7 @@
     <MESSAGE value="Improve cancellation logic by adding event ID override for better error handling and group registration updates" />
     <MESSAGE value="Add event sorting and filtering options to Attendance Dashboard" />
     <MESSAGE value="Add attendee sorting and filtering capabilities to attendance screen" />
-    <MESSAGE value="Add &quot;Donation Metrics&quot; feature for admins, improve navigation, and update translations" />
-    <MESSAGE value="Update tests: Replace `@MockBean` with `@MockitoBean` in `DonationManagementControllerTest`" />
-    <MESSAGE value="Update tests: Add `NotificationRepository` mock to `DonationServiceImplFilterTest` setup" />
-    <option name="LAST_COMMIT_MESSAGE" value="Update tests: Add `NotificationRepository` mock to `DonationServiceImplFilterTest` setup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Add attendee sorting and filtering capabilities to attendance screen" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -132,6 +133,8 @@ public class DonationServiceImpl implements DonationService {
 
         Donation donation = new Donation(user, request.getAmount(), currency, request.getFrequency(),
                 DonationStatus.RECEIVED);
+        donation.setDonorName(trimToNull(user.getName()));
+        donation.setDonorEmail(trimToNull(user.getEmail()));
         Donation saved = donationRepository.save(donation);
 
         String language = user.getPreferredLanguage() != null ? user.getPreferredLanguage() : "en";
@@ -169,11 +172,7 @@ public class DonationServiceImpl implements DonationService {
 
     @Override
     @Transactional
-    public DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, 
-                                                             ManualDonationRequestModel request) {
-        User donorUser = userRepository.findById(donorUserId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donor user not found."));
-
+    public DonationSummaryResponseModel createManualDonation(Long employeeId, ManualDonationRequestModel request) {
         if (request.getAmount() == null || request.getAmount().compareTo(MINIMUM_AMOUNT) < 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Donation amount must be at least " + MINIMUM_AMOUNT + ".");
@@ -184,8 +183,30 @@ public class DonationServiceImpl implements DonationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported currency: " + currency);
         }
 
+        User donorUser = null;
+        String donorName;
+        String donorEmail;
+
+        if (request.getDonorUserId() != null) {
+            donorUser = userRepository.findById(request.getDonorUserId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Donor user not found."));
+            donorName = trimToNull(donorUser.getName());
+            donorEmail = trimToNull(donorUser.getEmail());
+        } else {
+            donorName = trimToNull(request.getDonorName());
+            donorEmail = trimToNull(request.getDonorEmail());
+            if (donorName == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Donor name is required.");
+            }
+            if (donorEmail == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Donor email is required.");
+            }
+        }
+
         Donation donation = new Donation(donorUser, request.getAmount(), currency, 
                 DonationFrequency.ONE_TIME, DonationStatus.RECEIVED);
+        donation.setDonorName(donorName);
+        donation.setDonorEmail(donorEmail);
 
         // Set event if eventId is provided
         if (request.getEventId() != null) {
@@ -224,19 +245,20 @@ public class DonationServiceImpl implements DonationService {
                 ? totalAmount.divide(BigDecimal.valueOf(totalDonations), 2, RoundingMode.HALF_UP)
                 : BigDecimal.ZERO;
 
-        Map<Long, List<Donation>> donationsByDonor = donations.stream()
-                .filter(donation -> donation.getUser() != null && donation.getUser().getId() != null)
-                .collect(Collectors.groupingBy(donation -> donation.getUser().getId()));
-
-        long uniqueDonors = donationsByDonor.size();
-        long repeatDonors = donationsByDonor.values().stream().filter(donorDonations -> donorDonations.size() > 1).count();
-        long firstTimeDonors = donationsByDonor.values().stream().filter(donorDonations -> donorDonations.size() == 1).count();
+        Map<String, DonorAggregate> donorAggregates = aggregateByDonor(donations);
+        long uniqueDonors = donorAggregates.size();
+        long repeatDonors = donorAggregates.values().stream()
+                .filter(aggregate -> aggregate.getDonationCount() > 1)
+                .count();
+        long firstTimeDonors = donorAggregates.values().stream()
+                .filter(aggregate -> aggregate.getDonationCount() == 1)
+                .count();
 
         List<DonationMetricBreakdownResponseModel> frequencyBreakdown = buildFrequencyBreakdown(donations);
         List<DonationMetricBreakdownResponseModel> statusBreakdown = buildStatusBreakdown(donations);
         List<DonationMonthlyTrendResponseModel> monthlyTrend = buildMonthlyTrend(donations);
-        List<DonationTopDonorResponseModel> topDonorsByAmount = buildTopDonorsByAmount(donations, 5);
-        List<DonationTopDonorResponseModel> topDonorsByCount = buildTopDonorsByCount(donations, 5);
+        List<DonationTopDonorResponseModel> topDonorsByAmount = buildTopDonorsByAmount(donorAggregates, 5);
+        List<DonationTopDonorResponseModel> topDonorsByCount = buildTopDonorsByCount(donorAggregates, 5);
 
         long manualDonationsCount = donations.stream().filter(this::isManualDonation).count();
         BigDecimal manualDonationsAmount = donations.stream()
@@ -371,8 +393,9 @@ public class DonationServiceImpl implements DonationService {
         return result;
     }
 
-    private List<DonationTopDonorResponseModel> buildTopDonorsByAmount(List<Donation> donations, int limit) {
-        return aggregateByDonor(donations).values().stream()
+    private List<DonationTopDonorResponseModel> buildTopDonorsByAmount(
+            Map<String, DonorAggregate> donorAggregates, int limit) {
+        return donorAggregates.values().stream()
                 .sorted(
                         Comparator.comparing(DonorAggregate::getTotalAmount, BigDecimal::compareTo).reversed()
                                 .thenComparing(DonorAggregate::getDonationCount, Comparator.reverseOrder())
@@ -388,8 +411,9 @@ public class DonationServiceImpl implements DonationService {
                 .collect(Collectors.toList());
     }
 
-    private List<DonationTopDonorResponseModel> buildTopDonorsByCount(List<Donation> donations, int limit) {
-        return aggregateByDonor(donations).values().stream()
+    private List<DonationTopDonorResponseModel> buildTopDonorsByCount(
+            Map<String, DonorAggregate> donorAggregates, int limit) {
+        return donorAggregates.values().stream()
                 .sorted(
                         Comparator.comparing(DonorAggregate::getDonationCount, Comparator.reverseOrder())
                                 .thenComparing(DonorAggregate::getTotalAmount, Comparator.reverseOrder())
@@ -405,17 +429,20 @@ public class DonationServiceImpl implements DonationService {
                 .collect(Collectors.toList());
     }
 
-    private Map<Long, DonorAggregate> aggregateByDonor(List<Donation> donations) {
-        Map<Long, DonorAggregate> aggregates = new HashMap<>();
+    private Map<String, DonorAggregate> aggregateByDonor(List<Donation> donations) {
+        Map<String, DonorAggregate> aggregates = new HashMap<>();
         for (Donation donation : donations) {
-            User donor = donation.getUser();
-            if (donor == null || donor.getId() == null) {
+            DonorIdentity donorIdentity = resolveDonorIdentity(donation);
+            if (donorIdentity == null) {
                 continue;
             }
 
             DonorAggregate aggregate = aggregates.computeIfAbsent(
-                    donor.getId(),
-                    key -> new DonorAggregate(donor.getId(), donor.getName(), donor.getEmail())
+                    donorIdentity.getKey(),
+                    key -> new DonorAggregate(
+                            donorIdentity.getUserId(),
+                            donorIdentity.getDonorName(),
+                            donorIdentity.getDonorEmail())
             );
 
             aggregate.incrementDonationCount();
@@ -424,6 +451,72 @@ public class DonationServiceImpl implements DonationService {
             }
         }
         return aggregates;
+    }
+
+    private DonorIdentity resolveDonorIdentity(Donation donation) {
+        if (donation == null) {
+            return null;
+        }
+
+        User donorUser = donation.getUser();
+        if (donorUser != null && donorUser.getId() != null) {
+            String donorNameSnapshot = trimToNull(donation.getDonorName());
+            String donorEmailSnapshot = trimToNull(donation.getDonorEmail());
+            String donorName = donorNameSnapshot != null ? donorNameSnapshot : trimToNull(donorUser.getName());
+            String donorEmail = donorEmailSnapshot != null ? donorEmailSnapshot : trimToNull(donorUser.getEmail());
+            return new DonorIdentity("user:" + donorUser.getId(), donorUser.getId(), donorName, donorEmail);
+        }
+
+        String donorEmail = trimToNull(donation.getDonorEmail());
+        if (donorEmail != null) {
+            return new DonorIdentity("email:" + donorEmail.toLowerCase(Locale.ROOT), null,
+                    trimToNull(donation.getDonorName()), donorEmail);
+        }
+
+        String donorName = trimToNull(donation.getDonorName());
+        if (donorName != null) {
+            return new DonorIdentity("name:" + donorName.toLowerCase(Locale.ROOT), null, donorName, null);
+        }
+
+        return null;
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static final class DonorIdentity {
+        private final String key;
+        private final Long userId;
+        private final String donorName;
+        private final String donorEmail;
+
+        private DonorIdentity(String key, Long userId, String donorName, String donorEmail) {
+            this.key = key;
+            this.userId = userId;
+            this.donorName = donorName;
+            this.donorEmail = donorEmail;
+        }
+
+        private String getKey() {
+            return key;
+        }
+
+        private Long getUserId() {
+            return userId;
+        }
+
+        private String getDonorName() {
+            return donorName;
+        }
+
+        private String getDonorEmail() {
+            return donorEmail;
+        }
     }
 
     private static final class DonorAggregate {

@@ -25,8 +25,14 @@ public class Donation {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "donor_name")
+    private String donorName;
+
+    @Column(name = "donor_email")
+    private String donorEmail;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
@@ -97,6 +103,22 @@ public class Donation {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getDonorName() {
+        return donorName;
+    }
+
+    public void setDonorName(String donorName) {
+        this.donorName = donorName;
+    }
+
+    public String getDonorEmail() {
+        return donorEmail;
+    }
+
+    public void setDonorEmail(String donorEmail) {
+        this.donorEmail = donorEmail;
     }
 
     public BigDecimal getAmount() {

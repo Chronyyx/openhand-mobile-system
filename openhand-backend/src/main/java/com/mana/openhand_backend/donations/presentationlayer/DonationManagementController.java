@@ -75,8 +75,12 @@ public class DonationManagementController {
     @ResponseStatus(HttpStatus.CREATED)
     public DonationSummaryResponseModel createManualDonation(
             @Valid @RequestBody ManualDonationRequestModel request,
-            @RequestParam Long donorId,
+            @RequestParam(value = "donorId", required = false) Long donorId,
             Authentication authentication) {
+        if (request.getDonorUserId() == null && donorId != null) {
+            request.setDonorUserId(donorId);
+        }
+
         // For @WebMvcTest compatibility, try authentication parameter first, then SecurityContextHolder
         if (authentication == null) {
             authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -85,7 +89,7 @@ public class DonationManagementController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
         }
         Long employeeId = extractUserIdFromAuth(authentication);
-        return donationService.createManualDonation(employeeId, donorId, request);
+        return donationService.createManualDonation(employeeId, request);
     }
 
     private Long extractUserIdFromAuth(Authentication authentication) {

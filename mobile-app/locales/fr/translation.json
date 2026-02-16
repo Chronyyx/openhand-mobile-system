@@ -141,6 +141,9 @@
     "back_to_login_link": "Retour à la connexion",
     "cancel_link": "Annuler",
     "forgot_password_link_login": "Mot de passe oublié ?",
+    "email_label": "Email",
+    "password_label": "Mot de passe",
+    "toggle_password_visibility_hint": "Affiche ou masque votre mot de passe",
     "error": {
       "enter_email": "Veuillez entrer votre courriel.",
       "generic_reset_error": "Une erreur est survenue. Veuillez réessayer.",
@@ -237,6 +240,7 @@
     "noEvents": "Aucun événement trouvé.",
     "loadError": "Impossible de charger les événements.",
     "searchPlaceholder": "Rechercher des événements...",
+    "searchLabel": "Rechercher des événements",
     "noResults": "Aucun résultat ne correspond à votre recherche.",
     "fields": {
       "date": "Date",
@@ -255,7 +259,10 @@
       "register": "📝 S'inscrire à cet événement",
       "joinWaitlist": "📝 Rejoindre la liste d'attente",
       "undo": "Annuler l'inscription",
+      "undoHint": "Annule votre inscription",
       "unregister": "Se désinscrire",
+      "unregisterHint": "Annule votre inscription",
+      "registerHint": "Vous inscrit à cet événement",
       "confirmUnregisterTitle": "Annuler l'inscription ?",
       "confirmUnregisterMessage": "Êtes-vous sûr de vouloir annuler votre inscription ? Cette action est irréversible.",
       "confirmUnregisterYes": "Oui, annuler",
@@ -295,6 +302,7 @@
     "family": {
       "title": "Membres de la famille",
       "addButton": "Ajouter un membre",
+      "addHint": "Ajoute un autre membre de la famille à cette inscription",
       "removeButton": "Supprimer",
       "hint": "Ajoutez des membres de la famille pour vous inscrire ensemble.",
       "fullNamePlaceholder": "Nom complet",
@@ -331,6 +339,7 @@
       "retry": "Réessayer",
       "ageLabel": "Age",
       "ageUnknown": "Age indisponible",
+      "viewHint": "Ouvre la liste des participants",
       "accessDenied": "Cette liste est réservée aux employés et aux administrateurs."
     },
     "registrationSuccess": {
@@ -338,9 +347,13 @@
     },
     "walkin": {
       "title": "Inscription sur place",
+      "searchLabel": "Rechercher un participant par email",
       "searchPlaceholder": "Entrez un email ou téléphone",
+      "searchHint": "Entrez un email pour rechercher un participant",
+      "searchHintButton": "Recherche les utilisateurs correspondants",
       "search": "Rechercher",
       "register": "Enregistrer le participant",
+      "registerHint": "Inscrit le participant sélectionné",
       "notAuthenticated": "Non authentifié",
       "searchFailed": "Échec de la recherche",
       "successConfirmed": "Participant confirmé à l'événement.",

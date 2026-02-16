@@ -141,6 +141,9 @@
     "back_to_login_link": "Back to Login",
     "cancel_link": "Cancel",
     "forgot_password_link_login": "Forgot Password?",
+    "email_label": "Email",
+    "password_label": "Password",
+    "toggle_password_visibility_hint": "Shows or hides your password",
     "biometrics": {
       "loginButton": "Login with Face ID / Biometrics",
       "promptLogin": "Authenticate to login",
@@ -237,6 +240,7 @@
     "noEvents": "No events found.",
     "loadError": "Unable to load events.",
     "searchPlaceholder": "Search events...",
+    "searchLabel": "Search events",
     "noResults": "No results found matching your search.",
     "fields": {
       "date": "Date",
@@ -255,7 +259,10 @@
       "register": "📝 Register for this event",
       "joinWaitlist": "📝 Join waitlist",
       "undo": "Undo registration",
+      "undoHint": "Cancels your registration",
       "unregister": "Unregister",
+      "unregisterHint": "Cancels your registration",
+      "registerHint": "Registers you for this event",
       "confirmUnregisterTitle": "Cancel Registration?",
       "confirmUnregisterMessage": "Are you sure you want to cancel your registration? This action cannot be undone.",
       "confirmUnregisterYes": "Yes, Cancel",
@@ -294,6 +301,7 @@
     "family": {
       "title": "Family Members",
       "addButton": "Add Family Member",
+      "addHint": "Adds another family member to this registration",
       "removeButton": "Remove",
       "hint": "Add family members to register together.",
       "fullNamePlaceholder": "Full name",
@@ -330,6 +338,7 @@
       "retry": "Retry",
       "ageLabel": "Age",
       "ageUnknown": "Age unavailable",
+      "viewHint": "Opens the attendee list",
       "accessDenied": "This list is for employees and administrators only."
     },
     "registrationSuccess": {
@@ -337,9 +346,13 @@
     },
     "walkin": {
       "title": "Walk-In Registration",
+      "searchLabel": "Search attendee by email",
       "searchPlaceholder": "Enter email or phone",
+      "searchHint": "Enter an email to search for a walk-in attendee",
+      "searchHintButton": "Searches for matching users",
       "search": "Search",
       "register": "Register Participant",
+      "registerHint": "Registers the selected attendee",
       "notAuthenticated": "Not authenticated",
       "searchFailed": "Search failed",
       "successConfirmed": "Participant confirmed for event.",

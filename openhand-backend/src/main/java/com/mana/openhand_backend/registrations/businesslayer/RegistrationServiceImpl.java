@@ -345,7 +345,61 @@ public class RegistrationServiceImpl implements RegistrationService {
 
         sendCancellationEmail(registration.getUser(), event, reason);
 
+        // Check for waitlist promotion
+        if (event != null && event.getMaxCapacity() != null) {
+            promoteWaitlistedUsers(event);
+        }
+
         return cancelledRegistration;
+    }
+
+    private void promoteWaitlistedUsers(Event event) {
+        // We need to fetch the fresh state of the event or rely on what we have.
+        // The event object might be detached or stale if not carefully managed,
+        // but here it comes from the transaction context.
+
+        while (true) {
+            int current = event.getCurrentRegistrations() != null ? event.getCurrentRegistrations() : 0;
+            if (current >= event.getMaxCapacity()) {
+                break;
+            }
+
+            Optional<Registration> nextInLineOpt = registrationRepository
+                    .findFirstByEventIdAndStatusOrderByWaitlistedPositionAsc(event.getId(),
+                            RegistrationStatus.WAITLISTED);
+
+            if (nextInLineOpt.isEmpty()) {
+                break;
+            }
+
+            Registration nextInLine = nextInLineOpt.get();
+            nextInLine.setStatus(RegistrationStatus.CONFIRMED);
+            nextInLine.setConfirmedAt(LocalDateTime.now());
+            nextInLine.setWaitlistedPosition(null);
+
+            // Save the promoted user
+            Registration savedPromoted = registrationRepository.save(nextInLine);
+
+            // Update event
+            event.setCurrentRegistrations(current + 1);
+            updateEventStatusForCapacity(event);
+            eventRepository.save(event);
+
+            // Notify
+            sendRegistrationConfirmationEmail(savedPromoted.getUser(), event,
+                    List.of(resolveParticipantName(savedPromoted)));
+
+            if (savedPromoted.getUser() != null) {
+                String language = savedPromoted.getUser().getPreferredLanguage() != null
+                        ? savedPromoted.getUser().getPreferredLanguage()
+                        : "en";
+                notificationService.createNotification(
+                        savedPromoted.getUser().getId(),
+                        event.getId(),
+                        "REGISTRATION_CONFIRMATION",
+                        language);
+            }
+        }
     }
 
     private RegistrationTimeCategory resolveTimeCategory(Registration registration, LocalDateTime now) {

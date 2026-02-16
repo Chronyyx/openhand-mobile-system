@@ -1,5 +1,6 @@
 package com.mana.openhand_backend.donations.dataaccesslayer;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +15,10 @@ public interface DonationRepository extends JpaRepository<Donation, Long> {
 
     @Query("select d from Donation d join fetch d.user u where d.id = :id")
     Optional<Donation> findByIdWithUser(@Param("id") Long id);
+
+    @Query("select d from Donation d join fetch d.user u where d.createdAt between :startDateTime and :endDateTime order by d.createdAt desc")
+    List<Donation> findByCreatedAtBetweenWithUserOrderByCreatedAtDesc(
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime);
 
 }

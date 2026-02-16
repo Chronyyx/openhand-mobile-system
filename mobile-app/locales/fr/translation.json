@@ -737,6 +737,23 @@
         "byCount": "Par volume",
         "empty": "Aucune donnée donateur disponible.",
         "donationsCount": "{{count}} dons"
+      },
+      "reports": {
+        "title": "Rapports de dons",
+        "subtitle": "Générez un rapport par plage de dates et exportez-le en CSV.",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "generate": "Générer le rapport",
+        "exportCsv": "Télécharger le CSV",
+        "totalRows": "Lignes",
+        "totalAmount": "Montant total",
+        "generatedReady": "Rapport généré. Le CSV est prêt à être téléchargé.",
+        "empty": "Aucun don trouvé pour cette période.",
+        "invalidDateRange": "La date de début doit être antérieure ou égale à la date de fin.",
+        "generateError": "Impossible de générer le rapport des dons.",
+        "exportSuccess": "CSV exporté avec succès.",
+        "exportError": "Échec de l'export CSV.",
+        "shareUnavailable": "Le partage n'est pas disponible sur cet appareil."
       }
     },
     "donations": {

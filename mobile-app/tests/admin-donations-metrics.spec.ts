@@ -204,4 +204,99 @@ test.describe('Admin donations metrics dashboard', () => {
         await expect(page.getByRole('button', { name: 'Donations Metrics' })).toHaveCount(0);
         await expect(page.getByText('Administrator Dashboard')).toBeVisible();
     });
+
+    test('Donation report export is disabled until a report is generated', async ({ page }) => {
+        let reportCalls = 0;
+
+        await mockAuthenticatedSession(page, adminUser);
+        await page.route('**/api/admin/donations/metrics', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(metricsResponse),
+            });
+        });
+
+        await page.route('**/api/admin/donations/reports*', async (route) => {
+            reportCalls += 1;
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([
+                    {
+                        id: 1,
+                        userId: 10,
+                        eventId: 44,
+                        donorName: 'Ada Lovelace',
+                        donorEmail: 'ada@mana.org',
+                        amount: 25,
+                        currency: 'CAD',
+                        frequency: 'ONE_TIME',
+                        status: 'RECEIVED',
+                        createdAt: '2025-01-01T10:00:00',
+                    },
+                ]),
+            });
+        });
+
+        await page.goto('/admin/donations-metrics', { waitUntil: 'domcontentloaded' });
+
+        const generateButton = page.getByRole('button', { name: 'Generate report' });
+        const exportButton = page.getByRole('button', { name: 'Download CSV' });
+
+        await expect(generateButton).toBeVisible();
+        await expect(exportButton).toBeDisabled();
+
+        await generateButton.click();
+        await expect.poll(() => reportCalls).toBe(1);
+        await expect(exportButton).toBeEnabled();
+        await expect(page.getByText('Report generated. CSV is ready to download.')).toBeVisible();
+    });
+
+    test('Donation report generation shows empty state when no rows are returned', async ({ page }) => {
+        await mockAuthenticatedSession(page, adminUser);
+        await page.route('**/api/admin/donations/metrics', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(metricsResponse),
+            });
+        });
+
+        await page.route('**/api/admin/donations/reports*', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([]),
+            });
+        });
+
+        await page.goto('/admin/donations-metrics', { waitUntil: 'domcontentloaded' });
+        await page.getByRole('button', { name: 'Generate report' }).click();
+
+        await expect(page.getByText('Rows')).toBeVisible();
+        await expect(page.getByText('No donations found for this date range.')).toBeVisible();
+    });
+
+    test('Admin dashboard cards have visible spacing between options', async ({ page }) => {
+        await mockAuthenticatedSession(page, adminUser);
+        await page.route('**/api/admin/donations/metrics', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(metricsResponse),
+            });
+        });
+
+        await page.goto('/admin', { waitUntil: 'domcontentloaded' });
+
+        const attendanceCard = page.getByRole('button', { name: 'Attendance Reports' }).first();
+        await expect(attendanceCard).toBeVisible();
+
+        const marginTop = await attendanceCard.evaluate((element) => {
+            return window.getComputedStyle(element).marginTop;
+        });
+
+        expect(parseFloat(marginTop)).toBeGreaterThan(0);
+    });
 });

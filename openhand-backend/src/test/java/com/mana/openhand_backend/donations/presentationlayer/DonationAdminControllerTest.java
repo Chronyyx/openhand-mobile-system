@@ -5,9 +5,11 @@ import com.mana.openhand_backend.donations.domainclientlayer.DonationDetailRespo
 import com.mana.openhand_backend.donations.domainclientlayer.DonationMetricBreakdownResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationMetricsResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationMonthlyTrendResponseModel;
+import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
 import com.mana.openhand_backend.donations.domainclientlayer.DonationTopDonorResponseModel;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -96,5 +100,62 @@ class DonationAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(5))
                 .andExpect(jsonPath("$.paymentProvider").value("Zeffy"));
+    }
+
+    @Test
+    void getDonationReport_returnsRowsInDateRange() throws Exception {
+        List<DonationSummaryResponseModel> rows = List.of(
+                new DonationSummaryResponseModel(
+                        10L,
+                        22L,
+                        101L,
+                        "Ari Doe",
+                        "ari@mana.org",
+                        new BigDecimal("40.00"),
+                        "CAD",
+                        "ONE_TIME",
+                        "RECEIVED",
+                        "2025-03-12T09:00:00"));
+
+        when(donationService.getDonationReportByDateRange(LocalDate.of(2025, 3, 1), LocalDate.of(2025, 3, 31)))
+                .thenReturn(rows);
+
+        mockMvc.perform(get("/api/admin/donations/reports?startDate=2025-03-01&endDate=2025-03-31"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(10))
+                .andExpect(jsonPath("$[0].amount").value(40.00))
+                .andExpect(jsonPath("$[0].currency").value("CAD"));
+    }
+
+    @Test
+    void exportDonationReport_returnsCsvFile() throws Exception {
+        List<DonationSummaryResponseModel> rows = List.of(
+                new DonationSummaryResponseModel(
+                        7L,
+                        90L,
+                        null,
+                        "Mina Patel",
+                        "mina@mana.org",
+                        new BigDecimal("20.00"),
+                        "CAD",
+                        "ONE_TIME",
+                        "RECEIVED",
+                        "2025-04-01T11:30:00"));
+
+        when(donationService.getDonationReportByDateRange(LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 30)))
+                .thenReturn(rows);
+
+        mockMvc.perform(get("/api/admin/donations/reports/export?startDate=2025-04-01&endDate=2025-04-30"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("text/csv"))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"donation-report.csv\""))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Donation ID,Donor Name,Donor Email")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Mina Patel")));
+    }
+
+    @Test
+    void getDonationReport_withInvalidDateRange_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/admin/donations/reports?startDate=2025-05-15&endDate=2025-05-01"))
+                .andExpect(status().isBadRequest());
     }
 }

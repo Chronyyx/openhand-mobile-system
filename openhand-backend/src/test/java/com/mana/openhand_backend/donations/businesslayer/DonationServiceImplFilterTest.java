@@ -4,8 +4,6 @@ import com.mana.openhand_backend.donations.dataaccesslayer.Donation;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationFrequency;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationRepository;
 import com.mana.openhand_backend.donations.dataaccesslayer.DonationStatus;
-import com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel;
-import com.mana.openhand_backend.identity.dataaccesslayer.User;
 import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.notifications.businesslayer.NotificationService;
 import com.mana.openhand_backend.notifications.dataaccesslayer.NotificationRepository;
@@ -15,10 +13,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -173,6 +170,28 @@ class DonationServiceImplFilterTest {
         var result = donationService.getDonationsForStaffFilteredFlexible(null, null, 2021, null, null);
         // Assert
         assertEquals(2, result.size());
+    }
+
+    @Test
+    void getDonationReportByDateRange_returnsOnlyDonationsInsideRange() {
+        var donationInRange = new Donation(
+                null, new BigDecimal("15.00"), "CAD",
+                DonationFrequency.ONE_TIME, DonationStatus.RECEIVED);
+        donationInRange.setId(11L);
+        donationInRange.setCreatedAt(LocalDateTime.of(2025, 1, 10, 9, 0));
+
+        when(donationRepository.findByCreatedAtBetweenWithUserOrderByCreatedAtDesc(
+                LocalDateTime.of(2025, 1, 1, 0, 0),
+                LocalDateTime.of(2025, 1, 31, 23, 59, 59, 999999999)))
+                .thenReturn(List.of(donationInRange));
+
+        var result = donationService.getDonationReportByDateRange(
+                LocalDate.of(2025, 1, 1),
+                LocalDate.of(2025, 1, 31));
+
+        assertEquals(1, result.size());
+        assertEquals(11L, result.get(0).getId());
+        assertEquals(new BigDecimal("15.00"), result.get(0).getAmount());
     }
 
     @Test

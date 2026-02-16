@@ -27,6 +27,9 @@ export type ManualDonationFormData = {
     eventId?: number | null;
     donationDate: string; // ISO datetime string
     comments?: string;
+    donorUserId?: number | null;
+    donorName?: string;
+    donorEmail?: string;
 };
 
 const getAuthHeaders = async () => {
@@ -62,13 +65,10 @@ export const getDonationDetail = async (donationId: number): Promise<DonationDet
     return response.data;
 };
 
-export const submitManualDonation = async (
-    donorId: number,
-    formData: ManualDonationFormData
-): Promise<DonationSummary> => {
+export const submitManualDonation = async (formData: ManualDonationFormData): Promise<DonationSummary> => {
     const headers = await getAuthHeaders();
     const response = await axios.post(
-        `${API_BASE}/employee/donations/manual?donorId=${donorId}`,
+        `${API_BASE}/employee/donations/manual`,
         formData,
         { headers }
     );

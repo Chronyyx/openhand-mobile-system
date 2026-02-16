@@ -180,6 +180,7 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("25.00"), "CAD", 1L, LocalDateTime.of(2025, 1, 15, 14, 30), "Regular supporter");
+        request.setDonorUserId(2L);
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(donationRepository.save(any(Donation.class))).thenAnswer(invocation -> {
             Donation saved = invocation.getArgument(0, Donation.class);
@@ -192,7 +193,7 @@ class DonationServiceImplTest {
 
         // Act
         com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel response =
-                donationService.createManualDonation(1L, 2L, request);
+                donationService.createManualDonation(1L, request);
 
         // Assert
         assertNotNull(response);
@@ -209,6 +210,7 @@ class DonationServiceImplTest {
         assertEquals("Manual Entry", saved.getPaymentProvider());
         assertTrue(saved.getPaymentReference().startsWith("MANUAL-1-"));
         assertEquals("Regular supporter", saved.getComments());
+        assertEquals("member@example.com", saved.getDonorEmail());
     }
 
     @Test
@@ -217,6 +219,7 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("15.00"), "CAD", null, null, null);
+        request.setDonorUserId(2L);
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(donationRepository.save(any(Donation.class))).thenAnswer(invocation -> {
             Donation saved = invocation.getArgument(0, Donation.class);
@@ -227,7 +230,7 @@ class DonationServiceImplTest {
 
         // Act
         com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel response =
-                donationService.createManualDonation(1L, 2L, request);
+                donationService.createManualDonation(1L, request);
 
         // Assert
         assertNotNull(response);
@@ -247,11 +250,12 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("25.00"), "CAD", null, null, null);
+        request.setDonorUserId(999L);
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         // Act
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> donationService.createManualDonation(1L, 999L, request));
+                () -> donationService.createManualDonation(1L, request));
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
@@ -264,11 +268,10 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         null, "CAD", null, null, null);
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
 
         // Act
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> donationService.createManualDonation(1L, 2L, request));
+                () -> donationService.createManualDonation(1L, request));
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -281,11 +284,10 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("0.50"), "CAD", null, null, null);
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
 
         // Act
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> donationService.createManualDonation(1L, 2L, request));
+                () -> donationService.createManualDonation(1L, request));
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -297,11 +299,10 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("25.00"), "USD", null, null, null);
-        when(userRepository.findById(2L)).thenReturn(Optional.of(user));
 
         // Act
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> donationService.createManualDonation(1L, 2L, request));
+                () -> donationService.createManualDonation(1L, request));
 
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -314,6 +315,7 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("20.00"), "CAD", null, null, "  Some notes  ");
+        request.setDonorUserId(2L);
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(donationRepository.save(any(Donation.class))).thenAnswer(invocation -> {
             Donation saved = invocation.getArgument(0, Donation.class);
@@ -322,7 +324,7 @@ class DonationServiceImplTest {
         });
 
         // Act
-        donationService.createManualDonation(1L, 2L, request);
+        donationService.createManualDonation(1L, request);
 
         // Assert
         ArgumentCaptor<Donation> donationCaptor = ArgumentCaptor.forClass(Donation.class);
@@ -337,6 +339,7 @@ class DonationServiceImplTest {
         com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
                 new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
                         new BigDecimal("20.00"), "CAD", null, null, "   ");
+        request.setDonorUserId(2L);
         when(userRepository.findById(2L)).thenReturn(Optional.of(user));
         when(donationRepository.save(any(Donation.class))).thenAnswer(invocation -> {
             Donation saved = invocation.getArgument(0, Donation.class);
@@ -345,13 +348,55 @@ class DonationServiceImplTest {
         });
 
         // Act
-        donationService.createManualDonation(1L, 2L, request);
+        donationService.createManualDonation(1L, request);
 
         // Assert
         ArgumentCaptor<Donation> donationCaptor = ArgumentCaptor.forClass(Donation.class);
         verify(donationRepository).save(donationCaptor.capture());
         Donation saved = donationCaptor.getValue();
         assertEquals(null, saved.getComments());
+    }
+
+    @Test
+    void createManualDonation_withGuestDonor_storesGuestIdentity() {
+        com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
+                new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
+                        new BigDecimal("55.00"), "CAD", null, null, "Front desk cash");
+        request.setDonorName("Guest Donor");
+        request.setDonorEmail("guest@example.com");
+
+        when(donationRepository.save(any(Donation.class))).thenAnswer(invocation -> {
+            Donation saved = invocation.getArgument(0, Donation.class);
+            saved.setId(105L);
+            return saved;
+        });
+
+        com.mana.openhand_backend.donations.domainclientlayer.DonationSummaryResponseModel response =
+                donationService.createManualDonation(1L, request);
+
+        assertNotNull(response);
+        assertEquals("Guest Donor", response.getDonorName());
+        assertEquals("guest@example.com", response.getDonorEmail());
+
+        ArgumentCaptor<Donation> donationCaptor = ArgumentCaptor.forClass(Donation.class);
+        verify(donationRepository).save(donationCaptor.capture());
+        Donation saved = donationCaptor.getValue();
+        assertEquals(null, saved.getUser());
+        assertEquals("Guest Donor", saved.getDonorName());
+        assertEquals("guest@example.com", saved.getDonorEmail());
+    }
+
+    @Test
+    void createManualDonation_withoutDonorIdentity_throwsBadRequest() {
+        com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel request =
+                new com.mana.openhand_backend.donations.domainclientlayer.ManualDonationRequestModel(
+                        new BigDecimal("25.00"), "CAD", null, null, null);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> donationService.createManualDonation(1L, request));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Donor name is required"));
     }
 
     @Test

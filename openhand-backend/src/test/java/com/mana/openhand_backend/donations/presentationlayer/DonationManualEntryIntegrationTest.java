@@ -23,9 +23,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.EntityManager; 
+import jakarta.persistence.EntityManager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,6 +66,7 @@ class DonationManualEntryIntegrationTest {
 
         donorUser = new User();
         donorUser.setEmail("donor@example.com");
+        donorUser.setName("Registered Donor");
         donorUser.setPasswordHash("hashedPassword");
         donorUser.setMemberStatus(MemberStatus.ACTIVE);
         Set<String> donorRoles = new HashSet<>();
@@ -89,19 +91,21 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("50.00"), "CAD", null, LocalDateTime.of(2025, 1, 20, 10, 30), "Monthly supporter");
+        request.setDonorUserId(donorUser.getId());
 
         // Act
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.amount").value(50.00))
-                .andExpect(jsonPath("$.currency").value("CAD"));
+                .andExpect(jsonPath("$.currency").value("CAD"))
+                .andExpect(jsonPath("$.donorEmail").value("donor@example.com"));
 
         // Assert
         List<Donation> donations = donationRepository.findByUserIdOrderByCreatedAtDesc(donorUser.getId());
         assertEquals(1, donations.size());
-        
+
         Donation saved = donations.get(0);
         assertEquals(new BigDecimal("50.00"), saved.getAmount());
         assertEquals("CAD", saved.getCurrency());
@@ -110,6 +114,33 @@ class DonationManualEntryIntegrationTest {
         assertEquals("Manual Entry", saved.getPaymentProvider());
         assertTrue(saved.getPaymentReference().startsWith("MANUAL-"));
         assertEquals("Monthly supporter", saved.getComments());
+        assertEquals("donor@example.com", saved.getDonorEmail());
+    }
+
+    @Test
+    @WithMockUser(username = "employee@example.com", roles = "EMPLOYEE")
+    @Transactional
+    void createManualDonation_withGuestDonor_persistsWithoutLinkedUser() throws Exception {
+        ManualDonationRequestModel request = new ManualDonationRequestModel(
+                new BigDecimal("42.00"), "CAD", null, null, "Received via front desk");
+        request.setDonorName("Guest Supporter");
+        request.setDonorEmail("guest@support.org");
+
+        mockMvc.perform(post("/api/employee/donations/manual")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.donorName").value("Guest Supporter"))
+                .andExpect(jsonPath("$.donorEmail").value("guest@support.org"))
+                .andExpect(jsonPath("$.userId").value(org.hamcrest.Matchers.nullValue()));
+
+        List<Donation> donations = donationRepository.findAll();
+        assertEquals(1, donations.size());
+
+        Donation saved = donations.get(0);
+        assertNull(saved.getUser());
+        assertEquals("Guest Supporter", saved.getDonorName());
+        assertEquals("guest@support.org", saved.getDonorEmail());
     }
 
     @Test
@@ -119,9 +150,10 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("30.00"), "CAD", null, null, null);
+        request.setDonorUserId(donorUser.getId());
 
         // Act
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -129,7 +161,7 @@ class DonationManualEntryIntegrationTest {
         // Assert
         List<Donation> donations = donationRepository.findByUserIdOrderByCreatedAtDesc(donorUser.getId());
         assertEquals(1, donations.size());
-        
+
         Donation saved = donations.get(0);
         assertEquals(new BigDecimal("30.00"), saved.getAmount());
         assertNotNull(saved.getCreatedAt());
@@ -143,16 +175,18 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request1 = new ManualDonationRequestModel(
                 new BigDecimal("25.00"), "CAD", null, null, "First donation");
+        request1.setDonorUserId(donorUser.getId());
         ManualDonationRequestModel request2 = new ManualDonationRequestModel(
                 new BigDecimal("40.00"), "CAD", null, null, "Second donation");
+        request2.setDonorUserId(donorUser.getId());
 
         // Act
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request1)))
                 .andExpect(status().isCreated());
 
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request2)))
                 .andExpect(status().isCreated());
@@ -160,7 +194,7 @@ class DonationManualEntryIntegrationTest {
         // Assert
         List<Donation> donations = donationRepository.findByUserIdOrderByCreatedAtDesc(donorUser.getId());
         assertEquals(2, donations.size());
-        
+
         assertEquals(new BigDecimal("40.00"), donations.get(0).getAmount());
         assertEquals(new BigDecimal("25.00"), donations.get(1).getAmount());
     }
@@ -171,9 +205,10 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("25.00"), "CAD", null, null, null);
+        request.setDonorUserId(9999L);
 
         // Act & Assert
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=9999")
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isNotFound());
@@ -185,9 +220,10 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("25.00"), "USD", null, null, null);
+        request.setDonorUserId(donorUser.getId());
 
         // Act & Assert
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -199,9 +235,10 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("0.50"), "CAD", null, null, null);
+        request.setDonorUserId(donorUser.getId());
 
         // Act & Assert
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
@@ -214,9 +251,10 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("20.00"), "CAD", null, null, "   Trimmed comment   ");
+        request.setDonorUserId(donorUser.getId());
 
         // Act
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -234,9 +272,10 @@ class DonationManualEntryIntegrationTest {
         // Arrange
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("25.00"), "CAD", null, null, null);
+        request.setDonorUserId(donorUser.getId());
 
         // Act
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=" + donorUser.getId())
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());

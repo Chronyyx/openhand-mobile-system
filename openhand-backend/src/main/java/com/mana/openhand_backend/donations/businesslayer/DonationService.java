@@ -22,7 +22,7 @@ public interface DonationService {
 
     DonationDetailResponseModel getDonationDetail(Long donationId);
 
-    DonationSummaryResponseModel createManualDonation(Long employeeId, Long donorUserId, ManualDonationRequestModel request);
+    DonationSummaryResponseModel createManualDonation(Long employeeId, ManualDonationRequestModel request);
 
     DonationMetricsResponseModel getDonationMetrics();
 

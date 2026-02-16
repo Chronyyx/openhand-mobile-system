@@ -19,14 +19,16 @@ public class DonationManagementMapper {
         String createdAt = donation.getCreatedAt() != null ? donation.getCreatedAt().format(FORMATTER) : null;
         String frequency = donation.getFrequency() != null ? donation.getFrequency().name() : null;
         String status = donation.getStatus() != null ? donation.getStatus().name() : null;
+        String donorName = donation.getDonorName() != null ? donation.getDonorName() : (user != null ? user.getName() : null);
+        String donorEmail = donation.getDonorEmail() != null ? donation.getDonorEmail() : (user != null ? user.getEmail() : null);
 
         Long eventId = (donation.getEvent() != null) ? donation.getEvent().getId() : null;
         return new DonationSummaryResponseModel(
             donation.getId(),
             user != null ? user.getId() : null,
             eventId,
-            user != null ? user.getName() : null,
-            user != null ? user.getEmail() : null,
+            donorName,
+            donorEmail,
             donation.getAmount(),
             donation.getCurrency(),
             frequency,
@@ -44,15 +46,18 @@ public class DonationManagementMapper {
         String createdAt = donation.getCreatedAt() != null ? donation.getCreatedAt().format(FORMATTER) : null;
         String frequency = donation.getFrequency() != null ? donation.getFrequency().name() : null;
         String status = donation.getStatus() != null ? donation.getStatus().name() : null;
+        String donorName = donation.getDonorName() != null ? donation.getDonorName() : (user != null ? user.getName() : null);
+        String donorEmail = donation.getDonorEmail() != null ? donation.getDonorEmail() : (user != null ? user.getEmail() : null);
+        String donorPhone = user != null ? user.getPhoneNumber() : null;
 
         String eventName = (donation.getEvent() != null && donation.getEvent().getTitle() != null)
             ? donation.getEvent().getTitle() : null;
         return new DonationDetailResponseModel(
             donation.getId(),
             user != null ? user.getId() : null,
-            user != null ? user.getName() : null,
-            user != null ? user.getEmail() : null,
-            user != null ? user.getPhoneNumber() : null,
+            donorName,
+            donorEmail,
+            donorPhone,
             donation.getAmount(),
             donation.getCurrency(),
             frequency,

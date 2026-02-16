@@ -20,7 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -87,14 +86,15 @@ class DonationManagementControllerTest {
         
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("25.00"), "CAD", 1L, LocalDateTime.of(2025, 1, 15, 14, 30), "Test donation");
+        request.setDonorUserId(2L);
         DonationSummaryResponseModel response = new DonationSummaryResponseModel(
                 101L, 2L, 201L, "John Donor", "john@example.com", new BigDecimal("25.00"),
                 "CAD", "ONE_TIME", "RECEIVED", "2025-01-15T14:30:00");
-        when(donationService.createManualDonation(any(Long.class), eq(2L), any(ManualDonationRequestModel.class)))
+        when(donationService.createManualDonation(any(Long.class), any(ManualDonationRequestModel.class)))
                 .thenReturn(response);
 
         // Act & Assert
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=2")
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -118,18 +118,46 @@ class DonationManagementControllerTest {
         
         ManualDonationRequestModel request = new ManualDonationRequestModel(
                 new BigDecimal("15.00"), "CAD", null, null, null);
+        request.setDonorUserId(3L);
         DonationSummaryResponseModel response = new DonationSummaryResponseModel(
                 102L, 3L, 202L, "Jane Donor", "jane@example.com", new BigDecimal("15.00"),
                 "CAD", "ONE_TIME", "RECEIVED", "2025-01-01T00:00:00");
-        when(donationService.createManualDonation(any(Long.class), eq(3L), any(ManualDonationRequestModel.class)))
+        when(donationService.createManualDonation(any(Long.class), any(ManualDonationRequestModel.class)))
                 .thenReturn(response);
 
         // Act & Assert
-        mockMvc.perform(post("/api/employee/donations/manual?donorId=3")
+        mockMvc.perform(post("/api/employee/donations/manual")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(102))
                 .andExpect(jsonPath("$.amount").value(15.00));
+    }
+
+    @Test
+    @WithMockUser(username = "employee@example.com", roles = "EMPLOYEE")
+    void createManualDonation_withLegacyDonorIdParam_mapsToRequestDonorUserId() throws Exception {
+        User employeeUser = new User();
+        employeeUser.setId(1L);
+        employeeUser.setEmail("employee@example.com");
+        employeeUser.setPasswordHash("password");
+        employeeUser.setRoles(new java.util.HashSet<>(java.util.List.of("ROLE_EMPLOYEE")));
+        employeeUser.setAccountNonLocked(true);
+        when(userRepository.findByEmail("employee@example.com")).thenReturn(Optional.of(employeeUser));
+
+        ManualDonationRequestModel request = new ManualDonationRequestModel(
+                new BigDecimal("18.00"), "CAD", null, null, null);
+        DonationSummaryResponseModel response = new DonationSummaryResponseModel(
+                201L, 55L, null, "Legacy Donor", "legacy@example.com", new BigDecimal("18.00"),
+                "CAD", "ONE_TIME", "RECEIVED", "2025-01-01T00:00:00");
+        when(donationService.createManualDonation(any(Long.class), any(ManualDonationRequestModel.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/api/employee/donations/manual?donorId=55")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(201))
+                .andExpect(jsonPath("$.userId").value(55));
     }
 }

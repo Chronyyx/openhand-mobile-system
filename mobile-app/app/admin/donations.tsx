@@ -118,9 +118,9 @@ export default function AdminDonationsScreen() {
         try {
             const data = await getDonationDetail(donationId);
             setDetail(data);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to load donation detail', err);
-            setDetailError(t('admin.donations.detailError'));
+            setDetailError(err?.response?.data?.message || t('admin.donations.detailError'));
         } finally {
             setDetailLoading(false);
         }

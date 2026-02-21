@@ -46,7 +46,10 @@ ensure_deps
 
 export CI=1
 
-# Configure ngrok
+if [ -z "${EXPO_NGROK_AUTHTOKEN:-}" ]; then
+  echo "ERROR: EXPO_NGROK_AUTHTOKEN is not set or empty. Please ensure it is passed correctly."
+  exit 1
+fi
 ngrok config add-authtoken "$EXPO_NGROK_AUTHTOKEN"
 
 # Wait for Expo to be ready

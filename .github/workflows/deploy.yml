@@ -28,6 +28,7 @@ jobs:
           Add-Content -Path .env -Value "CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,https://logs.treelegion.com,http://localhost:8080,${{ secrets.PUBLIC_API_URL }},http://localhost:8081"
           # For Docker Compose Substitution
           Add-Content -Path .env -Value "EXPO_PUBLIC_API_URL=${{ secrets.PUBLIC_API_URL }}/api"
+          Add-Content -Path .env -Value "EXPO_NGROK_AUTHTOKEN=${{ secrets.EXPO_NGROK_AUTHTOKEN }}"
 
           # --- Mobile App .env (Code access) ---
           if (!(Test-Path mobile-app)) { New-Item -ItemType Directory -Path mobile-app }
@@ -39,5 +40,8 @@ jobs:
       - name: Build and Deploy
         run: |
           docker compose down
-          # Start the Database, Backend, AND Admin Web
+          # Start the Database, Backend, Admin Web AND Mobile App
           docker compose up -d --build --remove-orphans backend db admin-web
+          
+          # Start the mobile app explicitly running the production script
+          docker compose run -d -p 19000:19000 -p 19001:19001 -p 19002:19002 -p 8081:8081 --name openhand-mobile-app mobile-app bash ./scripts/docker-start-prod.sh

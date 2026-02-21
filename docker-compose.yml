@@ -62,6 +62,7 @@ services:
       EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://127.0.0.1:8080/api}
       EXPO_NGROK_AUTHTOKEN: ${EXPO_NGROK_AUTHTOKEN:-}
       IS_PRODUCTION: ${IS_PRODUCTION:-false}
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-}
     stdin_open: true
     tty: true
     depends_on:

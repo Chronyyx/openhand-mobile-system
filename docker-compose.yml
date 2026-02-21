@@ -61,6 +61,7 @@ services:
       EXPO_NO_TELEMETRY: "1"
       EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://127.0.0.1:8080/api}
       EXPO_NGROK_AUTHTOKEN: ${EXPO_NGROK_AUTHTOKEN:-}
+      IS_PRODUCTION: ${IS_PRODUCTION:-false}
     stdin_open: true
     tty: true
     depends_on:

@@ -44,9 +44,8 @@ ensure_deps() {
 
 ensure_deps
 
-export CI=1
-
-if [ -n "${EXPO_NGROK_AUTHTOKEN:-}" ]; then
+if [ "${IS_PRODUCTION:-false}" = "true" ] && [ -n "${EXPO_NGROK_AUTHTOKEN:-}" ]; then
+  export CI=1
   # Production: configure and start static ngrok tunnel using npx to circumvent missing binary
   npx ngrok config add-authtoken "$EXPO_NGROK_AUTHTOKEN"
   export EXPO_PACKAGER_PROXY_URL="https://wes-chromophotographic-boyce.ngrok-free.dev"

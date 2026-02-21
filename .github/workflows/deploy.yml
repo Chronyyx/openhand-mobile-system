@@ -43,5 +43,5 @@ jobs:
           # Start the Database, Backend, Admin Web AND Mobile App
           docker compose up -d --build --remove-orphans backend db admin-web
           
-          # Start the mobile app explicitly
-          docker compose up -d --no-deps --build mobile-app
+          # Start the mobile app explicitly with the production flag
+          IS_PRODUCTION=true docker compose up -d --no-deps --build mobile-app

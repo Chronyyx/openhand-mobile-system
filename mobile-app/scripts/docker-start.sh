@@ -44,4 +44,16 @@ ensure_deps() {
 
 ensure_deps
 
-exec npx expo start --tunnel --non-interactive
+export CI=1
+
+if [ -n "${EXPO_NGROK_AUTHTOKEN:-}" ]; then
+  # Production: configure and start static ngrok tunnel using npx to circumvent missing binary
+  npx ngrok config add-authtoken "$EXPO_NGROK_AUTHTOKEN"
+  export EXPO_PACKAGER_PROXY_URL="https://wes-chromophotographic-boyce.ngrok-free.dev"
+  npx expo start &
+  sleep 5
+  exec npx ngrok http --domain=wes-chromophotographic-boyce.ngrok-free.dev 8081
+else
+  # Local Development: start normally
+  exec npx expo start
+fi

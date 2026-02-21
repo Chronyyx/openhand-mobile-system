@@ -6,15 +6,6 @@ WORKDIR /app
 # 2. Install Expo CLI globally
 RUN npm install -g expo@~54.0.0 @expo/ngrok@^4.1.0
 
-# Install standalone ngrok binary (since npm wrapper can sometimes fail on Alpine/Debian)
-RUN curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc \
-    | tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null \
-    && echo "deb https://ngrok-agent.s3.amazonaws.com buster main" \
-    | tee /etc/apt/sources.list.d/ngrok.list \
-    && apt-get update \
-    && apt-get install -y ngrok \
-    && rm -rf /var/lib/apt/lists/*
-
 # 3. Copy only dependency manifests first (better build caching)
 COPY package.json package-lock.json ./
 

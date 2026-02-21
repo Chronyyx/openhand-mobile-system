@@ -31,7 +31,7 @@ services:
     environment:
       - DATABASE_URL=jdbc:postgresql://db:5432/openhanddb
       - STARTUP_DELAY=0
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:19000,http://localhost:8081}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:19000,http://localhost:8081,https://wes-chromophotographic-boyce.ngrok-free.dev}
     depends_on:
       db:
         condition: service_healthy

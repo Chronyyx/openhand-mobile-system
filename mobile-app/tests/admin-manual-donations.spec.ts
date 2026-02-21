@@ -87,7 +87,7 @@ test.describe('Admin manual donation entry', () => {
             },
         ];
 
-        await page.route('**/api/employee/donations', async (route) => {
+        await page.route(/\/employee\/donations(?:\?.*)?$/, async (route) => {
             if (route.request().method() === 'GET') {
                 await route.fulfill({
                     status: 200,
@@ -99,7 +99,7 @@ test.describe('Admin manual donation entry', () => {
             await route.continue();
         });
 
-        await page.route('**/api/admin/events/all', async (route) => {
+        await page.route(/\/admin\/events\/all(?:\?.*)?$/, async (route) => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -107,7 +107,7 @@ test.describe('Admin manual donation entry', () => {
             });
         });
 
-        await page.route('**/api/admin/users', async (route) => {
+        await page.route(/\/admin\/users\/?(?:\?.*)?$/, async (route) => {
             await route.fulfill({
                 status: 200,
                 contentType: 'application/json',
@@ -115,7 +115,23 @@ test.describe('Admin manual donation entry', () => {
             });
         });
 
-        await page.route('**/api/notifications', async (route) => {
+        await page.route('**/profile', async (route) => {
+            await route.fulfill({
+                status: 200,
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify(adminUser),
+            });
+        });
+
+        await page.route('**/users/me/security-settings', async (route) => {
+            await route.fulfill({
+                status: 200,
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ biometricsEnabled: false }),
+            });
+        });
+
+        await page.route('**/notifications', async (route) => {
             if (route.request().method() === 'GET') {
                 await route.fulfill({
                     status: 200,
@@ -127,7 +143,7 @@ test.describe('Admin manual donation entry', () => {
             await route.continue();
         });
 
-        await page.route('**/api/notifications/unread-count', async (route) => {
+        await page.route('**/notifications/unread-count', async (route) => {
             await route.fulfill({
                 status: 200,
                 headers: { 'content-type': 'application/json' },
@@ -143,7 +159,7 @@ test.describe('Admin manual donation entry', () => {
     test('Admin can open manual donation as a dedicated screen from donations list', async ({ page }) => {
         await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
 
-        await expect(page.getByText('Donations')).toBeVisible();
+        await expect(page.getByText('Donations', { exact: true }).first()).toBeVisible();
         await expect(page.getByText('Ada Lovelace')).toBeVisible();
 
         await page.getByTestId('open-manual-donation-screen').click();
@@ -157,7 +173,7 @@ test.describe('Admin manual donation entry', () => {
     test('Admin can submit manual donation for a guest donor', async ({ page }) => {
         let submittedPayload: any = null;
 
-        await page.route('**/api/employee/donations/manual', async (route) => {
+        await page.route(/\/employee\/donations\/manual\/?(?:\?.*)?$/, async (route) => {
             if (route.request().method() === 'POST') {
                 submittedPayload = route.request().postDataJSON();
 
@@ -211,7 +227,7 @@ test.describe('Admin manual donation entry', () => {
     test('Admin can search and select an existing user for manual donation', async ({ page }) => {
         let submittedPayload: any = null;
 
-        await page.route('**/api/employee/donations/manual', async (route) => {
+        await page.route(/\/employee\/donations\/manual\/?(?:\?.*)?$/, async (route) => {
             if (route.request().method() === 'POST') {
                 submittedPayload = route.request().postDataJSON();
                 const selectedUser = users.find((user) => user.id === submittedPayload.donorUserId);
@@ -246,7 +262,7 @@ test.describe('Admin manual donation entry', () => {
 
         await page.getByTestId('manual-donation-select-user').click();
         await page.getByTestId('manual-donation-user-search').fill('grace');
-        await page.getByText('Grace Hopper').click();
+        await page.getByTestId('manual-donation-user-option-11').click();
 
         await page.getByPlaceholder('0.00').fill('75');
         await page.getByPlaceholder('YYYY-MM-DD HH:MM').fill('2026-02-02 09:15');

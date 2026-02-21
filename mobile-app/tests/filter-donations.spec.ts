@@ -13,49 +13,130 @@ test.describe('Filter Donations by Campaign and Date', () => {
   };
 
 
-  test('Date filter updates donation list', async ({ page }) => {
-        // Simulate admin login by seeding localStorage
-        await page.addInitScript((user) => {
-          window.localStorage.setItem('userToken', JSON.stringify(user));
-        }, adminUser);
-    // Arrange: Go to admin dashboard, open menu, and navigate to donations page
-    await page.goto('/admin');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
-    // Open navigation menu (menu button in header)
-    await page.getByRole('button', { name: /menu|navigation/i }).click({ timeout: 5000 }).catch(() => {
-      // fallback: click the first button in the header if role lookup fails
-      return page.locator('header button, [role=button]').first().click();
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript((user) => {
+      window.localStorage.setItem('userToken', JSON.stringify(user));
+    }, adminUser);
+
+    await page.route('**/profile', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(adminUser),
+      });
     });
-    await page.waitForTimeout(500);
-    // Debug: print page content after opening menu
-    console.log('PAGE AFTER MENU:', await page.content());
-    // Click the "Donations Management" menu item
-    await page.getByRole('button', { name: /donations management/i }).click();
-    await page.waitForTimeout(1000);
 
+    await page.route('**/users/me/security-settings', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ biometricsEnabled: false }),
+      });
+    });
+  });
 
-    // Wait for loading spinner to disappear
-    await page.waitForSelector('text=/loading/i', { state: 'detached', timeout: 10000 });
+  test('Date filter updates donation list', async ({ page }) => {
+    await page.route('**/employee/donations*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          {
+            id: 1,
+            userId: 10,
+            donorName: 'Ada Lovelace',
+            donorEmail: 'ada@mana.org',
+            amount: 50,
+            currency: 'CAD',
+            frequency: 'ONE_TIME',
+            status: 'RECEIVED',
+            createdAt: '2026-01-01T10:00:00',
+          },
+          {
+            id: 2,
+            userId: 11,
+            donorName: 'Grace Hopper',
+            donorEmail: 'grace@mana.org',
+            amount: 75,
+            currency: 'CAD',
+            frequency: 'ONE_TIME',
+            status: 'RECEIVED',
+            createdAt: '2025-12-28T10:00:00',
+          },
+        ]),
+      });
+    });
 
-    // Act: Fill year, month, and day filters using placeholder
-    const yearInput = page.getByPlaceholder('YYYY');
-    const monthInput = page.getByPlaceholder('MM');
-    const dayInput = page.getByPlaceholder('DD');
-    await expect(yearInput).toBeVisible();
+    await page.route('**/admin/events/all', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+    });
+
+    await page.route('**/notifications', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify([]),
+      });
+    });
+
+    await page.route('**/notifications/unread-count', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ count: 0 }),
+      });
+    });
+
+    await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
+
+    await expect(page.getByText('Ada Lovelace')).toBeVisible();
+    await expect(page.getByText('Grace Hopper')).toBeVisible();
+
+    const yearInput = page.getByTestId('date-filter-year');
+    const monthInput = page.getByTestId('date-filter-month');
+    const dayInput = page.getByTestId('date-filter-day');
     await yearInput.fill('2026');
     await monthInput.fill('01');
     await dayInput.fill('01');
-    await page.waitForTimeout(1000);
 
-    // Assert: All visible donation cards have a created date containing '2026-01-01' (if any)
-    const cards = page.locator('[data-testid="donation-card"]', { hasText: '2026-01-01' });
-    expect(await cards.count()).toBeGreaterThanOrEqual(0);
+    await expect(page.getByText('Ada Lovelace')).toBeVisible();
   });
 
 
   test('Combined event and date filter, clearing restores full list', async ({ page }) => {
-    // Mock /admin/events/all to return a sample event
+    const donationRows = [
+      {
+        id: 1,
+        userId: 10,
+        donorName: 'Ada Lovelace',
+        donorEmail: 'ada@mana.org',
+        amount: 50,
+        currency: 'CAD',
+        frequency: 'ONE_TIME',
+        status: 'RECEIVED',
+        eventId: 101,
+        eventName: 'Mana Gala',
+        createdAt: '2026-01-01T10:00:00',
+      },
+      {
+        id: 2,
+        userId: 11,
+        donorName: 'Grace Hopper',
+        donorEmail: 'grace@mana.org',
+        amount: 75,
+        currency: 'CAD',
+        frequency: 'ONE_TIME',
+        status: 'RECEIVED',
+        eventId: null,
+        eventName: null,
+        createdAt: '2025-12-28T10:00:00',
+      },
+    ];
+
     await page.route('**/admin/events/all', route => {
       route.fulfill({
         status: 200,
@@ -78,49 +159,86 @@ test.describe('Filter Donations by Campaign and Date', () => {
         ])
       });
     });
-    // Simulate admin login by seeding localStorage
-    await page.addInitScript((user) => {
-      window.localStorage.setItem('userToken', JSON.stringify(user));
-    }, adminUser);
-    // ...existing code...
-    await page.goto('/admin');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
-    await page.getByRole('button', { name: /menu|navigation/i }).click({ timeout: 5000 }).catch(() => {
-      return page.locator('header button, [role=button]').first().click();
+
+    await page.route('**/employee/donations*', async (route) => {
+      const url = new URL(route.request().url());
+      const eventIdParam = url.searchParams.get('eventId');
+      const yearParam = url.searchParams.get('year');
+      const monthParam = url.searchParams.get('month');
+      const dayParam = url.searchParams.get('day');
+
+      const filtered = donationRows.filter((row) => {
+        if (eventIdParam && String(row.eventId ?? '') !== eventIdParam) {
+          return false;
+        }
+        if (yearParam && !row.createdAt.startsWith(`${yearParam}-`)) {
+          return false;
+        }
+        if (monthParam) {
+          const month = row.createdAt.slice(5, 7);
+          if (month !== monthParam.padStart(2, '0')) {
+            return false;
+          }
+        }
+        if (dayParam) {
+          const day = row.createdAt.slice(8, 10);
+          if (day !== dayParam.padStart(2, '0')) {
+            return false;
+          }
+        }
+        return true;
+      });
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(filtered),
+      });
     });
-    await page.waitForTimeout(500);
-    console.log('PAGE AFTER MENU:', await page.content());
-    await page.getByRole('button', { name: /donations management/i }).click();
-    await page.waitForTimeout(1000);
-    // Act: Apply event filter
+
+    await page.route('**/notifications', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify([]),
+      });
+    });
+
+    await page.route('**/notifications/unread-count', async (route) => {
+      await route.fulfill({
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ count: 0 }),
+      });
+    });
+
+    await page.goto('/admin/donations', { waitUntil: 'domcontentloaded' });
+
+    await expect(page.getByText('Ada Lovelace')).toBeVisible();
+    await expect(page.getByText('Grace Hopper')).toBeVisible();
+
     const eventSelect = page.getByTestId('event-filter-dropdown');
     await expect(eventSelect).toBeVisible();
     const options = await eventSelect.locator('option').allTextContents();
     const eventOption = options.find(opt => opt && opt !== '' && !opt.toLowerCase().includes('select'));
     if (!eventOption) test.skip('No event options available to filter');
     await eventSelect.selectOption({ label: eventOption });
-    await page.waitForTimeout(500);
-    // Apply date filter
+
     const yearInput = page.getByTestId('date-filter-year');
     const monthInput = page.getByTestId('date-filter-month');
     const dayInput = page.getByTestId('date-filter-day');
     await yearInput.fill('2026');
     await monthInput.fill('01');
     await dayInput.fill('01');
-    await page.waitForTimeout(1000);
-    // Assert: All visible donation cards contain both event name and date
-    const cards = page.locator('[data-testid="donation-card"]', { hasText: eventOption });
-    const dateCards = cards.filter({ hasText: '2026-01-01' });
-    expect(await dateCards.count()).toBeGreaterThanOrEqual(0);
-    // Act: Clear filters (reset event and date fields)
+
+    await expect(page.getByText('Ada Lovelace')).toBeVisible();
+    await expect(page.getByText('Grace Hopper')).toHaveCount(0);
+
     await eventSelect.selectOption({ index: 0 });
     await yearInput.fill('');
     await monthInput.fill('');
     await dayInput.fill('');
-    await page.waitForTimeout(1000);
-    // Assert: Full dataset is restored (more cards visible)
-    const allCards = page.locator('[data-testid="donation-card"]');
-    expect(await allCards.count()).toBeGreaterThanOrEqual(await dateCards.count());
+    await expect(page.getByText('Ada Lovelace')).toBeVisible();
+    await expect(page.getByText('Grace Hopper')).toBeVisible();
   });
 });

@@ -15,6 +15,13 @@ public class EventResponseModel {
     private String category;
     private String imageUrl;
 
+    private Integer totalRegistrations;
+    private Integer totalUnregistrations;
+    private Integer totalWaitlistCount;
+    private Integer finalWaitlistCount;
+    private String createdAt;
+    private String completedAt;
+
     public EventResponseModel() {
     }
 
@@ -29,7 +36,13 @@ public class EventResponseModel {
             Integer maxCapacity,
             Integer currentRegistrations,
             String category,
-            String imageUrl) {
+            String imageUrl,
+            Integer totalRegistrations,
+            Integer totalUnregistrations,
+            Integer totalWaitlistCount,
+            Integer finalWaitlistCount,
+            String createdAt,
+            String completedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -42,6 +55,12 @@ public class EventResponseModel {
         this.currentRegistrations = currentRegistrations;
         this.category = category;
         this.imageUrl = imageUrl;
+        this.totalRegistrations = totalRegistrations;
+        this.totalUnregistrations = totalUnregistrations;
+        this.totalWaitlistCount = totalWaitlistCount;
+        this.finalWaitlistCount = finalWaitlistCount;
+        this.createdAt = createdAt;
+        this.completedAt = completedAt;
     }
 
     public Long getId() {
@@ -138,5 +157,53 @@ public class EventResponseModel {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Integer getTotalRegistrations() {
+        return totalRegistrations;
+    }
+
+    public void setTotalRegistrations(Integer totalRegistrations) {
+        this.totalRegistrations = totalRegistrations;
+    }
+
+    public Integer getTotalUnregistrations() {
+        return totalUnregistrations;
+    }
+
+    public void setTotalUnregistrations(Integer totalUnregistrations) {
+        this.totalUnregistrations = totalUnregistrations;
+    }
+
+    public Integer getTotalWaitlistCount() {
+        return totalWaitlistCount;
+    }
+
+    public void setTotalWaitlistCount(Integer totalWaitlistCount) {
+        this.totalWaitlistCount = totalWaitlistCount;
+    }
+
+    public Integer getFinalWaitlistCount() {
+        return finalWaitlistCount;
+    }
+
+    public void setFinalWaitlistCount(Integer finalWaitlistCount) {
+        this.finalWaitlistCount = finalWaitlistCount;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(String completedAt) {
+        this.completedAt = completedAt;
     }
 }

@@ -40,6 +40,24 @@ public class Event {
     @Column(name = "category")
     private String category;
 
+    @Column(name = "total_registrations")
+    private Integer totalRegistrations = 0;
+
+    @Column(name = "total_unregistrations")
+    private Integer totalUnregistrations = 0;
+
+    @Column(name = "total_waitlist_count")
+    private Integer totalWaitlistCount = 0;
+
+    @Column(name = "final_waitlist_count")
+    private Integer finalWaitlistCount = 0;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
+
     @Version
     @Column(name = "version")
     private Long version;
@@ -68,6 +86,7 @@ public class Event {
         this.maxCapacity = maxCapacity;
         this.currentRegistrations = currentRegistrations;
         this.category = category;
+        this.createdAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -172,5 +191,53 @@ public class Event {
 
     public void setVersion(Long version) {
         this.version = version;
+    }
+
+    public Integer getTotalRegistrations() {
+        return totalRegistrations;
+    }
+
+    public void setTotalRegistrations(Integer totalRegistrations) {
+        this.totalRegistrations = totalRegistrations;
+    }
+
+    public Integer getTotalUnregistrations() {
+        return totalUnregistrations;
+    }
+
+    public void setTotalUnregistrations(Integer totalUnregistrations) {
+        this.totalUnregistrations = totalUnregistrations;
+    }
+
+    public Integer getTotalWaitlistCount() {
+        return totalWaitlistCount;
+    }
+
+    public void setTotalWaitlistCount(Integer totalWaitlistCount) {
+        this.totalWaitlistCount = totalWaitlistCount;
+    }
+
+    public Integer getFinalWaitlistCount() {
+        return finalWaitlistCount;
+    }
+
+    public void setFinalWaitlistCount(Integer finalWaitlistCount) {
+        this.finalWaitlistCount = finalWaitlistCount;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(LocalDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 }

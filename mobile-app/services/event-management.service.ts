@@ -30,6 +30,46 @@ type ManagedEventResponse = {
     imageUrl?: string | null;
 };
 
+export type EventAnalyticsDailyMetric = {
+    daysBeforeEvent: number;
+    date?: string;
+    confirmed: number;
+    waitlisted: number;
+    cancelled: number;
+};
+
+export type EventAnalyticsResponse = {
+    eventId: number;
+    title: string;
+    category: string;
+    confirmedDeltaVsUsual: number;
+    waitlistDeltaVsUsual: number;
+    currentVelocity: number;
+    predictedFinalAttendance: number;
+    estimatedDaysToFill: number | null;
+    eventTimeline: EventAnalyticsDailyMetric[];
+    usualTrendTimeline: EventAnalyticsDailyMetric[];
+};
+export type EventPerformanceSummary = {
+    eventId: number;
+    title: string;
+    currentRegistrations: number;
+    maxCapacity: number | null;
+    attendanceDeltaVsNorm: number;
+    trendingUp: boolean;
+};
+
+export type GlobalAnalyticsResponseModel = {
+    totalWaitlistedPercentage: number;
+    totalConfirmed: number;
+    totalWaitlisted: number;
+    currentGlobalVelocity: number;
+    historicalGlobalVelocity: number;
+    velocityDeltaPercentage: number;
+    performingBetterThanUsual: boolean;
+    activeEventPerformances: EventPerformanceSummary[];
+};
+
 const getAuthHeaders = async () => {
     const currentUser = await AuthService.getCurrentUser();
     if (!currentUser || !currentUser.token) {
@@ -109,5 +149,32 @@ export const uploadEventImage = async (
             'Content-Type': 'multipart/form-data',
         },
     });
+    return response.data;
+};
+
+export const getEventAnalytics = async (id: number): Promise<EventAnalyticsResponse> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(`${API_BASE}/events/${id}/analytics`, { headers });
+    return response.data;
+};
+
+export const getGlobalAnalytics = async (): Promise<GlobalAnalyticsResponseModel> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(`${API_BASE}/analytics/global`, { headers });
+    return response.data;
+};
+
+export const getCompareAnalytics = async (eventIds: number[]): Promise<EventAnalyticsResponse[]> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.get(`${API_BASE}/analytics/compare`, {
+        headers,
+        params: { eventIds: eventIds.join(',') }
+    });
+    return response.data;
+};
+
+export const seedAnalyticsData = async (): Promise<string> => {
+    const headers = await getAuthHeaders();
+    const response = await axios.post(`${API_BASE}/analytics/seed`, null, { headers });
     return response.data;
 };

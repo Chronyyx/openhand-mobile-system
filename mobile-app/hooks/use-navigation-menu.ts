@@ -36,9 +36,9 @@ export function useNavigationMenu(options: NavigationMenuOptions = {}) {
             closeMenu();
             if (pathname === path) return;
             if (navigateOptions.replace) {
-                router.replace(path);
+                router.replace(path as any);
             } else {
-                router.push(path);
+                router.push(path as any);
             }
         },
         [closeMenu, pathname, router],

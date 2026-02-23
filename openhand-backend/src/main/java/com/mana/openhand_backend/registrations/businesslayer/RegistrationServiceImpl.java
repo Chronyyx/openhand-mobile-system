@@ -172,6 +172,9 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .collect(Collectors.toList());
 
         lockedEvent.setCurrentRegistrations(currentRegs + totalParticipants);
+        lockedEvent.setTotalRegistrations(
+                (lockedEvent.getTotalRegistrations() != null ? lockedEvent.getTotalRegistrations() : 0)
+                        + totalParticipants);
         updateEventStatusForCapacity(lockedEvent);
         eventRepository.save(lockedEvent);
 
@@ -311,9 +314,15 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .filter(reg -> reg.getStatus() == RegistrationStatus.CONFIRMED)
                     .count();
 
-            if (event != null && event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
-                int updatedCount = Math.max(0, event.getCurrentRegistrations() - confirmedCount);
-                event.setCurrentRegistrations(updatedCount);
+            if (event != null) {
+                event.setTotalUnregistrations(
+                        (event.getTotalUnregistrations() != null ? event.getTotalUnregistrations() : 0)
+                                + toCancel.size());
+                if (confirmedCount > 0 && event.getCurrentRegistrations() != null
+                        && event.getCurrentRegistrations() > 0) {
+                    int updatedCount = Math.max(0, event.getCurrentRegistrations() - confirmedCount);
+                    event.setCurrentRegistrations(updatedCount);
+                }
                 updateEventStatusForCapacity(event);
                 eventRepository.save(event);
             }
@@ -330,12 +339,15 @@ public class RegistrationServiceImpl implements RegistrationService {
                     .findFirst()
                     .orElse(registration);
         } else {
-            if (registration.getStatus() == RegistrationStatus.CONFIRMED) {
-                if (event != null && event.getCurrentRegistrations() != null && event.getCurrentRegistrations() > 0) {
+            if (event != null) {
+                event.setTotalUnregistrations(
+                        (event.getTotalUnregistrations() != null ? event.getTotalUnregistrations() : 0) + 1);
+                if (registration.getStatus() == RegistrationStatus.CONFIRMED && event.getCurrentRegistrations() != null
+                        && event.getCurrentRegistrations() > 0) {
                     event.setCurrentRegistrations(event.getCurrentRegistrations() - 1);
-                    updateEventStatusForCapacity(event);
-                    eventRepository.save(event);
                 }
+                updateEventStatusForCapacity(event);
+                eventRepository.save(event);
             }
 
             registration.setStatus(RegistrationStatus.CANCELLED);
@@ -382,6 +394,8 @@ public class RegistrationServiceImpl implements RegistrationService {
 
             // Update event
             event.setCurrentRegistrations(current + 1);
+            event.setTotalRegistrations(
+                    (event.getTotalRegistrations() != null ? event.getTotalRegistrations() : 0) + 1);
             updateEventStatusForCapacity(event);
             eventRepository.save(event);
 
@@ -517,6 +531,9 @@ public class RegistrationServiceImpl implements RegistrationService {
             registration.setStatus(RegistrationStatus.WAITLISTED);
             registration.setWaitlistedPosition((int) (waitlistCount + 1));
             registration.setEvent(lockedEvent);
+            lockedEvent.setTotalWaitlistCount(
+                    (lockedEvent.getTotalWaitlistCount() != null ? lockedEvent.getTotalWaitlistCount() : 0) + 1);
+            eventRepository.save(lockedEvent);
         } else if (atCapacity) {
             throw new EventCapacityException(eventId);
         } else {
@@ -525,6 +542,8 @@ public class RegistrationServiceImpl implements RegistrationService {
             registration.setEvent(lockedEvent);
 
             lockedEvent.setCurrentRegistrations(currentRegs + 1);
+            lockedEvent.setTotalRegistrations(
+                    (lockedEvent.getTotalRegistrations() != null ? lockedEvent.getTotalRegistrations() : 0) + 1);
             updateEventStatusForCapacity(lockedEvent);
             eventRepository.save(lockedEvent);
         }

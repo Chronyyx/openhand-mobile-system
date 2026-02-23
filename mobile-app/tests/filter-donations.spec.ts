@@ -221,7 +221,10 @@ test.describe('Filter Donations by Campaign and Date', () => {
     await expect(eventSelect).toBeVisible();
     const options = await eventSelect.locator('option').allTextContents();
     const eventOption = options.find(opt => opt && opt !== '' && !opt.toLowerCase().includes('select'));
-    if (!eventOption) test.skip('No event options available to filter');
+    if (!eventOption) {
+      test.skip(true, 'No event options available to filter');
+      return;
+    }
     await eventSelect.selectOption({ label: eventOption });
 
     const yearInput = page.getByTestId('date-filter-year');

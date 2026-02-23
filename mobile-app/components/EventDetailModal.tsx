@@ -432,17 +432,36 @@ export function EventDetailModal({
                                 )}
 
                                 {selectedEvent && user && hasRole(['ROLE_ADMIN', 'ROLE_EMPLOYEE']) && (
-                                    <Pressable
-                                        style={styles.attendeesButton}
-                                        onPress={handleOpenAttendees}
-                                        accessibilityRole="button"
-                                        accessibilityLabel={t('events.attendees.viewButton')}
-                                        accessibilityHint={t('events.attendees.viewHint', 'Opens the attendee list')}
-                                    >
-                                        <ThemedText style={styles.attendeesButtonText}>
-                                            {t('events.attendees.viewButton')}
-                                        </ThemedText>
-                                    </Pressable>
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        <Pressable
+                                            style={[styles.attendeesButton, { flex: 1 }]}
+                                            onPress={handleOpenAttendees}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('events.attendees.viewButton')}
+                                            accessibilityHint={t('events.attendees.viewHint', 'Opens the attendee list')}
+                                        >
+                                            <ThemedText style={styles.attendeesButtonText}>
+                                                {t('events.attendees.viewButton')}
+                                            </ThemedText>
+                                        </Pressable>
+                                        <Pressable
+                                            style={[styles.attendeesButton, { flex: 1, backgroundColor: colorScheme === 'dark' ? '#3B4B32' : '#E8F5E9', borderColor: colorScheme === 'dark' ? '#4A6B3C' : '#C8E6C9', borderWidth: 1 }]}
+                                            onPress={() => {
+                                                if (displayEvent) {
+                                                    onClose();
+                                                    router.push(`/admin/events/${displayEvent.id}/analytics` as any);
+                                                }
+                                            }}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={t('admin.events.analyticsButton', 'Analytics')}
+                                            accessibilityHint={t('admin.events.analyticsHint', 'Opens event analytics dashboard')}
+                                        >
+                                            <Ionicons name="bar-chart-outline" size={16} color={colorScheme === 'dark' ? '#A5D6A7' : '#2E7D32'} style={{ marginRight: 6 }} />
+                                            <ThemedText style={[styles.attendeesButtonText, { color: colorScheme === 'dark' ? '#A5D6A7' : '#2E7D32' }]}>
+                                                {t('admin.events.analyticsButton', 'Analytics')}
+                                            </ThemedText>
+                                        </Pressable>
+                                    </View>
                                 )}
 
                                 {/* Employee Walk-In Registration */}

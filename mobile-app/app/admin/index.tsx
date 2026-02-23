@@ -138,6 +138,28 @@ export default function AdminDashboardScreen() {
                     <Ionicons name="chevron-forward" size={18} color={ACCENT} />
                 </Pressable>
 
+                {isAdmin && (
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.card,
+                            pressed && styles.cardPressed,
+                        ]}
+                        onPress={() => router.push('/admin/event-analytics' as any)}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('admin.dashboard.eventAnalytics', 'Event Analytics')}
+                        accessibilityHint={t('admin.dashboard.eventAnalyticsDescription', 'View insights and forecasting models for events')}
+                    >
+                        <View style={styles.cardIcon}>
+                            <Ionicons name="bar-chart" size={24} color={ACCENT} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.cardTitle}>{t('admin.dashboard.eventAnalytics', 'Event Analytics')}</Text>
+                            <Text style={styles.cardDescription}>{t('admin.dashboard.eventAnalyticsDescription', 'View insights and prediction models for events')}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={18} color={ACCENT} />
+                    </Pressable>
+                )}
+
                 <Pressable
                     style={({ pressed }) => [
                         styles.card,
@@ -208,107 +230,107 @@ const getStyles = (scheme: 'light' | 'dark') => {
     const INFO_BG = isDark ? '#1D2A3A' : '#EAF1FF';
 
     return StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: SURFACE,
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 18,
-        paddingVertical: 18,
-    },
-    hero: {
-        flexDirection: 'row',
-        backgroundColor: BG,
-        padding: 16,
-        borderRadius: 14,
-        alignItems: 'center',
-        gap: 12,
-        shadowColor: '#000',
-        shadowOpacity: 0.06,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 4,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: BORDER,
-    },
-    heroIcon: {
-        width: 46,
-        height: 46,
-        borderRadius: 14,
-        backgroundColor: INFO_BG,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: TEXT,
-    },
-    subtitle: {
-        color: TEXT_MUTED,
-        marginTop: 4,
-        fontSize: 14,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 22,
-        marginBottom: 10,
-        gap: 8,
-    },
-    sectionLabel: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: TEXT,
-    },
-    badge: {
-        backgroundColor: INFO_BG,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    badgeText: {
-        color: ACCENT,
-        fontSize: 12,
-        fontWeight: '700',
-    },
-    card: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: BG,
-        borderRadius: 14,
-        marginTop: 10,
-        padding: 14,
-        gap: 12,
-        shadowColor: '#000',
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 3,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: BORDER,
-    },
-    cardPressed: {
-        transform: [{ scale: 0.99 }],
-    },
-    cardIcon: {
-        width: 42,
-        height: 42,
-        borderRadius: 12,
-        backgroundColor: INFO_BG,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    cardTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: TEXT,
-    },
-    cardDescription: {
-        marginTop: 2,
-        color: TEXT_MUTED,
-        fontSize: 13,
-    },
+        container: {
+            flex: 1,
+            backgroundColor: SURFACE,
+        },
+        content: {
+            flex: 1,
+            paddingHorizontal: 18,
+            paddingVertical: 18,
+        },
+        hero: {
+            flexDirection: 'row',
+            backgroundColor: BG,
+            padding: 16,
+            borderRadius: 14,
+            alignItems: 'center',
+            gap: 12,
+            shadowColor: '#000',
+            shadowOpacity: 0.06,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 4 },
+            elevation: 4,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: BORDER,
+        },
+        heroIcon: {
+            width: 46,
+            height: 46,
+            borderRadius: 14,
+            backgroundColor: INFO_BG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        title: {
+            fontSize: 20,
+            fontWeight: '700',
+            color: TEXT,
+        },
+        subtitle: {
+            color: TEXT_MUTED,
+            marginTop: 4,
+            fontSize: 14,
+        },
+        sectionHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            marginTop: 22,
+            marginBottom: 10,
+            gap: 8,
+        },
+        sectionLabel: {
+            fontSize: 14,
+            fontWeight: '700',
+            color: TEXT,
+        },
+        badge: {
+            backgroundColor: INFO_BG,
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 12,
+        },
+        badgeText: {
+            color: ACCENT,
+            fontSize: 12,
+            fontWeight: '700',
+        },
+        card: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: BG,
+            borderRadius: 14,
+            marginTop: 10,
+            padding: 14,
+            gap: 12,
+            shadowColor: '#000',
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 3 },
+            elevation: 3,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: BORDER,
+        },
+        cardPressed: {
+            transform: [{ scale: 0.99 }],
+        },
+        cardIcon: {
+            width: 42,
+            height: 42,
+            borderRadius: 12,
+            backgroundColor: INFO_BG,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        cardTitle: {
+            fontSize: 16,
+            fontWeight: '700',
+            color: TEXT,
+        },
+        cardDescription: {
+            marginTop: 2,
+            color: TEXT_MUTED,
+            fontSize: 13,
+        },
     });
 };

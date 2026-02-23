@@ -11,6 +11,8 @@ import com.mana.openhand_backend.identity.dataaccesslayer.UserRepository;
 import com.mana.openhand_backend.registrations.businesslayer.RegistrationService;
 import com.mana.openhand_backend.registrations.domainclientlayer.GroupRegistrationRequestModel;
 import com.mana.openhand_backend.registrations.domainclientlayer.GroupRegistrationResponseModel;
+import com.mana.openhand_backend.events.domainclientlayer.EventAnalyticsResponseModel;
+import com.mana.openhand_backend.events.businesslayer.EventAnalyticsService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
@@ -28,13 +30,16 @@ public class EventController {
     private final EventService eventService;
     private final RegistrationService registrationService;
     private final UserRepository userRepository;
+    private final EventAnalyticsService eventAnalyticsService;
 
     public EventController(EventService eventService,
             RegistrationService registrationService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            EventAnalyticsService eventAnalyticsService) {
         this.eventService = eventService;
         this.registrationService = registrationService;
         this.userRepository = userRepository;
+        this.eventAnalyticsService = eventAnalyticsService;
     }
 
     @GetMapping("/upcoming")
@@ -62,6 +67,12 @@ public class EventController {
         return eventService.getEventAttendees(id);
     }
 
+    @GetMapping("/{id}/analytics")
+    @PreAuthorize("hasRole('ROLE_EMPLOYEE') or hasRole('ROLE_ADMIN')")
+    public EventAnalyticsResponseModel getEventAnalytics(@PathVariable Long id) {
+        return eventAnalyticsService.getEventAnalytics(id);
+    }
+
     @PostMapping("/{id}/registrations")
     @PreAuthorize("hasRole('ROLE_MEMBER')")
     @ResponseStatus(org.springframework.http.HttpStatus.CREATED)
@@ -81,7 +92,8 @@ public class EventController {
         return user.getId();
     }
 
-    private void validateFamilyMembers(List<com.mana.openhand_backend.registrations.domainclientlayer.FamilyMemberRequestModel> familyMembers) {
+    private void validateFamilyMembers(
+            List<com.mana.openhand_backend.registrations.domainclientlayer.FamilyMemberRequestModel> familyMembers) {
         if (familyMembers == null) {
             return;
         }

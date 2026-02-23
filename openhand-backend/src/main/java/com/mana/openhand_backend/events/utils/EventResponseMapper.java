@@ -34,6 +34,12 @@ public class EventResponseMapper {
                                 event.getMaxCapacity(),
                                 event.getCurrentRegistrations(),
                                 event.getCategory(),
-                                event.getImageUrl());
+                                event.getImageUrl(),
+                                event.getTotalRegistrations(),
+                                event.getTotalUnregistrations(),
+                                event.getTotalWaitlistCount(),
+                                event.getFinalWaitlistCount(),
+                                event.getCreatedAt() != null ? event.getCreatedAt().toString() : null,
+                                event.getCompletedAt() != null ? event.getCompletedAt().toString() : null);
         }
 }

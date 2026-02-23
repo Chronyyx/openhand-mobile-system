@@ -65,7 +65,7 @@ export default function EventAttendeesScreen() {
             if (!refreshing) setLoading(true);
             const [eventData, attendeeData] = await Promise.all([
                 getEventById(eventId),
-                getEventAttendees(eventId, user.token),
+                getEventAttendees(eventId),
             ]);
             setEventDetail(eventData);
             setAttendees(attendeeData);

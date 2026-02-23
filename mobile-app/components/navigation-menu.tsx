@@ -74,7 +74,7 @@ export function NavigationMenu({
                             hitSlop={12}
                             onPress={onClose}
                             accessibilityRole="button"
-                            accessibilityLabel={t('common.close', 'Close menu')}
+                            accessibilityLabel={t('common.close')}
                             accessibilityHint="Closes the navigation menu"
                         >
                             <Ionicons name="close" size={20} color={palette.text} />

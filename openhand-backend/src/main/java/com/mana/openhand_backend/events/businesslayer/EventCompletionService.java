@@ -3,6 +3,8 @@ package com.mana.openhand_backend.events.businesslayer;
 import com.mana.openhand_backend.events.dataaccesslayer.Event;
 import com.mana.openhand_backend.events.dataaccesslayer.EventRepository;
 import com.mana.openhand_backend.events.dataaccesslayer.EventStatus;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationRepository;
+import com.mana.openhand_backend.registrations.dataaccesslayer.RegistrationStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +15,25 @@ import java.util.List;
 public class EventCompletionService {
 
     private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
 
-    public EventCompletionService(EventRepository eventRepository) {
+    public EventCompletionService(EventRepository eventRepository, RegistrationRepository registrationRepository) {
         this.eventRepository = eventRepository;
+        this.registrationRepository = registrationRepository;
+    }
+
+    private Event finishEvent(Event event) {
+        if (event.getStatus() == EventStatus.COMPLETED) {
+            return event;
+        }
+        event.setStatus(EventStatus.COMPLETED);
+        event.setCompletedAt(LocalDateTime.now());
+
+        long waitlistCount = registrationRepository.countByEventIdAndStatus(event.getId(),
+                RegistrationStatus.WAITLISTED);
+        event.setFinalWaitlistCount((int) waitlistCount);
+
+        return event;
     }
 
     @Transactional
@@ -27,7 +45,7 @@ public class EventCompletionService {
             return;
         }
 
-        toComplete.forEach(event -> event.setStatus(EventStatus.COMPLETED));
+        toComplete.forEach(this::finishEvent);
         eventRepository.saveAll(toComplete);
     }
 
@@ -38,7 +56,7 @@ public class EventCompletionService {
         }
 
         if (event.getEndDateTime() != null && !event.getEndDateTime().isAfter(now)) {
-            event.setStatus(EventStatus.COMPLETED);
+            finishEvent(event);
             eventRepository.save(event);
             return true;
         }
@@ -52,7 +70,7 @@ public class EventCompletionService {
             return event;
         }
 
-        event.setStatus(EventStatus.COMPLETED);
+        finishEvent(event);
         return eventRepository.save(event);
     }
 }

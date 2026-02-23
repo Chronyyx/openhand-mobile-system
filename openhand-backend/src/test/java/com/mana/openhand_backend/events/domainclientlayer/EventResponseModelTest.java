@@ -58,7 +58,13 @@ class EventResponseModelTest {
                 maxCapacity,
                 currentRegistrations,
                 "General",
-                "http://example.com/image.jpg");
+                "http://example.com/image.jpg",
+                150,
+                10,
+                20,
+                5,
+                "2025-01-01T08:00",
+                "2025-02-02T12:00");
 
         assertEquals(id, model.getId());
         assertEquals(title, model.getTitle());
@@ -72,5 +78,11 @@ class EventResponseModelTest {
         assertEquals(currentRegistrations, model.getCurrentRegistrations());
         assertEquals("General", model.getCategory());
         assertEquals("http://example.com/image.jpg", model.getImageUrl());
+        assertEquals(150, model.getTotalRegistrations());
+        assertEquals(10, model.getTotalUnregistrations());
+        assertEquals(20, model.getTotalWaitlistCount());
+        assertEquals(5, model.getFinalWaitlistCount());
+        assertEquals("2025-01-01T08:00", model.getCreatedAt());
+        assertEquals("2025-02-02T12:00", model.getCompletedAt());
     }
 }

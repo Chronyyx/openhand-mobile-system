@@ -157,7 +157,7 @@ class RegistrationServiceImplTest {
                 assertEquals(RegistrationStatus.WAITLISTED, result.getStatus());
                 assertEquals(2, result.getWaitlistedPosition());
                 verify(registrationRepository).save(any(Registration.class));
-                verify(eventRepository, never()).save(any(Event.class));
+                verify(eventRepository).save(any(Event.class));
         }
 
         @Test
@@ -314,7 +314,7 @@ class RegistrationServiceImplTest {
                 assertNotNull(result);
                 assertEquals(RegistrationStatus.WAITLISTED, result.getStatus());
                 assertEquals(3, result.getWaitlistedPosition());
-                verify(eventRepository, never()).save(testEvent);
+                verify(eventRepository).save(testEvent);
         }
 
         @Test
@@ -346,7 +346,7 @@ class RegistrationServiceImplTest {
                 assertNotNull(result);
                 assertEquals(RegistrationStatus.WAITLISTED, result.getStatus());
                 assertEquals(2, result.getWaitlistedPosition());
-                verify(eventRepository, never()).save(testEvent);
+                verify(eventRepository).save(testEvent);
         }
 
         @Test
@@ -678,7 +678,7 @@ class RegistrationServiceImplTest {
                 // Assert
                 assertNotNull(result);
                 assertEquals(RegistrationStatus.CANCELLED, result.getStatus());
-                verify(eventRepository, never()).save(any(Event.class));
+                verify(eventRepository).save(any(Event.class));
         }
 
         @Test
@@ -786,7 +786,7 @@ class RegistrationServiceImplTest {
                 assertEquals(RegistrationStatus.CANCELLED, result.getStatus());
                 // Should stay at 0, not go negative
                 assertEquals(0, testEvent.getCurrentRegistrations());
-                verify(eventRepository, never()).save(any(Event.class)); // currentRegs is 0, so no save
+                verify(eventRepository).save(any(Event.class)); // saves because of unregistration tracking
         }
 
         @Test
@@ -820,7 +820,7 @@ class RegistrationServiceImplTest {
                 assertNotNull(result);
                 assertEquals(RegistrationStatus.CANCELLED, result.getStatus());
                 assertNull(testEvent.getCurrentRegistrations()); // Stays null
-                verify(eventRepository, never()).save(any(Event.class));
+                verify(eventRepository).save(any(Event.class));
         }
 
         @Test

@@ -326,7 +326,7 @@ export default function AdminEventAnalyticsPickerScreen() {
                                     ) : (
                                         <View style={{ paddingVertical: 30, alignItems: 'center' }}>
                                             <Ionicons name="analytics-outline" size={32} color={isDark ? '#333A45' : '#D7E1F0'} />
-                                            <Text style={{ color: isDark ? '#A0A7B1' : '#5C6A80', marginTop: 8 }}>{t('analytics.global.selectPrompt')}</Text>
+                                            <Text style={{ color: isDark ? '#A0A7B1' : '#5C6A80', marginTop: 8, textAlign: 'center', paddingHorizontal: 16 }}>{t('analytics.global.selectPrompt')}</Text>
                                         </View>
                                     )}
                                 </View>

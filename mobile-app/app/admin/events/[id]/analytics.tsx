@@ -174,12 +174,11 @@ export default function EventAnalyticsScreen() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Stages 1-3: The Multi-Line Chart */}
                 <View style={[styles.chartContainer, isDark && styles.chartContainerDark]}>
                     <View style={styles.chartHeader}>
-                        <Text style={[styles.chartTitle, isDark && styles.darkText]}>{t('analytics.single.timeline')}</Text>
+                        <Text style={[styles.chartTitle, isDark && styles.darkText]} numberOfLines={1}>{t('analytics.single.timeline')}</Text>
                         <TouchableOpacity onPress={() => setShowUsualTrend(!showUsualTrend)} style={styles.usualToggle}>
-                            <Text style={{ color: showUsualTrend ? '#007bff' : (isDark ? '#888' : 'gray') }}>
+                            <Text style={{ color: showUsualTrend ? '#007bff' : (isDark ? '#888' : 'gray'), fontSize: 12 }} numberOfLines={1}>
                                 {showUsualTrend ? `☑ ${t('analytics.single.usualTrend')}` : `☐ ${t('analytics.single.usualTrend')}`}
                             </Text>
                         </TouchableOpacity>
@@ -188,12 +187,13 @@ export default function EventAnalyticsScreen() {
                     <LineChart
                         data={generateChartData()}
                         width={screenWidth}
-                        height={220}
+                        height={280}
                         chartConfig={chartConfig}
                         bezier
                         style={styles.chart}
                         fromZero
                         verticalLabelRotation={45}
+                        xLabelsOffset={-10}
                     />
                 </View>
 
@@ -253,12 +253,12 @@ const styles = StyleSheet.create({
 
     chartContainer: { backgroundColor: '#fff', padding: 16, borderRadius: 12, elevation: 2, marginBottom: 20 },
     chartContainerDark: { backgroundColor: '#1e1e1e' },
-    chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-    chartTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a' },
+    chartHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, gap: 8 },
+    chartTitle: { fontSize: 16, fontWeight: 'bold', color: '#1a1a1a', flexShrink: 1 },
     chartSubTitle: { fontSize: 12, color: '#666', marginTop: 4, textAlign: 'center' },
     subtitleDark: { color: '#A0A7B1' },
     usualToggle: { padding: 4 },
-    chart: { marginVertical: 8, borderRadius: 16, alignSelf: 'center' },
+    chart: { marginVertical: 8, borderRadius: 16, alignSelf: 'center', paddingBottom: 20 },
 
     gaugeCard: { flex: 1, backgroundColor: '#fff', padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', elevation: 2 },
     velocityText: { fontSize: 10, color: '#666', marginTop: 12, textAlign: 'center' },

@@ -49,6 +49,8 @@ if [ "${IS_PRODUCTION:-false}" = "true" ] && [ -n "${EXPO_NGROK_AUTHTOKEN:-}" ];
   # Production: configure and start static ngrok tunnel using npx to circumvent missing binary
   npx ngrok config add-authtoken "$EXPO_NGROK_AUTHTOKEN"
   export EXPO_PACKAGER_PROXY_URL="https://wes-chromophotographic-boyce.ngrok-free.dev"
+  export REACT_NATIVE_PACKAGER_HOSTNAME="wes-chromophotographic-boyce.ngrok-free.dev"
+  export EXPO_TUNNEL_SUBDOMAIN="wes-chromophotographic-boyce"
   npx expo start &
   sleep 5
   exec npx ngrok http --domain=wes-chromophotographic-boyce.ngrok-free.dev 8081

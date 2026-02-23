@@ -25,8 +25,8 @@ export default function RootLayout() {
     const { t } = useTranslation();
 
     const [loaded, error] = useFonts({
-        ...Ionicons.font,
-        ...MaterialIcons.font,
+        ionicons: 'https://raw.githubusercontent.com/expo/vector-icons/master/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf',
+        material: 'https://raw.githubusercontent.com/expo/vector-icons/master/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.ttf',
     });
 
     useEffect(() => {

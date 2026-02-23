@@ -109,7 +109,7 @@ export default function AdminEventAnalyticsPickerScreen() {
                 <View style={{ flex: 1 }}>
                     <ThemedText style={styles.cardTitle}>{item.title}</ThemedText>
                     <ThemedText style={styles.cardSubtitle}>
-                        {item.currentRegistrations}/{item.maxCapacity || '∞'} Registrations
+                        {item.currentRegistrations}/{item.maxCapacity || '∞'} {t('analytics.global.registrations')}
                     </ThemedText>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -120,7 +120,7 @@ export default function AdminEventAnalyticsPickerScreen() {
                             color={item.trendingUp ? '#4CAF50' : '#F44336'}
                         />
                         <Text style={[styles.badgeText, { color: item.trendingUp ? '#4CAF50' : '#F44336' }]}>
-                            {Math.abs(item.attendanceDeltaVsNorm).toFixed(1)}% vs norm
+                            {Math.abs(item.attendanceDeltaVsNorm).toFixed(1)}% {t('analytics.global.vsNorm')}
                         </Text>
                     </View>
                     <Ionicons name="chevron-forward" size={20} color={isDark ? '#A0A7B1' : '#5C6A80'} />
@@ -210,16 +210,16 @@ export default function AdminEventAnalyticsPickerScreen() {
         <MenuLayout>
             <ThemedView style={styles.container}>
                 <View style={styles.headerRow}>
-                    <ThemedText style={styles.title}>Global Analytics</ThemedText>
+                    <ThemedText style={styles.title}>{t('analytics.global.title')}</ThemedText>
                     <Pressable style={styles.seedBtn} onPress={handleSeedData} disabled={seeding}>
-                        {seeding ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.seedBtnText}>Seed Data</Text>}
+                        {seeding ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.seedBtnText}>{t('analytics.global.seedData')}</Text>}
                     </Pressable>
                 </View>
 
                 {loading || !globalData ? (
                     <View style={styles.centered}>
                         <ActivityIndicator size="large" color={isDark ? '#9FC3FF' : '#0056A8'} />
-                        <ThemedText style={{ marginTop: 10, color: isDark ? '#A0A7B1' : '#5C6A80' }}>Loading analytics...</ThemedText>
+                        <ThemedText style={{ marginTop: 10, color: isDark ? '#A0A7B1' : '#5C6A80' }}>{t('analytics.global.loading')}</ThemedText>
                     </View>
                 ) : error ? (
                     <View style={styles.centered}>
@@ -236,17 +236,17 @@ export default function AdminEventAnalyticsPickerScreen() {
                                 {/* Global Stats Cards */}
                                 <View style={styles.statsRow}>
                                     <View style={styles.statBox}>
-                                        <Text style={styles.statBoxTitle}>Global Velocity</Text>
-                                        <Text style={styles.statBoxValue}>{globalData.currentGlobalVelocity.toFixed(1)} <Text style={{ fontSize: 12 }}>/day</Text></Text>
+                                        <Text style={styles.statBoxTitle}>{t('analytics.global.globalVelocity')}</Text>
+                                        <Text style={styles.statBoxValue}>{globalData.currentGlobalVelocity.toFixed(1)} <Text style={{ fontSize: 12 }}>{t('analytics.global.perDay')}</Text></Text>
                                         <Text style={[styles.statBoxDelta, { color: globalData.performingBetterThanUsual ? '#4CAF50' : '#F44336' }]}>
-                                            {globalData.performingBetterThanUsual ? '↑' : '↓'} {Math.abs(globalData.velocityDeltaPercentage).toFixed(1)}% vs usual
+                                            {globalData.performingBetterThanUsual ? '↑' : '↓'} {Math.abs(globalData.velocityDeltaPercentage).toFixed(1)}% {t('analytics.global.vsUsual')}
                                         </Text>
                                     </View>
                                 </View>
 
                                 {/* Pie Chart */}
                                 <View style={styles.chartContainer}>
-                                    <Text style={styles.chartTitle}>Platform Registration Split</Text>
+                                    <Text style={styles.chartTitle}>{t('analytics.global.pieTitle')}</Text>
                                     <PieChart
                                         data={pieData}
                                         width={screenWidth}
@@ -264,7 +264,7 @@ export default function AdminEventAnalyticsPickerScreen() {
 
                                 {/* Compare Section */}
                                 <View style={[styles.chartContainer, { marginTop: 16 }]}>
-                                    <Text style={[styles.chartTitle, { marginBottom: 12 }]}>Compare Registration Timelines</Text>
+                                    <Text style={[styles.chartTitle, { marginBottom: 12 }]}>{t('analytics.global.compareTitle')}</Text>
 
                                     <View style={{ width: '100%', marginBottom: selectedCompareIds.length > 0 ? 12 : 0 }}>
                                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 8, flexDirection: 'row' }}>
@@ -284,7 +284,7 @@ export default function AdminEventAnalyticsPickerScreen() {
                                             {selectedCompareIds.length < 5 && (
                                                 <Pressable style={styles.addChip} onPress={() => setModalVisible(true)}>
                                                     <Ionicons name="add" size={14} color={isDark ? '#A0A7B1' : '#5C6A80'} />
-                                                    <Text style={styles.addChipText}>Add Event</Text>
+                                                    <Text style={styles.addChipText}>{t('analytics.global.addEvent')}</Text>
                                                 </Pressable>
                                             )}
                                         </ScrollView>
@@ -320,13 +320,13 @@ export default function AdminEventAnalyticsPickerScreen() {
                                                 </ScrollView>
                                             )}
                                             <Text style={{ fontSize: 12, color: isDark ? '#A0A7B1' : '#5C6A80', alignSelf: 'center', marginBottom: 8 }}>
-                                                Registration activity over time
+                                                {t('analytics.global.chartSubtitle')}
                                             </Text>
                                         </>
                                     ) : (
                                         <View style={{ paddingVertical: 30, alignItems: 'center' }}>
                                             <Ionicons name="analytics-outline" size={32} color={isDark ? '#333A45' : '#D7E1F0'} />
-                                            <Text style={{ color: isDark ? '#A0A7B1' : '#5C6A80', marginTop: 8 }}>Add events to compare their trends</Text>
+                                            <Text style={{ color: isDark ? '#A0A7B1' : '#5C6A80', marginTop: 8 }}>{t('analytics.global.selectPrompt')}</Text>
                                         </View>
                                     )}
                                 </View>
@@ -348,7 +348,7 @@ export default function AdminEventAnalyticsPickerScreen() {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Select Event to Compare</Text>
+                            <Text style={styles.modalTitle}>{t('analytics.global.selectEvent')}</Text>
                             <Pressable onPress={() => setModalVisible(false)} hitSlop={10}>
                                 <Ionicons name="close" size={24} color={isDark ? '#ECEDEE' : '#0F2848'} />
                             </Pressable>

@@ -367,14 +367,14 @@
     }
   },
   "donations": {
-          "filter": {
-            "campaign": "Campaña",
-            "allCampaigns": "Todas las campañas",
-            "startDate": "Fecha de inicio",
-            "endDate": "Fecha de fin",
-            "startDatePlaceholder": "AAAA-MM-DD",
-            "endDatePlaceholder": "AAAA-MM-DD"
-          },
+    "filter": {
+      "campaign": "Campaña",
+      "allCampaigns": "Todas las campañas",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "startDatePlaceholder": "AAAA-MM-DD",
+      "endDatePlaceholder": "AAAA-MM-DD"
+    },
     "title": "Donaciones",
     "subtitle": "Apoya a MANA con un aporte rápido y seguro.",
     "zeffyTitle": "Donar con Zeffy",
@@ -874,6 +874,46 @@
       "markReadFailed": "Error al marcar como leído",
       "deleteFailed": "Error al eliminar notificación",
       "markAllReadFailed": "Error al marcar todo como leído"
+    }
+  },
+  "analytics": {
+    "global": {
+      "title": "Analíticas globales",
+      "seedData": "Generar datos",
+      "loading": "Cargando analíticas...",
+      "globalVelocity": "Velocidad global",
+      "perDay": "/día",
+      "vsUsual": "vs habitual",
+      "pieTitle": "Distribución de inscripciones",
+      "confirmed": "Confirmadas",
+      "waitlisted": "Lista de espera",
+      "compareTitle": "Comparar cronologías de inscripciones",
+      "addEvent": "Agregar evento",
+      "chartSubtitle": "Actividad de inscripciones a lo largo del tiempo",
+      "selectPrompt": "Selecciona eventos para comparar sus cronologías de inscripciones lado a lado.",
+      "selectEvent": "Seleccionar un evento para comparar",
+      "registrations": "Inscripciones",
+      "vsNorm": "vs norma"
+    },
+    "single": {
+      "title": "Analíticas para: {{name}}",
+      "loading": "Calculando rendimiento típico...",
+      "errorLoad": "No se pudieron cargar las analíticas avanzadas.",
+      "performingBetter": "¡Este evento tiene un rendimiento superior al habitual!",
+      "trackingAverage": "Siguiendo los promedios históricos.",
+      "confirmed": "Confirmadas",
+      "waitlist": "Lista de espera",
+      "moreThanUsual": "↑ {{value}}% más de lo habitual",
+      "lessThanUsual": "↓ {{value}}% menos de lo habitual",
+      "sameAsUsual": "Igual que lo habitual",
+      "timeline": "Cronología de inscripciones",
+      "usualTrend": "Tendencia habitual",
+      "fillRate": "Tasa de llenado",
+      "full": "Completo",
+      "atCapacity": "El evento está a capacidad máxima",
+      "daysToFill": "Días estimados para llenar",
+      "notEnoughData": "No hay datos suficientes",
+      "regsPerDay": "{{value}} inscr./día"
     }
   }
 }

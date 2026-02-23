@@ -874,5 +874,45 @@
       "deleteFailed": "Failed to delete notification",
       "markAllReadFailed": "Failed to mark all as read"
     }
+  },
+  "analytics": {
+    "global": {
+      "title": "Global Analytics",
+      "seedData": "Seed Data",
+      "loading": "Loading analytics...",
+      "globalVelocity": "Global Velocity",
+      "perDay": "/day",
+      "vsUsual": "vs usual",
+      "pieTitle": "Platform Registration Split",
+      "confirmed": "Confirmed",
+      "waitlisted": "Waitlisted",
+      "compareTitle": "Compare Registration Timelines",
+      "addEvent": "Add Event",
+      "chartSubtitle": "Registration activity over time",
+      "selectPrompt": "Select events to compare registration timelines side by side.",
+      "selectEvent": "Select an event to compare",
+      "registrations": "Registrations",
+      "vsNorm": "vs norm"
+    },
+    "single": {
+      "title": "Analytics for: {{name}}",
+      "loading": "Calculating typical performance...",
+      "errorLoad": "Could not load advanced analytics right now.",
+      "performingBetter": "This event is performing better than usual!",
+      "trackingAverage": "Tracking along historical averages.",
+      "confirmed": "Confirmed",
+      "waitlist": "Waitlist",
+      "moreThanUsual": "↑ {{value}}% more than usual",
+      "lessThanUsual": "↓ {{value}}% less than usual",
+      "sameAsUsual": "Same as usual",
+      "timeline": "Registration Timeline",
+      "usualTrend": "Usual Trend",
+      "fillRate": "Fill Rate",
+      "full": "Full",
+      "atCapacity": "Event is at capacity",
+      "daysToFill": "Est. days to fill",
+      "notEnoughData": "Not enough data yet",
+      "regsPerDay": "{{value}} regs/day"
+    }
   }
 }

@@ -563,7 +563,9 @@
       "donationMetrics": "Indicateurs des dons",
       "donationMetricsDescription": "Suivre les KPI et tendances des dons",
       "attendanceReports": "Rapports de présence",
-      "attendanceReportsDescription": "Générer des rapports de présence par période"
+      "attendanceReportsDescription": "Générer des rapports de présence par période",
+      "eventAnalytics": "Analytiques d'événements",
+      "eventAnalyticsDescription": "Voir les analyses et modèles de prédiction pour les événements"
     },
     "attendanceReports": {
       "title": "Rapports de présence",
@@ -900,7 +902,10 @@
       "selectPrompt": "Sélectionnez des événements pour comparer leurs chronologies d'inscriptions côte à côte.",
       "selectEvent": "Sélectionner un événement à comparer",
       "registrations": "Inscriptions",
-      "vsNorm": "vs norme"
+      "vsNorm": "vs norme",
+      "individualTitle": "Analytiques par événement",
+      "noEventsFound": "Aucun événement actif trouvé. Essayez de générer des données !",
+      "noMoreEvents": "Plus d'événements à ajouter."
     },
     "single": {
       "title": "Analytiques pour : {{name}}",

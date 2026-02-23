@@ -556,7 +556,9 @@
       "donationMetrics": "Métricas de donaciones",
       "donationMetricsDescription": "Seguir KPIs y tendencias de donaciones",
       "attendanceReports": "Informes de asistencia",
-      "attendanceReportsDescription": "Generar informes de asistencia por rango de fechas"
+      "attendanceReportsDescription": "Generar informes de asistencia por rango de fechas",
+      "eventAnalytics": "Analíticas de eventos",
+      "eventAnalyticsDescription": "Ver análisis y modelos de predicción para eventos"
     },
     "attendanceReports": {
       "title": "Informes de asistencia",
@@ -893,7 +895,10 @@
       "selectPrompt": "Selecciona eventos para comparar sus cronologías de inscripciones lado a lado.",
       "selectEvent": "Seleccionar un evento para comparar",
       "registrations": "Inscripciones",
-      "vsNorm": "vs norma"
+      "vsNorm": "vs norma",
+      "individualTitle": "Analíticas por evento",
+      "noEventsFound": "No se encontraron eventos activos. ¡Intenta generar datos!",
+      "noMoreEvents": "No hay más eventos para agregar."
     },
     "single": {
       "title": "Analíticas para: {{name}}",

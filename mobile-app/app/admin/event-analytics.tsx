@@ -331,12 +331,12 @@ export default function AdminEventAnalyticsPickerScreen() {
                                     )}
                                 </View>
 
-                                <ThemedText style={[styles.title, { fontSize: 18, marginTop: 20 }]}>Individual Event Analytics</ThemedText>
+                                <ThemedText style={[styles.title, { fontSize: 18, marginTop: 20 }]}>{t('analytics.global.individualTitle')}</ThemedText>
                             </View>
                         }
                         ListEmptyComponent={
                             <ThemedText style={{ color: isDark ? '#A0A7B1' : '#5C6A80' }}>
-                                No active events found. Try seeding data!
+                                {t('analytics.global.noEventsFound')}
                             </ThemedText>
                         }
                     />
@@ -370,7 +370,7 @@ export default function AdminEventAnalyticsPickerScreen() {
                             )}
                             ListEmptyComponent={
                                 <Text style={{ color: isDark ? '#A0A7B1' : '#5C6A80', textAlign: 'center', marginTop: 20 }}>
-                                    No more events to add.
+                                    {t('analytics.global.noMoreEvents')}
                                 </Text>
                             }
                         />

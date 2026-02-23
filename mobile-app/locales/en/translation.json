@@ -555,7 +555,9 @@
       "donationMetrics": "Donations Metrics",
       "donationMetricsDescription": "Track donation KPIs and trends",
       "attendanceReports": "Attendance Reports",
-      "attendanceReportsDescription": "Generate event attendance reports by date range"
+      "attendanceReportsDescription": "Generate event attendance reports by date range",
+      "eventAnalytics": "Event Analytics",
+      "eventAnalyticsDescription": "View insights and prediction models for events"
     },
     "attendanceReports": {
       "title": "Attendance Reports",
@@ -892,7 +894,10 @@
       "selectPrompt": "Select events to compare registration timelines side by side.",
       "selectEvent": "Select an event to compare",
       "registrations": "Registrations",
-      "vsNorm": "vs norm"
+      "vsNorm": "vs norm",
+      "individualTitle": "Individual Event Analytics",
+      "noEventsFound": "No active events found. Try seeding data!",
+      "noMoreEvents": "No more events to add."
     },
     "single": {
       "title": "Analytics for: {{name}}",

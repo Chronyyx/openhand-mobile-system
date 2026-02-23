@@ -193,6 +193,7 @@ export default function EventAnalyticsScreen() {
                         bezier
                         style={styles.chart}
                         fromZero
+                        verticalLabelRotation={45}
                     />
                 </View>
 
